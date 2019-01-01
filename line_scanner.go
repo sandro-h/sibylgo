@@ -72,6 +72,14 @@ func (s *LineScanner) Line() *Line {
 	return &s.line
 }
 
+func (s *LineScanner) ScanAndLine() (bool, *Line) {
+	if !s.Scan() {
+		return false, nil
+	} else {
+		return true, s.Line()
+	}
+}
+
 func (s *LineScanner) Unscan() {
 	s.undoing = true
 }
@@ -105,4 +113,32 @@ func (s *LineScanner) detectNewlineLength() {
 			break
 		}
 	}
+}
+
+func (l *Line) LineNumber() int {
+	return l.lineNumber
+}
+
+func (l *Line) Offset() int {
+	return l.offset
+}
+
+func (l *Line) Length() int {
+	return len(l.content)
+}
+
+func (l *Line) Content() string {
+	return l.content
+}
+
+func (l *Line) TrimmedContent() string {
+	return strings.TrimSpace(l.content)
+}
+
+func (l *Line) IsEmpty() bool {
+	return len(l.TrimmedContent()) == 0
+}
+
+func (l *Line) HasPrefix(prefix string) bool {
+	return strings.HasPrefix(l.content, prefix)
 }
