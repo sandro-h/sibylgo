@@ -22,6 +22,7 @@ type Moment interface {
 	GetComment(index int) *CommentLine
 	GetSubMoments() []Moment
 	GetLastComment() *CommentLine
+	GetDocCoords() DocCoords
 }
 
 type Todos struct {
@@ -110,6 +111,10 @@ func (m *BaseMoment) GetLastComment() *CommentLine {
 		return nil
 	}
 	return m.comments[len(m.comments)-1]
+}
+
+func (m *BaseMoment) GetDocCoords() DocCoords {
+	return m.DocCoords
 }
 
 type SingleMoment struct {

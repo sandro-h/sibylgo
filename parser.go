@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"os"
 	"strings"
 )
@@ -31,6 +32,10 @@ func ParseFile(path string) (*Todos, error) {
 
 func ParseString(str string) (*Todos, error) {
 	return parse(NewLineStringScanner(str))
+}
+
+func ParseReader(reader io.Reader) (*Todos, error) {
+	return parse(NewLineScanner(reader))
 }
 
 func parse(scanner *LineScanner) (*Todos, error) {
