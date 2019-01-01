@@ -16,6 +16,7 @@ type Moment interface {
 
 	GetName() string
 	GetPriority() int
+	GetCategory() *Category
 	IsDone() bool
 	GetComments() []*CommentLine
 	GetComment(index int) *CommentLine
@@ -82,6 +83,10 @@ func (m *BaseMoment) GetName() string {
 
 func (m *BaseMoment) GetPriority() int {
 	return m.priority
+}
+
+func (m *BaseMoment) GetCategory() *Category {
+	return m.category
 }
 
 func (m *BaseMoment) IsDone() bool {

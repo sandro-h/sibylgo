@@ -108,6 +108,49 @@ func TestEmptyTrailingComments(t *testing.T) {
 	assertComments(t, todos, "1", "some comment", "more more more")
 }
 
+func TestCategory(t *testing.T) {
+	todos, _ := ParseString(`
+[] 1
+------------------
+ a cat
+------------------
+[] 2
+	[] 2.1
+		[] 2.1.1
+	`)
+
+	assert.Nil(t, momentByPath(todos, "1").GetCategory())
+	assert.Equal(t, 1, len(todos.categories))
+	assert.Equal(t, "a cat", todos.categories[0].name)
+	assert.Equal(t, "a cat", momentByPath(todos, "2").GetCategory().name)
+	assert.Equal(t, "a cat", momentByPath(todos, "2/2.1").GetCategory().name)
+	assert.Equal(t, "a cat", momentByPath(todos, "2/2.1/2.1.1").GetCategory().name)
+}
+
+func TestPriorityCategory(t *testing.T) {
+	todos, _ := ParseString(`
+------------------
+ a cat!!
+------------------
+[] 1
+	`)
+
+	assert.Equal(t, 1, len(todos.categories))
+	assert.Equal(t, "a cat", todos.categories[0].name)
+	assert.Equal(t, 2, todos.categories[0].priority)
+}
+
+func TestBadCategory(t *testing.T) {
+	_, err := ParseString(`
+------------------
+ a cat
+ invalid more stuff
+[] 1
+	`)
+
+	assert.Contains(t, err.Error(), "Expected a delimiter after category a cat")
+}
+
 func assertMomentExists(t *testing.T, todos *Todos, path string) Moment {
 	mom := momentByPath(todos, path)
 	if mom == nil {
