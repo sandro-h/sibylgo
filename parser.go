@@ -26,7 +26,15 @@ func ParseFile(path string) (*Todos, error) {
 	}
 	defer file.Close()
 
-	parser := Parser{todos: &Todos{}, scanner: NewFileLineScanner(file)}
+	return parse(NewFileLineScanner(file))
+}
+
+func ParseString(str string) (*Todos, error) {
+	return parse(NewLineStringScanner(str))
+}
+
+func parse(scanner *LineScanner) (*Todos, error) {
+	parser := Parser{todos: &Todos{}, scanner: scanner}
 	for parser.scanner.Scan() {
 		err := parser.handleLine(parser.scanner.Line())
 		if err != nil {

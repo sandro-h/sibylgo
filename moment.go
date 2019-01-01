@@ -18,6 +18,7 @@ type Moment interface {
 	GetPriority() int
 	IsDone() bool
 	GetComments() []*CommentLine
+	GetComment(index int) *CommentLine
 	GetSubMoments() []Moment
 	GetLastComment() *CommentLine
 }
@@ -89,6 +90,10 @@ func (m *BaseMoment) IsDone() bool {
 
 func (m *BaseMoment) GetComments() []*CommentLine {
 	return m.comments
+}
+
+func (m *BaseMoment) GetComment(index int) *CommentLine {
+	return m.comments[index]
 }
 
 func (m *BaseMoment) GetSubMoments() []Moment {
