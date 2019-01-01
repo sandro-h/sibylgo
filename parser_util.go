@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"unicode"
 )
 
@@ -35,4 +36,15 @@ func lengthWithoutStartEndWhitespaces(str string) int {
 func newParseError(line *Line, msg string, args ...interface{}) error {
 	args = append([]interface{}{line.LineNumber() + 1}, args...)
 	return fmt.Errorf("Line %d: "+msg, args...)
+}
+
+func parsePriority(str string) (int, string) {
+	prio := 0
+	for i := len(str) - 1; i >= 0; i-- {
+		if str[i] != priorityMark {
+			break
+		}
+		prio++
+	}
+	return prio, strings.TrimSpace(str[0 : len(str)-prio])
 }

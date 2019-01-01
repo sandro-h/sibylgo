@@ -10,6 +10,16 @@ type Moment interface {
 	SetCategory(cat *Category)
 	SetDone(done bool)
 	SetPriority(prio int)
+	AddSubMoment(sub Moment)
+	AddComment(com *CommentLine)
+	RemoveLastComment()
+
+	GetName() string
+	GetPriority() int
+	IsDone() bool
+	GetComments() []*CommentLine
+	GetSubMoments() []Moment
+	GetLastComment() *CommentLine
 }
 
 type Todos struct {
@@ -53,6 +63,45 @@ func (m *BaseMoment) SetPriority(prio int) {
 	m.priority = prio
 }
 
+func (m *BaseMoment) AddSubMoment(sub Moment) {
+	m.subMoments = append(m.subMoments, sub)
+}
+
+func (m *BaseMoment) AddComment(com *CommentLine) {
+	m.comments = append(m.comments, com)
+}
+
+func (m *BaseMoment) RemoveLastComment() {
+	m.comments = m.comments[:len(m.comments)-1]
+}
+
+func (m *BaseMoment) GetName() string {
+	return m.name
+}
+
+func (m *BaseMoment) GetPriority() int {
+	return m.priority
+}
+
+func (m *BaseMoment) IsDone() bool {
+	return m.done
+}
+
+func (m *BaseMoment) GetComments() []*CommentLine {
+	return m.comments
+}
+
+func (m *BaseMoment) GetSubMoments() []Moment {
+	return m.subMoments
+}
+
+func (m *BaseMoment) GetLastComment() *CommentLine {
+	if len(m.comments) == 0 {
+		return nil
+	}
+	return m.comments[len(m.comments)-1]
+}
+
 type SingleMoment struct {
 	BaseMoment
 	start *Date
@@ -63,15 +112,15 @@ func (m *SingleMoment) String() string {
 	startStr := "nil"
 	endStr := "nil"
 	if m.start != nil {
-		startStr = m.start.time.Format("02.01.2006 15:04") +
+		startStr = m.start.time.Format("02.01.06 15:04") +
 			fmt.Sprintf(" (%d:%d)", m.start.offset, m.start.length)
 	}
 	if m.end != nil {
-		endStr = m.end.time.Format("02.01.2006 15:04") +
+		endStr = m.end.time.Format("02.01.06 15:04") +
 			fmt.Sprintf(" (%d:%d)", m.end.offset, m.end.length)
 	}
-	return fmt.Sprintf("SingleMom{name: %s, done: %t prio: %d, start: %s, end: %s, coords: %s}",
-		m.name, m.done, m.priority, startStr, endStr, m.DocCoords.String())
+	return fmt.Sprintf("SingleMom{name: %s, done: %t prio: %d, start: %s, end: %s, comms: %d, coords: %s}",
+		m.name, m.done, m.priority, startStr, endStr, len(m.comments), m.DocCoords.String())
 }
 
 type Date struct {
@@ -82,6 +131,7 @@ type Date struct {
 
 type CommentLine struct {
 	content string
+	DocCoords
 }
 
 type DocCoords struct {

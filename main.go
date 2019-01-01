@@ -19,6 +19,13 @@ func main() {
 		fmt.Printf("%s\n", c)
 	}
 	for _, m := range todos.moments {
-		fmt.Printf("%s\n", m)
+		printMom(m, "")
+	}
+}
+
+func printMom(m Moment, indent string) {
+	fmt.Printf("%s%s\n", indent, m)
+	for _, s := range m.GetSubMoments() {
+		printMom(s, indent+"  ")
 	}
 }

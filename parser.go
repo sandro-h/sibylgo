@@ -3,7 +3,6 @@ package main
 import (
 	"os"
 	"strings"
-	"unicode"
 )
 
 const categoryDelim = "------"
@@ -12,6 +11,7 @@ const doneRBracket = ']'
 const doneMark = 'x'
 const doneMarkUpper = 'X'
 const priorityMark = '!'
+const indentChar = "\t"
 
 type Parser struct {
 	todos       *Todos
@@ -88,64 +88,70 @@ func parseCategory(line *Line) *Category {
 }
 
 func (p *Parser) handleMomentLine(line *Line) error {
-	moment, err := parseMoment(line)
+	mom, err := p.parseFullMoment(line, line.TrimmedContent(), "")
 	if err != nil {
 		return err
 	}
-	moment.SetCategory(p.curCategory)
-	p.todos.moments = append(p.todos.moments, moment)
+	p.todos.moments = append(p.todos.moments, mom)
 	return nil
 }
 
-func parseMoment(line *Line) (Moment, error) {
-	lineVal := line.TrimmedContent()
-
-	mom, lineVal := parseBaseMoment(line, lineVal)
-
-	done, lineVal, err := parseDoneMark(line, lineVal)
+func (p *Parser) parseFullMoment(line *Line, lineVal string, indent string) (Moment, error) {
+	mom, err := parseMoment(line, lineVal, "")
 	if err != nil {
 		return nil, err
 	}
-	mom.SetDone(done)
+	mom.SetCategory(p.curCategory)
 
-	prio, lineVal := parsePriority(lineVal)
-	mom.SetPriority(prio)
-
-	mom.SetName(lineVal)
+	err = p.parseCommentsAndSubMoments(mom, indent)
+	if err != nil {
+		return nil, err
+	}
 
 	return mom, nil
 }
 
-func parseBaseMoment(line *Line, lineVal string) (Moment, string) {
-	// TODO: check recurring
-	return parseSingleMoment(line, lineVal)
-}
-
-func parseDoneMark(line *Line, lineVal string) (bool, string, error) {
-	rBracketPos := 0
-	done := false
-	for i, c := range lineVal {
-		if c == doneRBracket {
-			rBracketPos = i
+func (p *Parser) parseCommentsAndSubMoments(mom Moment, indent string) error {
+	nextIndent := indent + indentChar
+	for p.scanner.Scan() {
+		line := p.scanner.Line()
+		if line.HasPrefix(nextIndent) {
+			p.handleSubLine(mom, line, line.Content()[len(nextIndent):], indent)
+		} else if line.IsEmpty() && len(mom.GetComments()) > 0 {
+			// special case: treat empty line between comments as a comment
+			comment := &CommentLine{
+				content:   "",
+				DocCoords: DocCoords{line.LineNumber(), line.Offset(), 0}}
+			mom.AddComment(comment)
+		} else {
+			p.scanner.Unscan()
 			break
 		}
-		if !unicode.IsSpace(c) && (c == doneMark || c == doneMarkUpper) {
-			done = true
-		}
 	}
-	if rBracketPos == 0 {
-		return false, "", newParseError(line, "Expected closing %c for moment line %s", doneMark, line.Content())
+
+	// Remove trailing empty comments
+	lc := mom.GetLastComment()
+	for lc != nil && len(lc.content) == 0 {
+		mom.RemoveLastComment()
+		lc = mom.GetLastComment()
 	}
-	return done, strings.TrimSpace(lineVal[rBracketPos+1:]), nil
+
+	return nil
 }
 
-func parsePriority(str string) (int, string) {
-	prio := 0
-	for i := len(str) - 1; i >= 0; i-- {
-		if str[i] != priorityMark {
-			break
+func (p *Parser) handleSubLine(mom Moment, line *Line, lineVal string, indent string) error {
+	if strings.HasPrefix(lineVal, doneLBracket) {
+		subMom, err := p.parseFullMoment(line, lineVal, indent+indentChar)
+		if err != nil {
+			return err
 		}
-		prio++
+		mom.AddSubMoment(subMom)
+	} else {
+		// Assume it's a comment
+		comment := &CommentLine{
+			content:   lineVal,
+			DocCoords: DocCoords{line.LineNumber(), line.Offset() + len(indent+indentChar), len(lineVal)}}
+		mom.AddComment(comment)
 	}
-	return prio, strings.TrimSpace(str[0 : len(str)-prio])
+	return nil
 }

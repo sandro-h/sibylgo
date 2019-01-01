@@ -11,17 +11,6 @@ var dateFormats = [...]string{
 	"2.1.06",
 	"2.1.2006"}
 
-func parseSingleMoment(line *Line, lineVal string) (*SingleMoment, string) {
-	var start *Date
-	var end *Date
-	if strings.HasSuffix(lineVal, ")") {
-		start, end, lineVal = parseTimeSuffix(line, lineVal)
-	}
-	mom := &SingleMoment{start: start, end: end}
-	mom.DocCoords = DocCoords{line.LineNumber(), line.Offset(), line.Length()}
-	return mom, lineVal
-}
-
 func parseTimeSuffix(line *Line, lineVal string) (*Date, *Date, string) {
 	p := strings.LastIndex(lineVal, "(")
 	untrimmedPos := strings.LastIndex(line.Content(), "(") + 1
