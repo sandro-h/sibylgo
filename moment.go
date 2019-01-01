@@ -124,9 +124,8 @@ func (m *SingleMoment) String() string {
 }
 
 type Date struct {
-	time   t.Time
-	offset int
-	length int
+	time t.Time
+	DocCoords
 }
 
 type CommentLine struct {

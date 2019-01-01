@@ -38,17 +38,18 @@ func parseTimeSuffix(line *Line, lineVal string) (*Date, *Date, string) {
 
 	if start != nil || end != nil {
 		// Success
-		shiftOffset(start, line.Offset()+untrimmedPos+dsTrimLen)
-		shiftOffset(end, line.Offset()+untrimmedPos+dsTrimLen)
+		finalizeDocCoords(start, line.LineNumber(), line.Offset()+untrimmedPos+dsTrimLen)
+		finalizeDocCoords(end, line.LineNumber(), line.Offset()+untrimmedPos+dsTrimLen)
 		return start, end, strings.TrimSpace(lineVal[:p])
 	}
 
 	return nil, nil, lineVal
 }
 
-func shiftOffset(dt *Date, delta int) {
+func finalizeDocCoords(dt *Date, lineNumber int, offsetDelta int) {
 	if dt != nil {
-		dt.offset += delta
+		dt.lineNumber = lineNumber
+		dt.offset += offsetDelta
 	}
 }
 
@@ -58,9 +59,10 @@ func parseTimeSuffixSingle(lineVal string) *Date {
 		return nil
 	}
 	return &Date{
-		time:   tm,
-		offset: countStartWhitespaces(lineVal),
-		length: lengthWithoutStartEndWhitespaces(lineVal)}
+		time: tm,
+		DocCoords: DocCoords{
+			offset: countStartWhitespaces(lineVal),
+			length: lengthWithoutStartEndWhitespaces(lineVal)}}
 }
 
 func parseTimeSuffixRanged(lineVal string, dashPos int) (*Date, *Date) {
@@ -75,9 +77,10 @@ func parseTimeSuffixRanged(lineVal string, dashPos int) (*Date, *Date) {
 			return nil, nil
 		}
 		start = &Date{
-			time:   tm,
-			offset: countStartWhitespaces(startStr),
-			length: lengthWithoutStartEndWhitespaces(startStr)}
+			time: tm,
+			DocCoords: DocCoords{
+				offset: countStartWhitespaces(startStr),
+				length: lengthWithoutStartEndWhitespaces(startStr)}}
 	}
 
 	if endStr != "" {
@@ -86,9 +89,10 @@ func parseTimeSuffixRanged(lineVal string, dashPos int) (*Date, *Date) {
 			return nil, nil
 		}
 		end = &Date{
-			time:   tm,
-			offset: len(startStr) + 1 + countStartWhitespaces(endStr),
-			length: lengthWithoutStartEndWhitespaces(endStr)}
+			time: tm,
+			DocCoords: DocCoords{
+				offset: len(startStr) + 1 + countStartWhitespaces(endStr),
+				length: lengthWithoutStartEndWhitespaces(endStr)}}
 	}
 
 	return start, end
