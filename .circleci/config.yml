@@ -1,0 +1,82 @@
+version: 2
+jobs:
+  build:
+    working_directory: /go/src/github.com/sandro-h/sibylgo
+    environment:
+
+    docker:
+      - image: circleci/golang:1.11.2-stretch
+
+    steps:
+      - checkout
+
+      ##############################
+      # Fetch dependencies
+      ##############################
+      - restore_cache:
+          name: Restore dependency cache
+          keys:
+            - v1-deps-{{ checksum "Gopkg.lock" }}
+      - run:
+          name: Install go dep
+          command: curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+      - run: 
+          name: Get dependencies
+          command: dep ensure --vendor-only -v
+      - save_cache:
+          name: Save dependency cache
+          paths:
+            - vendor
+          key: v1-deps-{{ checksum "Gopkg.lock" }}
+
+      ##############################
+      # Test and build sibylgo
+      ##############################
+      - run:
+          name: Test
+          command: go test -v -coverprofile="coverage.out" ./...
+
+      - run:
+          name: Build for linux
+          command: go build -v
+
+      - run:
+          name: Build for windows
+          command: GOOS=windows GOARCH=amd64 go build -v
+
+      - store_artifacts:
+          path: sibylgo
+          destination: binaries/sibylgo
+      - store_artifacts:
+          path: sibylgo.exe
+          destination: binaries/sibylgo.exe
+
+      ##############################
+      # Sonar
+      ##############################
+
+      # - restore_cache:
+      #     name: Restore buildtools cache
+      #     key: v3-buildtools
+
+      # - run:
+      #     name: Fetch sonar scanner
+      #     command: |
+      #       if [ ! -d buildtools/sonar-scanner ]; then
+      #         wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.2.0.1227-linux.zip
+      #         unzip -d buildtools/ sonar-scanner-cli-3.2.0.1227-linux.zip
+      #         mv buildtools/sonar-scanner-3.2.0.1227-linux buildtools/sonar-scanner
+      #       fi
+
+      # - save_cache:
+      #     name: Save buildtools cache
+      #     paths:
+      #       - buildtools
+      #     key: v3-buildtools
+
+      # - run:
+      #     name: Run sonar analysis
+      #     command: |
+      #       buildtools/sonar-scanner/bin/sonar-scanner \
+      #         -Dsonar.host.url=https://sonarcloud.io \
+      #         -Dsonar.login=$SONAR_TOKEN
