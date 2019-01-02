@@ -170,6 +170,42 @@ func TestCalculateStartlessRangeCoords(t *testing.T) {
 	assert.Equal(t, 8, mom.end.length)
 }
 
+func TestRecurringMoment(t *testing.T) {
+	mom, _ := parseRecurMom("[] blabla (every 5.)")
+	assert.NotNil(t, mom)
+	assert.Equal(t, "blabla", mom.name)
+	assert.Equal(t, 0, mom.offset)
+	assert.Equal(t, 20, mom.length)
+	assert.Equal(t, RE_MONTHLY, mom.recurrence.recurrence)
+	assert.Equal(t, 5, mom.recurrence.refDate.time.Day())
+	assert.Equal(t, 11, mom.recurrence.refDate.offset)
+	assert.Equal(t, 8, mom.recurrence.refDate.length)
+}
+
+func TestDoneRecurringMoment(t *testing.T) {
+	mom, _ := parseRecurMom("[x] blabla (every 5.)")
+	assert.NotNil(t, mom)
+	assert.Equal(t, "blabla", mom.name)
+	assert.True(t, mom.done)
+	assert.Equal(t, 21, mom.length)
+	assert.Equal(t, RE_MONTHLY, mom.recurrence.recurrence)
+	assert.Equal(t, 5, mom.recurrence.refDate.time.Day())
+	assert.Equal(t, 12, mom.recurrence.refDate.offset)
+	assert.Equal(t, 8, mom.recurrence.refDate.length)
+}
+
+func TestPriorityRecurringMoment(t *testing.T) {
+	mom, _ := parseRecurMom("[] blabla! (every 5.)")
+	assert.NotNil(t, mom)
+	assert.Equal(t, "blabla", mom.name)
+	assert.Equal(t, 1, mom.priority)
+	assert.Equal(t, 21, mom.length)
+	assert.Equal(t, RE_MONTHLY, mom.recurrence.recurrence)
+	assert.Equal(t, 5, mom.recurrence.refDate.time.Day())
+	assert.Equal(t, 12, mom.recurrence.refDate.offset)
+	assert.Equal(t, 8, mom.recurrence.refDate.length)
+}
+
 func dateStr(dt *Date) string {
 	if dt == nil {
 		return "nil"
@@ -185,4 +221,9 @@ func parseMom(content string) (Moment, error) {
 func parseSingleMom(content string) (*SingleMoment, error) {
 	mom, err := parseMom(content)
 	return mom.(*SingleMoment), err
+}
+
+func parseRecurMom(content string) (*RecurMoment, error) {
+	mom, err := parseMom(content)
+	return mom.(*RecurMoment), err
 }

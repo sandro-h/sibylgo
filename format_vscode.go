@@ -53,6 +53,8 @@ func formatDates(res *string, m Moment) {
 		if v.end != nil && (v.start == nil || v.end.DocCoords != v.start.DocCoords) {
 			appendFmt(res, v.end.DocCoords, "mom.date")
 		}
+	case *RecurMoment:
+		appendFmt(res, v.recurrence.refDate.DocCoords, "mom.date")
 	}
 }
 

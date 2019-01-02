@@ -57,5 +57,6 @@ func TestInvalidRecurrence(t *testing.T) {
 
 func parseRe(content string) *Recurrence {
 	line := &Line{content: content}
-	return parseRecurrence(line, line.Content())
+	re, _ := parseRecurrence(line, line.Content())
+	return re
 }

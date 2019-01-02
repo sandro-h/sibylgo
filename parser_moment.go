@@ -22,8 +22,24 @@ func parseMoment(line *Line, lineVal string, indent string) (Moment, error) {
 }
 
 func parseBaseMoment(line *Line, lineVal string) (Moment, string) {
-	// TODO: check recurring
+	re, newLineVal := parseRecurMoment(line, lineVal)
+	if re != nil {
+		return re, newLineVal
+	}
 	return parseSingleMoment(line, lineVal)
+}
+
+func parseRecurMoment(line *Line, lineVal string) (*RecurMoment, string) {
+	if !strings.HasSuffix(lineVal, ")") {
+		return nil, lineVal
+	}
+	re, newLineVal := parseRecurrence(line, lineVal)
+	if re != nil {
+		mom := &RecurMoment{recurrence: re}
+		mom.DocCoords = DocCoords{line.LineNumber(), line.Offset(), line.Length()}
+		return mom, newLineVal
+	}
+	return nil, lineVal
 }
 
 func parseSingleMoment(line *Line, lineVal string) (*SingleMoment, string) {

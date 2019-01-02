@@ -13,7 +13,7 @@ var weeklyPattern, _ = regexp.Compile("(?i)every (monday|tuesday|wednesday|thurs
 var monthlyPattern, _ = regexp.Compile("(?i)every (\\d{1,2})\\.?$")
 var yearlyPattern, _ = regexp.Compile("(?i)every (\\d{1,2})\\.(\\d{1,2})\\.?$")
 
-func parseRecurrence(line *Line, lineVal string) *Recurrence {
+func parseRecurrence(line *Line, lineVal string) (*Recurrence, string) {
 	p := strings.LastIndex(lineVal, "(")
 	reStr := lineVal[p+1 : len(lineVal)-1]
 	untrimmedPos := strings.LastIndex(line.Content(), "(") + 1
@@ -31,9 +31,10 @@ func parseRecurrence(line *Line, lineVal string) *Recurrence {
 	}
 
 	if re == nil {
-		return nil
+		return nil, lineVal
 	}
-	return setDocCoords(re, line.LineNumber(), line.Offset()+untrimmedPos, len(reStr))
+	return setDocCoords(re, line.LineNumber(), line.Offset()+untrimmedPos, len(reStr)),
+		strings.TrimSpace(lineVal[:p])
 }
 
 func tryParseDaily(reStr string) *Recurrence {
