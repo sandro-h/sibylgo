@@ -67,6 +67,49 @@ func TestGenerateChildrenCutOffByRange(t *testing.T) {
 		"20.06.2016", "21.06.2016")
 }
 
+func TestGenerateRecurring(t *testing.T) {
+	mom, _ := parseMom("[] bla (every day)")
+	insts := GenerateInstances(mom, dt("20.06.2016"), dt("22.06.2016"))
+	assertInstanceDates(t, insts,
+		"20.06.2016", "20.06.2016",
+		"21.06.2016", "21.06.2016",
+		"22.06.2016", "22.06.2016")
+}
+
+func TestGenerateRecurringNotInRange(t *testing.T) {
+	mom, _ := parseMom("[] bla (every 23.)")
+	insts := GenerateInstances(mom, dt("20.06.2016"), dt("22.06.2016"))
+	assert.Equal(t, 0, len(insts))
+}
+
+func TestGenerateRecurringAsChildren(t *testing.T) {
+	todos, _ := ParseString(`
+[] 1 (18.06.2016-25.06.2016)
+	[] 1.1 (every 20.)
+	[] 1.2 (every day)
+`)
+	insts := GenerateInstances(todos.moments[0], dt("01.06.2016"), dt("20.06.2016"))
+	assertInstanceDates(t, insts[0].subInstances,
+		"20.06.2016", "20.06.2016",
+		"18.06.2016", "18.06.2016",
+		"19.06.2016", "19.06.2016",
+		"20.06.2016", "20.06.2016")
+}
+
+func TestGenerateRecurringWithChildren(t *testing.T) {
+	todos, _ := ParseString(`
+[] 1 (every 20.)
+	[] 1.1 (every 20.6)
+	[] 1.2 (20.7.2016)
+	[] 1.3 (21.6.2016)
+`)
+	insts := GenerateInstances(todos.moments[0], dt("01.06.2016"), dt("30.07.2016"))
+	assertInstanceDates(t, insts[0].subInstances,
+		"20.06.2016", "20.06.2016") // 1.1
+	assertInstanceDates(t, insts[1].subInstances,
+		"20.07.2016", "20.07.2016") // 1.2
+}
+
 func assertInstanceDates(t *testing.T, insts []*MomentInstance, dates ...string) {
 	assert.Equal(t, len(dates)/2, len(insts))
 	for i := 0; i < len(dates); i += 2 {

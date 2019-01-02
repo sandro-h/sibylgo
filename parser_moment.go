@@ -35,7 +35,7 @@ func parseRecurMoment(line *Line, lineVal string) (*RecurMoment, string) {
 	}
 	re, newLineVal := parseRecurrence(line, lineVal)
 	if re != nil {
-		mom := &RecurMoment{recurrence: re}
+		mom := &RecurMoment{recurrence: *re}
 		mom.DocCoords = DocCoords{line.LineNumber(), line.Offset(), line.Length()}
 		return mom, newLineVal
 	}

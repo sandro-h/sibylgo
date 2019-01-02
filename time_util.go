@@ -38,3 +38,8 @@ func setWeekday(dt t.Time, wd t.Weekday) t.Time {
 	di := int(wd - dt.Weekday())
 	return dt.AddDate(0, 0, di)
 }
+
+func setToEndOfDay(dt t.Time) t.Time {
+	y, m, d := dt.Date()
+	return t.Date(y, m, d, 23, 59, 59, 999999999, t.Local)
+}

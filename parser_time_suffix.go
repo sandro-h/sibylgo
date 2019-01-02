@@ -33,7 +33,7 @@ func parseTimeSuffix(line *Line, lineVal string) (*Date, *Date, string) {
 
 	if end != nil {
 		// Set to very end of day
-		end.time = end.time.Add(24*t.Hour - t.Nanosecond)
+		end.time = setToEndOfDay(end.time)
 	}
 
 	if start != nil || end != nil {

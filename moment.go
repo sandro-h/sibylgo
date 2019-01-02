@@ -128,7 +128,6 @@ type SingleMoment struct {
 func (m *SingleMoment) CreateInstances(from t.Time, to t.Time) []*MomentInstance {
 	start := getUpperBound(&from, dateTm(m.start))
 	end := getLowerBound(&to, dateTm(m.end))
-
 	if end.Before(start) {
 		// Not actually in range
 		return nil
@@ -156,11 +155,18 @@ func (m *SingleMoment) String() string {
 
 type RecurMoment struct {
 	BaseMoment
-	recurrence *Recurrence
+	recurrence Recurrence
 }
 
 func (m *RecurMoment) CreateInstances(from t.Time, to t.Time) []*MomentInstance {
-	return nil
+	var insts []*MomentInstance
+	for it := NewRecurIterator(m.recurrence, from, to); it.HasNext(); {
+		start := it.Next()
+		inst := MomentInstance{start: start, end: setToEndOfDay(start)}
+		inst.endsInRange = true
+		insts = append(insts, &inst)
+	}
+	return insts
 }
 
 const (

@@ -22,22 +22,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	// fmt.Printf("hello from sibylgo\n")
-	// tm := time.Now()
-	// todos, err := ParseFile("todo.txt")
-	// dur := time.Now().Sub(tm)
-	// fmt.Printf("%dms\n", int(dur/time.Millisecond))
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// for _, c := range todos.categories {
-	// 	fmt.Printf("%s\n", c)
-	// }
-	// for _, m := range todos.moments {
-	// 	printMom(m, "")
-	// }
 }
 
 func format(w http.ResponseWriter, r *http.Request) {
@@ -46,11 +30,11 @@ func format(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// TODO
 	}
-	for _, m := range todos.moments {
-		printMom(m, "")
-	}
+	// for _, m := range todos.moments {
+	// 	printMom(m, "")
+	// }
 	res := FormatVSCode(todos)
-	fmt.Printf(res)
+	//fmt.Printf(res)
 	fmt.Fprintf(w, res)
 }
 

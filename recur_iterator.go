@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	t "time"
 )
 
@@ -24,7 +23,6 @@ func NewRecurIterator(recurrence Recurrence, from t.Time, until t.Time) *RecurIt
 }
 
 func (it *RecurIterator) HasNext() bool {
-	fmt.Printf("%s\n", it.next)
 	return !it.next.After(it.until)
 }
 
