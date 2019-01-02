@@ -138,6 +138,18 @@ func (m *SingleMoment) String() string {
 		m.name, m.done, m.priority, startStr, endStr, len(m.comments), m.DocCoords.String())
 }
 
+const (
+	RE_DAILY = iota
+	RE_WEEKLY
+	RE_MONTHLY
+	RE_YEARLY
+)
+
+type Recurrence struct {
+	recurrence int
+	refDate    *Date
+}
+
 type Date struct {
 	time t.Time
 	DocCoords

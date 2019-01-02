@@ -10,7 +10,7 @@ import (
 
 func main() {
 	router := mux.NewRouter()
-	router.HandleFunc("/format", Format).Methods("POST")
+	router.HandleFunc("/format", format).Methods("POST")
 
 	srv := &http.Server{
 		Handler:      router,
@@ -40,7 +40,7 @@ func main() {
 	// }
 }
 
-func Format(w http.ResponseWriter, r *http.Request) {
+func format(w http.ResponseWriter, r *http.Request) {
 	reader := base64.NewDecoder(base64.StdEncoding, r.Body)
 	todos, err := ParseReader(reader)
 	if err != nil {
