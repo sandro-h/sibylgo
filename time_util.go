@@ -33,3 +33,8 @@ func getBound(t1 *t.Time, t2 *t.Time, lowerOrUpper bool) t.Time {
 		return *t2
 	}
 }
+
+func setWeekday(dt t.Time, wd t.Weekday) t.Time {
+	di := int(wd - dt.Weekday())
+	return dt.AddDate(0, 0, di)
+}

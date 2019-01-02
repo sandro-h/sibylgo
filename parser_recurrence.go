@@ -50,9 +50,7 @@ func tryParseWeekly(reStr string) *Recurrence {
 	matches := weeklyPattern.FindStringSubmatch(reStr)
 	if matches != nil {
 		wd := parseWeekday(matches[1])
-		dt := time.Now()
-		di := time.Duration(wd - dt.Weekday())
-		dt = dt.Add(di * 24 * time.Hour)
+		dt := setWeekday(time.Now(), wd)
 		return &Recurrence{
 			recurrence: RE_WEEKLY,
 			refDate:    &Date{time: dt}}
