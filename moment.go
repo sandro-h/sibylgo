@@ -23,6 +23,8 @@ type Moment interface {
 	GetSubMoments() []Moment
 	GetLastComment() *CommentLine
 	GetDocCoords() DocCoords
+
+	CreateInstances(from t.Time, to t.Time) []*MomentInstance
 }
 
 type Todos struct {
@@ -123,6 +125,20 @@ type SingleMoment struct {
 	end   *Date
 }
 
+func (m *SingleMoment) CreateInstances(from t.Time, to t.Time) []*MomentInstance {
+	start := getUpperBound(&from, dateTm(m.start))
+	end := getLowerBound(&to, dateTm(m.end))
+
+	if end.Before(start) {
+		// Not actually in range
+		return nil
+	}
+
+	inst := MomentInstance{start: start, end: end}
+	inst.endsInRange = m.end != nil && !m.end.time.After(end)
+	return []*MomentInstance{&inst}
+}
+
 func (m *SingleMoment) String() string {
 	startStr := "nil"
 	endStr := "nil"
@@ -143,6 +159,10 @@ type RecurMoment struct {
 	recurrence *Recurrence
 }
 
+func (m *RecurMoment) CreateInstances(from t.Time, to t.Time) []*MomentInstance {
+	return nil
+}
+
 const (
 	RE_DAILY = iota
 	RE_WEEKLY
@@ -160,6 +180,13 @@ type Date struct {
 	DocCoords
 }
 
+func dateTm(dt *Date) *t.Time {
+	if dt == nil {
+		return nil
+	}
+	return &dt.time
+}
+
 type CommentLine struct {
 	content string
 	DocCoords
@@ -173,4 +200,24 @@ type DocCoords struct {
 
 func (c *DocCoords) String() string {
 	return fmt.Sprintf("%d:%d:%d", c.lineNumber, c.offset, c.length)
+}
+
+type MomentInstance struct {
+	start        t.Time
+	end          t.Time
+	endsInRange  bool
+	subInstances []*MomentInstance
+}
+
+func GenerateInstances(mom Moment, from t.Time, to t.Time) []*MomentInstance {
+	insts := mom.CreateInstances(from, to)
+	// Sub moments:
+	for _, inst := range insts {
+		var subInsts []*MomentInstance
+		for _, sub := range mom.GetSubMoments() {
+			subInsts = append(subInsts, GenerateInstances(sub, inst.start, inst.end)...)
+		}
+		inst.subInstances = subInsts
+	}
+	return insts
 }
