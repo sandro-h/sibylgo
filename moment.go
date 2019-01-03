@@ -216,14 +216,24 @@ type MomentInstance struct {
 }
 
 func GenerateInstances(mom Moment, from t.Time, to t.Time) []*MomentInstance {
+	return generateInstances(mom, from, to, true)
+}
+
+func GenerateInstancesWithoutSubs(mom Moment, from t.Time, to t.Time) []*MomentInstance {
+	return generateInstances(mom, from, to, false)
+}
+
+func generateInstances(mom Moment, from t.Time, to t.Time, inclSubs bool) []*MomentInstance {
 	insts := mom.CreateInstances(from, to)
 	// Sub moments:
-	for _, inst := range insts {
-		var subInsts []*MomentInstance
-		for _, sub := range mom.GetSubMoments() {
-			subInsts = append(subInsts, GenerateInstances(sub, inst.start, inst.end)...)
+	if inclSubs {
+		for _, inst := range insts {
+			var subInsts []*MomentInstance
+			for _, sub := range mom.GetSubMoments() {
+				subInsts = append(subInsts, generateInstances(sub, inst.start, inst.end, inclSubs)...)
+			}
+			inst.subInstances = subInsts
 		}
-		inst.subInstances = subInsts
 	}
 	return insts
 }

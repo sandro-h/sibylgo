@@ -25,6 +25,7 @@ func main() {
 }
 
 func format(w http.ResponseWriter, r *http.Request) {
+	tm := time.Now()
 	reader := base64.NewDecoder(base64.StdEncoding, r.Body)
 	todos, err := ParseReader(reader)
 	if err != nil {
@@ -36,6 +37,7 @@ func format(w http.ResponseWriter, r *http.Request) {
 	res := FormatVSCode(todos)
 	//fmt.Printf(res)
 	fmt.Fprintf(w, res)
+	fmt.Printf("response time: %dms\n", int(time.Now().Sub(tm)/time.Millisecond))
 }
 
 func printMom(m Moment, indent string) {

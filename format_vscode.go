@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
 func FormatVSCode(todos *Todos) string {
@@ -58,8 +59,21 @@ func formatDates(res *string, m Moment) {
 	}
 }
 
-func formatDueSoon(res *string, m Moment) {
-	// TODO
+func formatDueSoon(momFmt *string, m Moment) {
+	// Due until 10 (n-1) days in the future
+	n := 11
+	today := setToStartOfDay(time.Now())
+	insts := GenerateInstancesWithoutSubs(m, today, today.AddDate(0, 0, n))
+	earliest := n
+	for _, inst := range insts {
+		d := int(inst.end.Sub(today) / Days)
+		if d < earliest {
+			earliest = d
+		}
+	}
+	if earliest < n {
+		*momFmt += fmt.Sprintf(".until%d", earliest)
+	}
 }
 
 func appendFmt(res *string, c DocCoords, format string) {
