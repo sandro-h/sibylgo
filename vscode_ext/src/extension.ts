@@ -118,7 +118,7 @@ export function activate(context: vscode.ExtensionContext) {
 					'mom': {dec: momDecorationType, list: []},
 					'mom.priority': {dec: momPriorityDecorationType, list: []},
 					'mom.done': {dec: momDoneDecorationType, list: []},
-					'mom.date': {dec: dateDecorationType, list: [], hoverMessage: 'Date'},
+					'date': {dec: dateDecorationType, list: [], hoverMessage: 'Date'},
 					'com.done': {dec: comDoneDecorationType, list: []},
 				};
 				for (let key in momUntilDecorationTypes) {

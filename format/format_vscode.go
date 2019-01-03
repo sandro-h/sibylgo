@@ -11,7 +11,7 @@ import (
 const catMarker = "cat"
 const momMarker = "mom"
 const commentMarker = "com"
-const dateMarker = "mom.date"
+const dateMarker = "date"
 const doneSuffix = ".done"
 const prioritySuffix = ".priority"
 const untilSuffix = ".until%d"

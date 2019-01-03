@@ -1,0 +1,1 @@
+code --install-extension sibyl.vsix
