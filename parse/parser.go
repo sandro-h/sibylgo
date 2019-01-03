@@ -1,6 +1,7 @@
-package main
+package parse
 
 import (
+	"github.com/sandro-h/sibylgo/moment"
 	"io"
 	"os"
 	"strings"
@@ -15,12 +16,12 @@ const priorityMark = '!'
 const indentChar = "\t"
 
 type Parser struct {
-	todos       *Todos
-	curCategory *Category
+	todos       *moment.Todos
+	curCategory *moment.Category
 	scanner     *LineScanner
 }
 
-func ParseFile(path string) (*Todos, error) {
+func ParseFile(path string) (*moment.Todos, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -30,16 +31,16 @@ func ParseFile(path string) (*Todos, error) {
 	return parse(NewFileLineScanner(file))
 }
 
-func ParseString(str string) (*Todos, error) {
+func ParseString(str string) (*moment.Todos, error) {
 	return parse(NewLineStringScanner(str))
 }
 
-func ParseReader(reader io.Reader) (*Todos, error) {
+func ParseReader(reader io.Reader) (*moment.Todos, error) {
 	return parse(NewLineScanner(reader))
 }
 
-func parse(scanner *LineScanner) (*Todos, error) {
-	parser := Parser{todos: &Todos{}, scanner: scanner}
+func parse(scanner *LineScanner) (*moment.Todos, error) {
+	parser := Parser{todos: &moment.Todos{}, scanner: scanner}
 	for parser.scanner.Scan() {
 		err := parser.handleLine(parser.scanner.Line())
 		if err != nil {
@@ -72,32 +73,32 @@ func (p *Parser) handleCategoryLine(line *Line) error {
 	ok, catLine := p.scanner.ScanAndLine()
 
 	p.curCategory = parseCategory(catLine)
-	p.todos.categories = append(p.todos.categories, p.curCategory)
+	p.todos.Categories = append(p.todos.Categories, p.curCategory)
 
 	ok, nxt := p.scanner.ScanAndLine()
 	if !ok {
 		return newParseError(catLine,
 			"Expected a delimiter after category %s, but reached end",
-			p.curCategory.name)
+			p.curCategory.Name)
 	}
 	if !nxt.HasPrefix(categoryDelim) {
 		return newParseError(nxt,
 			"Expected a delimiter after category %s, got %s",
-			p.curCategory.name, nxt.Content())
+			p.curCategory.Name, nxt.Content())
 	}
 
 	return nil
 }
 
-func parseCategory(line *Line) *Category {
+func parseCategory(line *Line) *moment.Category {
 	lineVal := line.Content()
 
 	prio, lineVal := parsePriority(lineVal)
 
-	return &Category{
-		name:      lineVal,
-		priority:  prio,
-		DocCoords: DocCoords{line.LineNumber(), line.Offset(), line.Length()}}
+	return &moment.Category{
+		Name:      lineVal,
+		Priority:  prio,
+		DocCoords: moment.DocCoords{line.LineNumber(), line.Offset(), line.Length()}}
 }
 
 func (p *Parser) handleMomentLine(line *Line) error {
@@ -105,12 +106,12 @@ func (p *Parser) handleMomentLine(line *Line) error {
 	if err != nil {
 		return err
 	}
-	p.todos.moments = append(p.todos.moments, mom)
+	p.todos.Moments = append(p.todos.Moments, mom)
 	return nil
 }
 
-func (p *Parser) parseFullMoment(line *Line, lineVal string, indent string) (Moment, error) {
-	mom, err := parseMoment(line, lineVal, "")
+func (p *Parser) parseFullMoment(line *Line, lineVal string, indent string) (moment.Moment, error) {
+	mom, err := ParseMoment(line, lineVal, "")
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +125,7 @@ func (p *Parser) parseFullMoment(line *Line, lineVal string, indent string) (Mom
 	return mom, nil
 }
 
-func (p *Parser) parseCommentsAndSubMoments(mom Moment, indent string) error {
+func (p *Parser) parseCommentsAndSubMoments(mom moment.Moment, indent string) error {
 	nextIndent := indent + indentChar
 	for p.scanner.Scan() {
 		line := p.scanner.Line()
@@ -132,9 +133,9 @@ func (p *Parser) parseCommentsAndSubMoments(mom Moment, indent string) error {
 			p.handleSubLine(mom, line, line.Content()[len(nextIndent):], indent)
 		} else if line.IsEmpty() && len(mom.GetComments()) > 0 {
 			// special case: treat empty line between comments as a comment
-			comment := &CommentLine{
-				content:   "",
-				DocCoords: DocCoords{line.LineNumber(), line.Offset(), 0}}
+			comment := &moment.CommentLine{
+				Content:   "",
+				DocCoords: moment.DocCoords{line.LineNumber(), line.Offset(), 0}}
 			mom.AddComment(comment)
 		} else {
 			p.scanner.Unscan()
@@ -144,7 +145,7 @@ func (p *Parser) parseCommentsAndSubMoments(mom Moment, indent string) error {
 
 	// Remove trailing empty comments
 	lc := mom.GetLastComment()
-	for lc != nil && len(lc.content) == 0 {
+	for lc != nil && len(lc.Content) == 0 {
 		mom.RemoveLastComment()
 		lc = mom.GetLastComment()
 	}
@@ -152,7 +153,7 @@ func (p *Parser) parseCommentsAndSubMoments(mom Moment, indent string) error {
 	return nil
 }
 
-func (p *Parser) handleSubLine(mom Moment, line *Line, lineVal string, indent string) error {
+func (p *Parser) handleSubLine(mom moment.Moment, line *Line, lineVal string, indent string) error {
 	if strings.HasPrefix(lineVal, doneLBracket) {
 		subMom, err := p.parseFullMoment(line, lineVal, indent+indentChar)
 		if err != nil {
@@ -161,9 +162,9 @@ func (p *Parser) handleSubLine(mom Moment, line *Line, lineVal string, indent st
 		mom.AddSubMoment(subMom)
 	} else {
 		// Assume it's a comment
-		comment := &CommentLine{
-			content:   lineVal,
-			DocCoords: DocCoords{line.LineNumber(), line.Offset() + len(indent+indentChar), len(lineVal)}}
+		comment := &moment.CommentLine{
+			Content:   lineVal,
+			DocCoords: moment.DocCoords{line.LineNumber(), line.Offset() + len(indent+indentChar), len(lineVal)}}
 		mom.AddComment(comment)
 	}
 	return nil

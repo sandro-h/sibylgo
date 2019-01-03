@@ -1,7 +1,8 @@
-package main
+package parse
 
 import (
 	"fmt"
+	"github.com/sandro-h/sibylgo/moment"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -10,10 +11,10 @@ import (
 func TestDaily(t *testing.T) {
 	re := parseRe("[] bla (every day)")
 	assert.NotNil(t, re)
-	assert.Equal(t, RE_DAILY, re.recurrence)
-	assert.NotNil(t, re.refDate)
-	assert.Equal(t, 8, re.refDate.offset)
-	assert.Equal(t, 9, re.refDate.length)
+	assert.Equal(t, moment.RE_DAILY, re.Recurrence)
+	assert.NotNil(t, re.RefDate)
+	assert.Equal(t, 8, re.RefDate.Offset)
+	assert.Equal(t, 9, re.RefDate.Length)
 }
 
 func TestWeekly(t *testing.T) {
@@ -28,8 +29,8 @@ func TestWeekly(t *testing.T) {
 	for i := 0; i < len(days); i += 2 {
 		re := parseRe("[] bla (every " + days[i].(string) + ")")
 		assert.NotNil(t, re)
-		assert.Equal(t, RE_WEEKLY, re.recurrence)
-		assert.Equal(t, days[i+1].(time.Weekday), re.refDate.time.Weekday())
+		assert.Equal(t, moment.RE_WEEKLY, re.Recurrence)
+		assert.Equal(t, days[i+1].(time.Weekday), re.RefDate.Time.Weekday())
 	}
 }
 
@@ -37,17 +38,17 @@ func TestMonthly(t *testing.T) {
 	for i := 1; i <= 28; i++ {
 		re := parseRe(fmt.Sprintf("[] bla (every %d.)", i))
 		assert.NotNil(t, re)
-		assert.Equal(t, RE_MONTHLY, re.recurrence)
-		assert.Equal(t, i, re.refDate.time.Day())
+		assert.Equal(t, moment.RE_MONTHLY, re.Recurrence)
+		assert.Equal(t, i, re.RefDate.Time.Day())
 	}
 }
 
 func TestYearly(t *testing.T) {
 	re := parseRe("[] bla (every 2.5.)")
 	assert.NotNil(t, re)
-	assert.Equal(t, RE_YEARLY, re.recurrence)
-	assert.Equal(t, 2, re.refDate.time.Day())
-	assert.Equal(t, time.May, re.refDate.time.Month())
+	assert.Equal(t, moment.RE_YEARLY, re.Recurrence)
+	assert.Equal(t, 2, re.RefDate.Time.Day())
+	assert.Equal(t, time.May, re.RefDate.Time.Month())
 }
 
 func TestInvalidRecurrence(t *testing.T) {
@@ -55,7 +56,7 @@ func TestInvalidRecurrence(t *testing.T) {
 	assert.Nil(t, re)
 }
 
-func parseRe(content string) *Recurrence {
+func parseRe(content string) *moment.Recurrence {
 	line := &Line{content: content}
 	re, _ := parseRecurrence(line, line.Content())
 	return re

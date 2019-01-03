@@ -1,6 +1,8 @@
-package main
+package parse
 
 import (
+	"github.com/sandro-h/sibylgo/moment"
+	"github.com/sandro-h/sibylgo/util"
 	"regexp"
 	"strconv"
 	"strings"
@@ -13,12 +15,12 @@ var weeklyPattern, _ = regexp.Compile("(?i)every (monday|tuesday|wednesday|thurs
 var monthlyPattern, _ = regexp.Compile("(?i)every (\\d{1,2})\\.?$")
 var yearlyPattern, _ = regexp.Compile("(?i)every (\\d{1,2})\\.(\\d{1,2})\\.?$")
 
-func parseRecurrence(line *Line, lineVal string) (*Recurrence, string) {
+func parseRecurrence(line *Line, lineVal string) (*moment.Recurrence, string) {
 	p := strings.LastIndex(lineVal, "(")
 	reStr := lineVal[p+1 : len(lineVal)-1]
 	untrimmedPos := strings.LastIndex(line.Content(), "(") + 1
 
-	var re *Recurrence
+	var re *moment.Recurrence
 	re = tryParseDaily(reStr)
 	if re == nil {
 		re = tryParseWeekly(reStr)
@@ -37,23 +39,23 @@ func parseRecurrence(line *Line, lineVal string) (*Recurrence, string) {
 		strings.TrimSpace(lineVal[:p])
 }
 
-func tryParseDaily(reStr string) *Recurrence {
+func tryParseDaily(reStr string) *moment.Recurrence {
 	if strings.EqualFold(reStr, dailyPattern) {
-		return &Recurrence{
-			recurrence: RE_DAILY,
-			refDate:    &Date{time: time.Now()}}
+		return &moment.Recurrence{
+			Recurrence: moment.RE_DAILY,
+			RefDate:    &moment.Date{Time: time.Now()}}
 	}
 	return nil
 }
 
-func tryParseWeekly(reStr string) *Recurrence {
+func tryParseWeekly(reStr string) *moment.Recurrence {
 	matches := weeklyPattern.FindStringSubmatch(reStr)
 	if matches != nil {
 		wd := parseWeekday(matches[1])
-		dt := setWeekday(time.Now(), wd)
-		return &Recurrence{
-			recurrence: RE_WEEKLY,
-			refDate:    &Date{time: dt}}
+		dt := util.SetWeekday(time.Now(), wd)
+		return &moment.Recurrence{
+			Recurrence: moment.RE_WEEKLY,
+			RefDate:    &moment.Date{Time: dt}}
 	}
 	return nil
 }
@@ -78,7 +80,7 @@ func parseWeekday(str string) time.Weekday {
 	return -1
 }
 
-func tryParseMonthly(reStr string) *Recurrence {
+func tryParseMonthly(reStr string) *moment.Recurrence {
 	matches := monthlyPattern.FindStringSubmatch(reStr)
 	if matches != nil {
 		day, err := strconv.Atoi(matches[1])
@@ -87,14 +89,14 @@ func tryParseMonthly(reStr string) *Recurrence {
 		}
 		y, m, _ := time.Now().Date()
 		dt := time.Date(y, m, day, 0, 0, 0, 0, time.Local)
-		return &Recurrence{
-			recurrence: RE_MONTHLY,
-			refDate:    &Date{time: dt}}
+		return &moment.Recurrence{
+			Recurrence: moment.RE_MONTHLY,
+			RefDate:    &moment.Date{Time: dt}}
 	}
 	return nil
 }
 
-func tryParseYearly(reStr string) *Recurrence {
+func tryParseYearly(reStr string) *moment.Recurrence {
 	matches := yearlyPattern.FindStringSubmatch(reStr)
 	if matches != nil {
 		day, err := strconv.Atoi(matches[1])
@@ -107,16 +109,16 @@ func tryParseYearly(reStr string) *Recurrence {
 		}
 		y := time.Now().Year()
 		dt := time.Date(y, time.Month(month), day, 0, 0, 0, 0, time.Local)
-		return &Recurrence{
-			recurrence: RE_YEARLY,
-			refDate:    &Date{time: dt}}
+		return &moment.Recurrence{
+			Recurrence: moment.RE_YEARLY,
+			RefDate:    &moment.Date{Time: dt}}
 	}
 	return nil
 }
 
-func setDocCoords(re *Recurrence, lineNumber int, offset int, length int) *Recurrence {
-	re.refDate.lineNumber = lineNumber
-	re.refDate.offset = offset
-	re.refDate.length = length
+func setDocCoords(re *moment.Recurrence, lineNumber int, offset int, length int) *moment.Recurrence {
+	re.RefDate.LineNumber = lineNumber
+	re.RefDate.Offset = offset
+	re.RefDate.Length = length
 	return re
 }

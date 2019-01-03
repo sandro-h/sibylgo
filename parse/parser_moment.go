@@ -1,10 +1,11 @@
-package main
+package parse
 
 import (
+	"github.com/sandro-h/sibylgo/moment"
 	"strings"
 )
 
-func parseMoment(line *Line, lineVal string, indent string) (Moment, error) {
+func ParseMoment(line *Line, lineVal string, indent string) (moment.Moment, error) {
 	mom, lineVal := parseBaseMoment(line, lineVal)
 
 	done, lineVal, err := parseDoneMark(line, lineVal)
@@ -21,7 +22,7 @@ func parseMoment(line *Line, lineVal string, indent string) (Moment, error) {
 	return mom, nil
 }
 
-func parseBaseMoment(line *Line, lineVal string) (Moment, string) {
+func parseBaseMoment(line *Line, lineVal string) (moment.Moment, string) {
 	re, newLineVal := parseRecurMoment(line, lineVal)
 	if re != nil {
 		return re, newLineVal
@@ -29,27 +30,27 @@ func parseBaseMoment(line *Line, lineVal string) (Moment, string) {
 	return parseSingleMoment(line, lineVal)
 }
 
-func parseRecurMoment(line *Line, lineVal string) (*RecurMoment, string) {
+func parseRecurMoment(line *Line, lineVal string) (*moment.RecurMoment, string) {
 	if !strings.HasSuffix(lineVal, ")") {
 		return nil, lineVal
 	}
 	re, newLineVal := parseRecurrence(line, lineVal)
 	if re != nil {
-		mom := &RecurMoment{recurrence: *re}
-		mom.DocCoords = DocCoords{line.LineNumber(), line.Offset(), line.Length()}
+		mom := &moment.RecurMoment{Recurrence: *re}
+		mom.DocCoords = moment.DocCoords{line.LineNumber(), line.Offset(), line.Length()}
 		return mom, newLineVal
 	}
 	return nil, lineVal
 }
 
-func parseSingleMoment(line *Line, lineVal string) (*SingleMoment, string) {
-	var start *Date
-	var end *Date
+func parseSingleMoment(line *Line, lineVal string) (*moment.SingleMoment, string) {
+	var start *moment.Date
+	var end *moment.Date
 	if strings.HasSuffix(lineVal, ")") {
 		start, end, lineVal = parseTimeSuffix(line, lineVal)
 	}
-	mom := &SingleMoment{start: start, end: end}
-	mom.DocCoords = DocCoords{line.LineNumber(), line.Offset(), line.Length()}
+	mom := &moment.SingleMoment{Start: start, End: end}
+	mom.DocCoords = moment.DocCoords{line.LineNumber(), line.Offset(), line.Length()}
 	return mom, lineVal
 }
 

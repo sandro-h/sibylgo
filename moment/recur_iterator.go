@@ -1,6 +1,7 @@
-package main
+package moment
 
 import (
+	"github.com/sandro-h/sibylgo/util"
 	t "time"
 )
 
@@ -33,15 +34,15 @@ func (it *RecurIterator) Next() t.Time {
 }
 
 func (it *RecurIterator) prepareNext() {
-	switch it.recurrence.recurrence {
+	switch it.recurrence.Recurrence {
 	case RE_DAILY:
-		it.next = getNextDaily(it.cur, it.recurrence.refDate.time)
+		it.next = getNextDaily(it.cur, it.recurrence.RefDate.Time)
 	case RE_WEEKLY:
-		it.next = getNextWeekly(it.cur, it.recurrence.refDate.time)
+		it.next = getNextWeekly(it.cur, it.recurrence.RefDate.Time)
 	case RE_MONTHLY:
-		it.next = getNextMonthly(it.cur, it.recurrence.refDate.time)
+		it.next = getNextMonthly(it.cur, it.recurrence.RefDate.Time)
 	case RE_YEARLY:
-		it.next = getNextYearly(it.cur, it.recurrence.refDate.time)
+		it.next = getNextYearly(it.cur, it.recurrence.RefDate.Time)
 	}
 	it.cur = it.next
 }
@@ -51,7 +52,7 @@ func getNextDaily(after t.Time, ref t.Time) t.Time {
 }
 
 func getNextWeekly(after t.Time, ref t.Time) t.Time {
-	dt := setWeekday(after, ref.Weekday())
+	dt := util.SetWeekday(after, ref.Weekday())
 	if !dt.After(after) {
 		dt = dt.AddDate(0, 0, 7)
 	}

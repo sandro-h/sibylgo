@@ -4,13 +4,15 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/sandro-h/sibylgo/format"
+	"github.com/sandro-h/sibylgo/parse"
 	"net/http"
 	"time"
 )
 
 func main() {
 	router := mux.NewRouter()
-	router.HandleFunc("/format", format).Methods("POST")
+	router.HandleFunc("/format", formatMoments).Methods("POST")
 
 	srv := &http.Server{
 		Handler:      router,
@@ -24,25 +26,14 @@ func main() {
 	}
 }
 
-func format(w http.ResponseWriter, r *http.Request) {
+func formatMoments(w http.ResponseWriter, r *http.Request) {
 	tm := time.Now()
 	reader := base64.NewDecoder(base64.StdEncoding, r.Body)
-	todos, err := ParseReader(reader)
+	todos, err := parse.ParseReader(reader)
 	if err != nil {
 		// TODO
 	}
-	// for _, m := range todos.moments {
-	// 	printMom(m, "")
-	// }
-	res := FormatVSCode(todos)
-	//fmt.Printf(res)
+	res := format.FormatVSCode(todos)
 	fmt.Fprintf(w, res)
 	fmt.Printf("response time: %dms\n", int(time.Now().Sub(tm)/time.Millisecond))
-}
-
-func printMom(m Moment, indent string) {
-	fmt.Printf("%s%s\n", indent, m)
-	for _, s := range m.GetSubMoments() {
-		printMom(s, indent+"  ")
-	}
 }

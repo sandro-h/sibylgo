@@ -1,7 +1,9 @@
-package main
+package format
 
 import (
 	"fmt"
+	"github.com/sandro-h/sibylgo/parse"
+	tu "github.com/sandro-h/sibylgo/testutil"
 	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
@@ -9,10 +11,10 @@ import (
 )
 
 func TestFormatDueSoon(t *testing.T) {
-	yesterday := dts(time.Now().AddDate(0, 0, -1))
-	in2Days := dts(time.Now().AddDate(0, 0, 2))
-	in10Days := dts(time.Now().AddDate(0, 0, 10))
-	in11Days := dts(time.Now().AddDate(0, 0, 11))
+	yesterday := tu.Dts(time.Now().AddDate(0, 0, -1))
+	in2Days := tu.Dts(time.Now().AddDate(0, 0, 2))
+	in10Days := tu.Dts(time.Now().AddDate(0, 0, 10))
+	in11Days := tu.Dts(time.Now().AddDate(0, 0, 11))
 	input := `
 [] bla1 ($in2Days)
 [] bla2 ($in2Days-$in10Days)
@@ -24,7 +26,7 @@ func TestFormatDueSoon(t *testing.T) {
 	input = strings.Replace(input, "$in2Days", in2Days, -1)
 	input = strings.Replace(input, "$in10Days", in10Days, -1)
 	input = strings.Replace(input, "$in11Days", in11Days, -1)
-	todos, _ := ParseString(input)
+	todos, _ := parse.ParseString(input)
 
 	format := FormatVSCode(todos)
 

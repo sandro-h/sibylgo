@@ -1,6 +1,7 @@
-package main
+package parse
 
 import (
+	"github.com/sandro-h/sibylgo/moment"
 	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
@@ -17,7 +18,7 @@ func TestSubMoments(t *testing.T) {
 [] 2
 	`)
 
-	assert.Equal(t, 2, len(todos.moments))
+	assert.Equal(t, 2, len(todos.Moments))
 	assertMomentExists(t, todos, "1")
 	assertMomentExists(t, todos, "1/1.1")
 	assertMomentExists(t, todos, "1/1.2")
@@ -120,11 +121,11 @@ func TestCategory(t *testing.T) {
 	`)
 
 	assert.Nil(t, momentByPath(todos, "1").GetCategory())
-	assert.Equal(t, 1, len(todos.categories))
-	assert.Equal(t, "a cat", todos.categories[0].name)
-	assert.Equal(t, "a cat", momentByPath(todos, "2").GetCategory().name)
-	assert.Equal(t, "a cat", momentByPath(todos, "2/2.1").GetCategory().name)
-	assert.Equal(t, "a cat", momentByPath(todos, "2/2.1/2.1.1").GetCategory().name)
+	assert.Equal(t, 1, len(todos.Categories))
+	assert.Equal(t, "a cat", todos.Categories[0].Name)
+	assert.Equal(t, "a cat", momentByPath(todos, "2").GetCategory().Name)
+	assert.Equal(t, "a cat", momentByPath(todos, "2/2.1").GetCategory().Name)
+	assert.Equal(t, "a cat", momentByPath(todos, "2/2.1/2.1.1").GetCategory().Name)
 }
 
 func TestPriorityCategory(t *testing.T) {
@@ -135,9 +136,9 @@ func TestPriorityCategory(t *testing.T) {
 [] 1
 	`)
 
-	assert.Equal(t, 1, len(todos.categories))
-	assert.Equal(t, "a cat", todos.categories[0].name)
-	assert.Equal(t, 2, todos.categories[0].priority)
+	assert.Equal(t, 1, len(todos.Categories))
+	assert.Equal(t, "a cat", todos.Categories[0].Name)
+	assert.Equal(t, 2, todos.Categories[0].Priority)
 }
 
 func TestBadCategory(t *testing.T) {
@@ -151,7 +152,7 @@ func TestBadCategory(t *testing.T) {
 	assert.Contains(t, err.Error(), "Expected a delimiter after category a cat")
 }
 
-func assertMomentExists(t *testing.T, todos *Todos, path string) Moment {
+func assertMomentExists(t *testing.T, todos *moment.Todos, path string) moment.Moment {
 	mom := momentByPath(todos, path)
 	if mom == nil {
 		assert.Fail(t, "Expected moment with path "+path+" to exist.")
@@ -159,27 +160,27 @@ func assertMomentExists(t *testing.T, todos *Todos, path string) Moment {
 	return mom
 }
 
-func assertComments(t *testing.T, todos *Todos, path string, expected ...string) {
+func assertComments(t *testing.T, todos *moment.Todos, path string, expected ...string) {
 	mom := assertMomentExists(t, todos, path)
 	comms := mom.GetComments()
 	assert.Equal(t, len(expected), len(comms), "Number of comments")
 	for i, e := range expected {
-		assert.Equal(t, e, comms[i].content, "Comment is same")
+		assert.Equal(t, e, comms[i].Content, "Comment is same")
 	}
 }
 
-func assertDocCoords(t *testing.T, lineNum int, offset int, len int, coords DocCoords) {
-	assert.Equal(t, lineNum, coords.lineNumber)
-	assert.Equal(t, offset, coords.offset)
-	assert.Equal(t, len, coords.length)
+func assertDocCoords(t *testing.T, lineNum int, offset int, len int, coords moment.DocCoords) {
+	assert.Equal(t, lineNum, coords.LineNumber)
+	assert.Equal(t, offset, coords.Offset)
+	assert.Equal(t, len, coords.Length)
 }
 
-func momentByPath(todos *Todos, path string) Moment {
+func momentByPath(todos *moment.Todos, path string) moment.Moment {
 	parts := strings.Split(path, "/")
-	return navigateToMoment(todos.moments, &parts, 0)
+	return navigateToMoment(todos.Moments, &parts, 0)
 }
 
-func navigateToMoment(moms []Moment, parts *[]string, index int) Moment {
+func navigateToMoment(moms []moment.Moment, parts *[]string, index int) moment.Moment {
 	for _, m := range moms {
 		if m.GetName() == (*parts)[index] {
 			index++

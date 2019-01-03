@@ -1,7 +1,8 @@
-package main
+package moment
 
 import (
 	"fmt"
+	"github.com/sandro-h/sibylgo/util"
 	t "time"
 )
 
@@ -28,18 +29,18 @@ type Moment interface {
 }
 
 type Todos struct {
-	categories []*Category
-	moments    []Moment
+	Categories []*Category
+	Moments    []Moment
 }
 
 type Category struct {
-	name     string
-	priority int
+	Name     string
+	Priority int
 	DocCoords
 }
 
 func (c *Category) String() string {
-	return fmt.Sprintf("Category{name: %s, prio: %d, coords: %s}", c.name, c.priority, c.DocCoords.String())
+	return fmt.Sprintf("Category{name: %s, prio: %d, coords: %s}", c.Name, c.Priority, c.DocCoords.String())
 }
 
 type BaseMoment struct {
@@ -121,33 +122,33 @@ func (m *BaseMoment) GetDocCoords() DocCoords {
 
 type SingleMoment struct {
 	BaseMoment
-	start *Date
-	end   *Date
+	Start *Date
+	End   *Date
 }
 
 func (m *SingleMoment) CreateInstances(from t.Time, to t.Time) []*MomentInstance {
-	start := getUpperBound(&from, dateTm(m.start))
-	end := getLowerBound(&to, dateTm(m.end))
+	start := util.GetUpperBound(&from, dateTm(m.Start))
+	end := util.GetLowerBound(&to, dateTm(m.End))
 	if end.Before(start) {
 		// Not actually in range
 		return nil
 	}
 
-	inst := MomentInstance{start: start, end: end}
-	inst.endsInRange = m.end != nil && !m.end.time.After(end)
+	inst := MomentInstance{Start: start, End: end}
+	inst.EndsInRange = m.End != nil && !m.End.Time.After(end)
 	return []*MomentInstance{&inst}
 }
 
 func (m *SingleMoment) String() string {
 	startStr := "nil"
 	endStr := "nil"
-	if m.start != nil {
-		startStr = m.start.time.Format("02.01.06 15:04") +
-			fmt.Sprintf(" (%d:%d)", m.start.offset, m.start.length)
+	if m.Start != nil {
+		startStr = m.Start.Time.Format("02.01.06 15:04") +
+			fmt.Sprintf(" (%d:%d)", m.Start.Offset, m.Start.Length)
 	}
-	if m.end != nil {
-		endStr = m.end.time.Format("02.01.06 15:04") +
-			fmt.Sprintf(" (%d:%d)", m.end.offset, m.end.length)
+	if m.End != nil {
+		endStr = m.End.Time.Format("02.01.06 15:04") +
+			fmt.Sprintf(" (%d:%d)", m.End.Offset, m.End.Length)
 	}
 	return fmt.Sprintf("SingleMom{name: %s, done: %t prio: %d, start: %s, end: %s, comms: %d, coords: %s}",
 		m.name, m.done, m.priority, startStr, endStr, len(m.comments), m.DocCoords.String())
@@ -155,15 +156,15 @@ func (m *SingleMoment) String() string {
 
 type RecurMoment struct {
 	BaseMoment
-	recurrence Recurrence
+	Recurrence Recurrence
 }
 
 func (m *RecurMoment) CreateInstances(from t.Time, to t.Time) []*MomentInstance {
 	var insts []*MomentInstance
-	for it := NewRecurIterator(m.recurrence, from, to); it.HasNext(); {
+	for it := NewRecurIterator(m.Recurrence, from, to); it.HasNext(); {
 		start := it.Next()
-		inst := MomentInstance{start: start, end: setToEndOfDay(start)}
-		inst.endsInRange = true
+		inst := MomentInstance{Start: start, End: util.SetToEndOfDay(start)}
+		inst.EndsInRange = true
 		insts = append(insts, &inst)
 	}
 	return insts
@@ -177,12 +178,12 @@ const (
 )
 
 type Recurrence struct {
-	recurrence int
-	refDate    *Date
+	Recurrence int
+	RefDate    *Date
 }
 
 type Date struct {
-	time t.Time
+	Time t.Time
 	DocCoords
 }
 
@@ -190,50 +191,27 @@ func dateTm(dt *Date) *t.Time {
 	if dt == nil {
 		return nil
 	}
-	return &dt.time
+	return &dt.Time
 }
 
 type CommentLine struct {
-	content string
+	Content string
 	DocCoords
 }
 
 type DocCoords struct {
-	lineNumber int
-	offset     int
-	length     int
+	LineNumber int
+	Offset     int
+	Length     int
 }
 
 func (c *DocCoords) String() string {
-	return fmt.Sprintf("%d:%d:%d", c.lineNumber, c.offset, c.length)
+	return fmt.Sprintf("%d:%d:%d", c.LineNumber, c.Offset, c.Length)
 }
 
 type MomentInstance struct {
-	start        t.Time
-	end          t.Time
-	endsInRange  bool
-	subInstances []*MomentInstance
-}
-
-func GenerateInstances(mom Moment, from t.Time, to t.Time) []*MomentInstance {
-	return generateInstances(mom, from, to, true)
-}
-
-func GenerateInstancesWithoutSubs(mom Moment, from t.Time, to t.Time) []*MomentInstance {
-	return generateInstances(mom, from, to, false)
-}
-
-func generateInstances(mom Moment, from t.Time, to t.Time, inclSubs bool) []*MomentInstance {
-	insts := mom.CreateInstances(from, to)
-	// Sub moments:
-	if inclSubs {
-		for _, inst := range insts {
-			var subInsts []*MomentInstance
-			for _, sub := range mom.GetSubMoments() {
-				subInsts = append(subInsts, generateInstances(sub, inst.start, inst.end, inclSubs)...)
-			}
-			inst.subInstances = subInsts
-		}
-	}
-	return insts
+	Start        t.Time
+	End          t.Time
+	EndsInRange  bool
+	SubInstances []*MomentInstance
 }
