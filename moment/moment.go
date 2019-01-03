@@ -1,7 +1,6 @@
 package moment
 
 import (
-	"github.com/sandro-h/sibylgo/util"
 	"time"
 )
 
@@ -23,8 +22,6 @@ type Moment interface {
 	GetSubMoments() []Moment
 	GetLastComment() *CommentLine
 	GetDocCoords() DocCoords
-
-	CreateInstances(from time.Time, to time.Time) []*MomentInstance
 }
 
 type Todos struct {
@@ -121,33 +118,9 @@ type SingleMoment struct {
 	End   *Date
 }
 
-func (m *SingleMoment) CreateInstances(from time.Time, to time.Time) []*MomentInstance {
-	start := util.GetUpperBound(&from, dateTm(m.Start))
-	end := util.GetLowerBound(&to, dateTm(m.End))
-	if end.Before(start) {
-		// Not actually in range
-		return nil
-	}
-
-	inst := MomentInstance{Start: start, End: end}
-	inst.EndsInRange = m.End != nil && !m.End.Time.After(end)
-	return []*MomentInstance{&inst}
-}
-
 type RecurMoment struct {
 	BaseMoment
 	Recurrence Recurrence
-}
-
-func (m *RecurMoment) CreateInstances(from time.Time, to time.Time) []*MomentInstance {
-	var insts []*MomentInstance
-	for it := NewRecurIterator(m.Recurrence, from, to); it.HasNext(); {
-		start := it.Next()
-		inst := MomentInstance{Start: start, End: util.SetToEndOfDay(start)}
-		inst.EndsInRange = true
-		insts = append(insts, &inst)
-	}
-	return insts
 }
 
 const (
@@ -165,13 +138,6 @@ type Recurrence struct {
 type Date struct {
 	Time time.Time
 	DocCoords
-}
-
-func dateTm(dt *Date) *time.Time {
-	if dt == nil {
-		return nil
-	}
-	return &dt.Time
 }
 
 type CommentLine struct {

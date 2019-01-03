@@ -1,6 +1,7 @@
-package moment
+package generate
 
 import (
+	"github.com/sandro-h/sibylgo/moment"
 	tu "github.com/sandro-h/sibylgo/testutil"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -8,7 +9,7 @@ import (
 )
 
 func TestIterateDaily(t *testing.T) {
-	it := NewRecurIterator(re(RE_DAILY, "02.01.2019"),
+	it := NewRecurIterator(re(moment.RE_DAILY, "02.01.2019"),
 		tu.Dt("10.01.2019"), tu.Dt("13.01.2019"))
 	assertIterations(t, it,
 		"10.01.2019",
@@ -18,7 +19,7 @@ func TestIterateDaily(t *testing.T) {
 }
 
 func TestIterateWeekly(t *testing.T) {
-	it := NewRecurIterator(re(RE_WEEKLY, "02.01.2019"), // wednesday
+	it := NewRecurIterator(re(moment.RE_WEEKLY, "02.01.2019"), // wednesday
 		tu.Dt("10.01.2019"), tu.Dt("31.01.2019"))
 	assertIterations(t, it,
 		"16.01.2019",
@@ -27,7 +28,7 @@ func TestIterateWeekly(t *testing.T) {
 }
 
 func TestIterateMonthly(t *testing.T) {
-	it := NewRecurIterator(re(RE_MONTHLY, "02.01.2019"),
+	it := NewRecurIterator(re(moment.RE_MONTHLY, "02.01.2019"),
 		tu.Dt("10.01.2019"), tu.Dt("30.04.2019"))
 	assertIterations(t, it,
 		"02.02.2019",
@@ -36,7 +37,7 @@ func TestIterateMonthly(t *testing.T) {
 }
 
 func TestIterateYearly(t *testing.T) {
-	it := NewRecurIterator(re(RE_YEARLY, "02.01.2019"),
+	it := NewRecurIterator(re(moment.RE_YEARLY, "02.01.2019"),
 		tu.Dt("10.01.2019"), tu.Dt("30.04.2022"))
 	assertIterations(t, it,
 		"02.01.2020",
@@ -44,8 +45,8 @@ func TestIterateYearly(t *testing.T) {
 		"02.01.2022")
 }
 
-func re(re int, d string) Recurrence {
-	return Recurrence{Recurrence: re, RefDate: &Date{Time: tu.Dt(d)}}
+func re(re int, d string) moment.Recurrence {
+	return moment.Recurrence{Recurrence: re, RefDate: &moment.Date{Time: tu.Dt(d)}}
 }
 
 func assertIterations(t *testing.T, it *RecurIterator, expected ...string) {

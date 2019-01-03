@@ -1,19 +1,20 @@
-package moment
+package generate
 
 import (
+	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/util"
 	"time"
 )
 
 type RecurIterator struct {
-	recurrence Recurrence
+	recurrence moment.Recurrence
 	from       time.Time
 	until      time.Time
 	cur        time.Time
 	next       time.Time
 }
 
-func NewRecurIterator(recurrence Recurrence, from time.Time, until time.Time) *RecurIterator {
+func NewRecurIterator(recurrence moment.Recurrence, from time.Time, until time.Time) *RecurIterator {
 	it := &RecurIterator{
 		recurrence: recurrence,
 		from:       from,
@@ -35,13 +36,13 @@ func (it *RecurIterator) Next() time.Time {
 
 func (it *RecurIterator) prepareNext() {
 	switch it.recurrence.Recurrence {
-	case RE_DAILY:
+	case moment.RE_DAILY:
 		it.next = getNextDaily(it.cur)
-	case RE_WEEKLY:
+	case moment.RE_WEEKLY:
 		it.next = getNextWeekly(it.cur, it.recurrence.RefDate.Time)
-	case RE_MONTHLY:
+	case moment.RE_MONTHLY:
 		it.next = getNextMonthly(it.cur, it.recurrence.RefDate.Time)
-	case RE_YEARLY:
+	case moment.RE_YEARLY:
 		it.next = getNextYearly(it.cur, it.recurrence.RefDate.Time)
 	}
 	it.cur = it.next
