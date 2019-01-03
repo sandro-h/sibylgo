@@ -88,7 +88,7 @@ export function activate(context: vscode.ExtensionContext) {
 		if (timeout) {
 			clearTimeout(timeout);
 		}
-		timeout = setTimeout(updateDecorations, 500);
+		timeout = setTimeout(updateDecorations, 250);
 	}
 
 	function isTodoEditor(editor) {
