@@ -1,7 +1,6 @@
 package moment
 
 import (
-	"fmt"
 	"github.com/sandro-h/sibylgo/util"
 	"time"
 )
@@ -37,10 +36,6 @@ type Category struct {
 	Name     string
 	Priority int
 	DocCoords
-}
-
-func (c *Category) String() string {
-	return fmt.Sprintf("Category{name: %s, prio: %d, coords: %s}", c.Name, c.Priority, c.DocCoords.String())
 }
 
 type BaseMoment struct {
@@ -139,21 +134,6 @@ func (m *SingleMoment) CreateInstances(from time.Time, to time.Time) []*MomentIn
 	return []*MomentInstance{&inst}
 }
 
-func (m *SingleMoment) String() string {
-	startStr := "nil"
-	endStr := "nil"
-	if m.Start != nil {
-		startStr = m.Start.Time.Format("02.01.06 15:04") +
-			fmt.Sprintf(" (%d:%d)", m.Start.Offset, m.Start.Length)
-	}
-	if m.End != nil {
-		endStr = m.End.Time.Format("02.01.06 15:04") +
-			fmt.Sprintf(" (%d:%d)", m.End.Offset, m.End.Length)
-	}
-	return fmt.Sprintf("SingleMom{name: %s, done: %t prio: %d, start: %s, end: %s, comms: %d, coords: %s}",
-		m.name, m.done, m.priority, startStr, endStr, len(m.comments), m.DocCoords.String())
-}
-
 type RecurMoment struct {
 	BaseMoment
 	Recurrence Recurrence
@@ -203,10 +183,6 @@ type DocCoords struct {
 	LineNumber int
 	Offset     int
 	Length     int
-}
-
-func (c *DocCoords) String() string {
-	return fmt.Sprintf("%d:%d:%d", c.LineNumber, c.Offset, c.Length)
 }
 
 type MomentInstance struct {
