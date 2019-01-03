@@ -1,9 +1,13 @@
 version: 2
+workflows:
+  version: 2
+  all:
+    jobs:
+      - build
+      - build-vs-ext
 jobs:
   build:
     working_directory: /go/src/github.com/sandro-h/sibylgo
-    environment:
-
     docker:
       - image: circleci/golang:1.11.2-stretch
 
@@ -80,3 +84,34 @@ jobs:
             buildtools/sonar-scanner/bin/sonar-scanner \
               -Dsonar.host.url=https://sonarcloud.io \
               -Dsonar.login=$SONAR_TOKEN
+
+  build-vs-ext:
+    docker:
+      - image: circleci/node:10.15
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          name: Restore node_modules cache
+          key: v1-node_modules-{{ checksum "vscode_ext/package-lock.json" }}
+
+      - run:
+          working_directory: vscode_ext
+          name: Install
+          command: "[ -d node_modules ] || npm install --unsafe-perm"
+
+      - save_cache:
+          name: Save node_modules cache
+          paths:
+            - vscode_ext/node_modules
+          key: v1-node_modules-{{ checksum "vscode_ext/package-lock.json" }}
+
+      - run:
+          working_directory: vscode_ext
+          name: Build
+          command: node node_modules/vsce/out/vsce package -o sibyl.vsix
+
+      - store_artifacts:
+          path: vscode_ext/sibyl.vsix
+          destination: sibyl.vsix
