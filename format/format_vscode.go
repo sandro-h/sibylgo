@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const catMarker = "mom"
+const catMarker = "cat"
 const momMarker = "mom"
 const commentMarker = "com"
 const dateMarker = "mom.date"

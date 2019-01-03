@@ -10,6 +10,29 @@ import (
 	"time"
 )
 
+func TestFormatCat(t *testing.T) {
+	todos, _ := parse.ParseString(`
+------------------
+ cat1
+------------------
+
+[] bla
+
+------------------
+ cat2
+------------------
+
+[] foo
+	`)
+
+	format := FormatVSCode(todos)
+	assert.Equal(t, `20,25,cat
+73,78,cat
+46,52,mom
+99,105,mom
+`, format)
+}
+
 func TestFormatDueSoon(t *testing.T) {
 	yesterday := tu.Dts(time.Now().AddDate(0, 0, -1))
 	in2Days := tu.Dts(time.Now().AddDate(0, 0, 2))
