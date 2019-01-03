@@ -2,18 +2,18 @@ package moment
 
 import (
 	"github.com/sandro-h/sibylgo/util"
-	t "time"
+	"time"
 )
 
 type RecurIterator struct {
 	recurrence Recurrence
-	from       t.Time
-	until      t.Time
-	cur        t.Time
-	next       t.Time
+	from       time.Time
+	until      time.Time
+	cur        time.Time
+	next       time.Time
 }
 
-func NewRecurIterator(recurrence Recurrence, from t.Time, until t.Time) *RecurIterator {
+func NewRecurIterator(recurrence Recurrence, from time.Time, until time.Time) *RecurIterator {
 	it := &RecurIterator{
 		recurrence: recurrence,
 		from:       from,
@@ -27,7 +27,7 @@ func (it *RecurIterator) HasNext() bool {
 	return !it.next.After(it.until)
 }
 
-func (it *RecurIterator) Next() t.Time {
+func (it *RecurIterator) Next() time.Time {
 	res := it.next
 	it.prepareNext()
 	return res
@@ -47,11 +47,11 @@ func (it *RecurIterator) prepareNext() {
 	it.cur = it.next
 }
 
-func getNextDaily(after t.Time, ref t.Time) t.Time {
+func getNextDaily(after time.Time, ref time.Time) time.Time {
 	return after.AddDate(0, 0, 1)
 }
 
-func getNextWeekly(after t.Time, ref t.Time) t.Time {
+func getNextWeekly(after time.Time, ref time.Time) time.Time {
 	dt := util.SetWeekday(after, ref.Weekday())
 	if !dt.After(after) {
 		dt = dt.AddDate(0, 0, 7)
@@ -59,18 +59,18 @@ func getNextWeekly(after t.Time, ref t.Time) t.Time {
 	return dt
 }
 
-func getNextMonthly(after t.Time, ref t.Time) t.Time {
+func getNextMonthly(after time.Time, ref time.Time) time.Time {
 	y, m, _ := after.Date()
-	dt := t.Date(y, m, ref.Day(), 0, 0, 0, 0, t.Local)
+	dt := time.Date(y, m, ref.Day(), 0, 0, 0, 0, time.Local)
 	if !dt.After(after) {
 		dt = dt.AddDate(0, 1, 0)
 	}
 	return dt
 }
 
-func getNextYearly(after t.Time, ref t.Time) t.Time {
+func getNextYearly(after time.Time, ref time.Time) time.Time {
 	_, m, d := ref.Date()
-	dt := t.Date(after.Year(), m, d, 0, 0, 0, 0, t.Local)
+	dt := time.Date(after.Year(), m, d, 0, 0, 0, 0, time.Local)
 	if !dt.After(after) {
 		dt = dt.AddDate(1, 0, 0)
 	}

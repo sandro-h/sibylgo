@@ -3,7 +3,7 @@ package moment
 import (
 	"fmt"
 	"github.com/sandro-h/sibylgo/util"
-	t "time"
+	"time"
 )
 
 type Moment interface {
@@ -25,7 +25,7 @@ type Moment interface {
 	GetLastComment() *CommentLine
 	GetDocCoords() DocCoords
 
-	CreateInstances(from t.Time, to t.Time) []*MomentInstance
+	CreateInstances(from time.Time, to time.Time) []*MomentInstance
 }
 
 type Todos struct {
@@ -126,7 +126,7 @@ type SingleMoment struct {
 	End   *Date
 }
 
-func (m *SingleMoment) CreateInstances(from t.Time, to t.Time) []*MomentInstance {
+func (m *SingleMoment) CreateInstances(from time.Time, to time.Time) []*MomentInstance {
 	start := util.GetUpperBound(&from, dateTm(m.Start))
 	end := util.GetLowerBound(&to, dateTm(m.End))
 	if end.Before(start) {
@@ -159,7 +159,7 @@ type RecurMoment struct {
 	Recurrence Recurrence
 }
 
-func (m *RecurMoment) CreateInstances(from t.Time, to t.Time) []*MomentInstance {
+func (m *RecurMoment) CreateInstances(from time.Time, to time.Time) []*MomentInstance {
 	var insts []*MomentInstance
 	for it := NewRecurIterator(m.Recurrence, from, to); it.HasNext(); {
 		start := it.Next()
@@ -183,11 +183,11 @@ type Recurrence struct {
 }
 
 type Date struct {
-	Time t.Time
+	Time time.Time
 	DocCoords
 }
 
-func dateTm(dt *Date) *t.Time {
+func dateTm(dt *Date) *time.Time {
 	if dt == nil {
 		return nil
 	}
@@ -210,8 +210,8 @@ func (c *DocCoords) String() string {
 }
 
 type MomentInstance struct {
-	Start        t.Time
-	End          t.Time
+	Start        time.Time
+	End          time.Time
 	EndsInRange  bool
 	SubInstances []*MomentInstance
 }

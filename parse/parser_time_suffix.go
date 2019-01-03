@@ -4,7 +4,7 @@ import (
 	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/util"
 	"strings"
-	t "time"
+	"time"
 )
 
 var dateFormats = [...]string{
@@ -100,13 +100,13 @@ func parseTimeSuffixRanged(lineVal string, dashPos int) (*moment.Date, *moment.D
 	return start, end
 }
 
-func parseDate(str string) (bool, t.Time) {
+func parseDate(str string) (bool, time.Time) {
 	str = strings.TrimSpace(str)
 	for _, fmt := range dateFormats {
-		tm, err := t.Parse(fmt, str)
+		tm, err := time.Parse(fmt, str)
 		if err == nil {
 			return true, tm
 		}
 	}
-	return false, t.Unix(0, 0)
+	return false, time.Unix(0, 0)
 }

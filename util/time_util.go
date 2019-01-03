@@ -1,20 +1,20 @@
 package util
 
 import (
-	t "time"
+	"time"
 )
 
-const Days = t.Hour * 24
+const Days = time.Hour * 24
 
-func GetLowerBound(t1 *t.Time, t2 *t.Time) t.Time {
+func GetLowerBound(t1 *time.Time, t2 *time.Time) time.Time {
 	return getBound(t1, t2, false)
 }
 
-func GetUpperBound(t1 *t.Time, t2 *t.Time) t.Time {
+func GetUpperBound(t1 *time.Time, t2 *time.Time) time.Time {
 	return getBound(t1, t2, true)
 }
 
-func getBound(t1 *t.Time, t2 *t.Time, lowerOrUpper bool) t.Time {
+func getBound(t1 *time.Time, t2 *time.Time, lowerOrUpper bool) time.Time {
 	if t1 != nil && t2 != nil {
 		if !lowerOrUpper {
 			if t1.Before(*t2) {
@@ -36,17 +36,17 @@ func getBound(t1 *t.Time, t2 *t.Time, lowerOrUpper bool) t.Time {
 	}
 }
 
-func SetWeekday(dt t.Time, wd t.Weekday) t.Time {
+func SetWeekday(dt time.Time, wd time.Weekday) time.Time {
 	di := int(wd - dt.Weekday())
 	return dt.AddDate(0, 0, di)
 }
 
-func SetToStartOfDay(dt t.Time) t.Time {
+func SetToStartOfDay(dt time.Time) time.Time {
 	y, m, d := dt.Date()
-	return t.Date(y, m, d, 0, 0, 0, 0, t.Local)
+	return time.Date(y, m, d, 0, 0, 0, 0, time.Local)
 }
 
-func SetToEndOfDay(dt t.Time) t.Time {
+func SetToEndOfDay(dt time.Time) time.Time {
 	y, m, d := dt.Date()
-	return t.Date(y, m, d, 23, 59, 59, 999999999, t.Local)
+	return time.Date(y, m, d, 23, 59, 59, 999999999, time.Local)
 }
