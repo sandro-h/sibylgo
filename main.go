@@ -31,7 +31,7 @@ func formatMoments(w http.ResponseWriter, r *http.Request) {
 	reader := base64.NewDecoder(base64.StdEncoding, r.Body)
 	todos, err := parse.ParseReader(reader)
 	if err != nil {
-		// TODO
+		http.Error(w, err.Error(), 400)
 	}
 	res := format.FormatVSCode(todos)
 	fmt.Fprintf(w, res)

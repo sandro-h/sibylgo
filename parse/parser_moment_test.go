@@ -216,7 +216,7 @@ func dateStr(dt *moment.Date) string {
 
 func parseMom(content string) (moment.Moment, error) {
 	line := &Line{content: content}
-	return ParseMoment(line, line.Content(), "")
+	return ParseMoment(line, line.Content())
 }
 
 func parseSingleMom(content string) (*moment.SingleMoment, error) {

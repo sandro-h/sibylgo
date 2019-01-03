@@ -111,7 +111,7 @@ func (p *Parser) handleMomentLine(line *Line) error {
 }
 
 func (p *Parser) parseFullMoment(line *Line, lineVal string, indent string) (moment.Moment, error) {
-	mom, err := ParseMoment(line, lineVal, "")
+	mom, err := ParseMoment(line, lineVal)
 	if err != nil {
 		return nil, err
 	}

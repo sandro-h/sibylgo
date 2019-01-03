@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func ParseMoment(line *Line, lineVal string, indent string) (moment.Moment, error) {
+func ParseMoment(line *Line, lineVal string) (moment.Moment, error) {
 	mom, lineVal := parseBaseMoment(line, lineVal)
 
 	done, lineVal, err := parseDoneMark(line, lineVal)

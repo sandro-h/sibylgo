@@ -8,11 +8,19 @@ import (
 	"time"
 )
 
+const catMarker = "mom"
+const momMarker = "mom"
+const commentMarker = "com"
+const dateMarker = "mom.date"
+const doneSuffix = ".done"
+const prioritySuffix = ".priority"
+const untilSuffix = ".until%d"
+
 func FormatVSCode(todos *moment.Todos) string {
 
 	res := ""
 	for _, c := range todos.Categories {
-		appendFmt(&res, c.DocCoords, "cat")
+		appendFmt(&res, c.DocCoords, catMarker)
 	}
 	for _, m := range todos.Moments {
 		formatMoment(&res, m, false)
@@ -21,14 +29,14 @@ func FormatVSCode(todos *moment.Todos) string {
 }
 
 func formatMoment(res *string, m moment.Moment, parentDone bool) {
-	momFmt := "mom"
+	momFmt := momMarker
 	done := parentDone || m.IsDone()
 	if done {
-		momFmt += ".done"
+		momFmt += doneSuffix
 	} else {
 		formatDueSoon(&momFmt, m)
 		if m.GetPriority() > 0 {
-			momFmt += ".priority"
+			momFmt += prioritySuffix
 		}
 	}
 
@@ -37,7 +45,7 @@ func formatMoment(res *string, m moment.Moment, parentDone bool) {
 	// Additional format lines:
 	if done {
 		for _, c := range m.GetComments() {
-			appendFmt(res, c.DocCoords, "com.done")
+			appendFmt(res, c.DocCoords, commentMarker+doneSuffix)
 		}
 	} else {
 		formatDates(res, m)
@@ -52,13 +60,13 @@ func formatDates(res *string, m moment.Moment) {
 	switch v := m.(type) {
 	case *moment.SingleMoment:
 		if v.Start != nil {
-			appendFmt(res, v.Start.DocCoords, "mom.date")
+			appendFmt(res, v.Start.DocCoords, dateMarker)
 		}
 		if v.End != nil && (v.Start == nil || v.End.DocCoords != v.Start.DocCoords) {
-			appendFmt(res, v.End.DocCoords, "mom.date")
+			appendFmt(res, v.End.DocCoords, dateMarker)
 		}
 	case *moment.RecurMoment:
-		appendFmt(res, v.Recurrence.RefDate.DocCoords, "mom.date")
+		appendFmt(res, v.Recurrence.RefDate.DocCoords, dateMarker)
 	}
 }
 
@@ -75,7 +83,7 @@ func formatDueSoon(momFmt *string, m moment.Moment) {
 		}
 	}
 	if earliest < n {
-		*momFmt += fmt.Sprintf(".until%d", earliest)
+		*momFmt += fmt.Sprintf(untilSuffix, earliest)
 	}
 }
 

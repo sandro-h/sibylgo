@@ -36,7 +36,7 @@ func (it *RecurIterator) Next() time.Time {
 func (it *RecurIterator) prepareNext() {
 	switch it.recurrence.Recurrence {
 	case RE_DAILY:
-		it.next = getNextDaily(it.cur, it.recurrence.RefDate.Time)
+		it.next = getNextDaily(it.cur)
 	case RE_WEEKLY:
 		it.next = getNextWeekly(it.cur, it.recurrence.RefDate.Time)
 	case RE_MONTHLY:
@@ -47,7 +47,7 @@ func (it *RecurIterator) prepareNext() {
 	it.cur = it.next
 }
 
-func getNextDaily(after time.Time, ref time.Time) time.Time {
+func getNextDaily(after time.Time) time.Time {
 	return after.AddDate(0, 0, 1)
 }
 
