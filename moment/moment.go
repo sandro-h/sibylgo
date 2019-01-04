@@ -152,6 +152,7 @@ type DocCoords struct {
 }
 
 type MomentInstance struct {
+	Name         string
 	Start        time.Time
 	End          time.Time
 	EndsInRange  bool
