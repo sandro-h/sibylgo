@@ -6,14 +6,26 @@ import (
 	"time"
 )
 
-type MomentFilterFunc func(moment.Moment) bool
+type MomentFilterFunc func(*moment.MomentInstance) bool
 
 func GenerateInstances(mom moment.Moment, from time.Time, to time.Time) []*moment.MomentInstance {
 	return generateInstances(mom, from, to, true, nil)
 }
 
-func GenerateInstancesFiltered(todos *moment.Todos, from time.Time, to time.Time,
-	filter MomentFilterFunc) []*moment.MomentInstance {
+func GenerateInstancesWithoutSubs(mom moment.Moment, from time.Time, to time.Time) []*moment.MomentInstance {
+	return generateInstances(mom, from, to, false, nil)
+}
+
+func GenerateInstancesFiltered(todos *moment.Todos, from time.Time, to time.Time, filter MomentFilterFunc) []*moment.MomentInstance {
+	return generateInstancesFiltered(todos, from, to, filter, true)
+}
+
+func GenerateInstancesFilteredWithoutSubs(todos *moment.Todos, from time.Time, to time.Time, filter MomentFilterFunc) []*moment.MomentInstance {
+	return generateInstancesFiltered(todos, from, to, filter, false)
+}
+
+func generateInstancesFiltered(todos *moment.Todos, from time.Time, to time.Time,
+	filter MomentFilterFunc, inclSubs bool) []*moment.MomentInstance {
 	var insts []*moment.MomentInstance
 	for _, mom := range todos.Moments {
 		insts = append(insts, generateInstances(mom, from, to, true, filter)...)
@@ -21,16 +33,12 @@ func GenerateInstancesFiltered(todos *moment.Todos, from time.Time, to time.Time
 	return insts
 }
 
-func GenerateInstancesWithoutSubs(mom moment.Moment, from time.Time, to time.Time) []*moment.MomentInstance {
-	return generateInstances(mom, from, to, false, nil)
-}
-
 func generateInstances(mom moment.Moment, from time.Time, to time.Time,
 	inclSubs bool, filter MomentFilterFunc) []*moment.MomentInstance {
-	if filter != nil && !filter(mom) {
-		return nil
-	}
 	insts := createInstances(mom, from, to)
+	if filter != nil {
+		insts = filterInstances(insts, filter)
+	}
 	// Sub moments:
 	if inclSubs {
 		for _, inst := range insts {
@@ -43,6 +51,16 @@ func generateInstances(mom moment.Moment, from time.Time, to time.Time,
 		}
 	}
 	return insts
+}
+
+func filterInstances(insts []*moment.MomentInstance, filter MomentFilterFunc) []*moment.MomentInstance {
+	var result []*moment.MomentInstance
+	for _, i := range insts {
+		if filter(i) {
+			result = append(result, i)
+		}
+	}
+	return result
 }
 
 func createInstances(mom moment.Moment, from time.Time, to time.Time) []*moment.MomentInstance {
@@ -64,6 +82,8 @@ func createSingleInstances(mom *moment.SingleMoment, from time.Time, to time.Tim
 	}
 
 	inst := moment.MomentInstance{Name: mom.GetName(), Start: start, End: end}
+	inst.Priority = mom.GetPriority()
+	inst.Done = mom.IsDone()
 	inst.EndsInRange = mom.End != nil && !mom.End.Time.After(end)
 	return []*moment.MomentInstance{&inst}
 }
@@ -73,6 +93,8 @@ func createRecurInstances(mom *moment.RecurMoment, from time.Time, to time.Time)
 	for it := NewRecurIterator(mom.Recurrence, from, to); it.HasNext(); {
 		start := it.Next()
 		inst := moment.MomentInstance{Name: mom.GetName(), Start: start, End: util.SetToEndOfDay(start)}
+		inst.Priority = mom.GetPriority()
+		inst.Done = mom.IsDone()
 		inst.EndsInRange = true
 		insts = append(insts, &inst)
 	}

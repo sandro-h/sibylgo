@@ -1,0 +1,38 @@
+<html>
+	<head>
+		<title>Sibyl - Calendar</title>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.css" integrity="sha256-IGidWbiBOL+/w1glLnZWR5dCXpBrtQbY3XOUt2TTQOM=" crossorigin="anonymous" />
+		<style type="text/css">
+			.fc-today {
+				background-color: yellow !important;
+			}
+		</style>
+
+		<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.23.0/moment.js" integrity="sha256-l6SU+rVSlkyIcMsqjy0mb6ne/qPpYotdVSFd9vLmV1A=" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.js" integrity="sha256-uKe4jCg18Q60qLNG8dIei2y3ZVhcHADuEQFlpQ/hBRY=" crossorigin="anonymous"></script>
+		<script type="text/javascript">
+			$(function() {
+			
+				$('#calendar').fullCalendar({
+					header: {
+						left: 'prev,next today',
+						center: 'title',
+						right: 'month,agendaWeek,agendaDay'
+					},
+					events: {
+						url: 'http://localhost:8082/moments',
+						data: {
+							format: 'calendar'
+						}
+					},
+					height: 800
+				})
+
+			});
+		</script>
+	</head>
+	<body>
+		<div id="calendar"></div>
+	</body>
+</html>

@@ -155,6 +155,8 @@ type MomentInstance struct {
 	Name         string
 	Start        time.Time
 	End          time.Time
+	Priority     int
+	Done         bool
 	EndsInRange  bool
 	SubInstances []*MomentInstance
 }

@@ -109,7 +109,7 @@ func (p *MailReminderProcess) sendReminderForToday(today time.Time) error {
 
 func compileMomentsForToday(today time.Time, todos *moment.Todos) string {
 	insts := generate.GenerateInstancesFiltered(todos, today, util.SetToEndOfDay(today),
-		func(mom moment.Moment) bool { return !mom.IsDone() })
+		func(mom *moment.MomentInstance) bool { return !mom.Done })
 	content := ""
 	addMomentsEndingInRange(&content, insts)
 	return content

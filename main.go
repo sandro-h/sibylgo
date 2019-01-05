@@ -2,9 +2,12 @@ package main
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/sandro-h/sibylgo/calendar"
 	"github.com/sandro-h/sibylgo/format"
 	"github.com/sandro-h/sibylgo/parse"
 	"github.com/sandro-h/sibylgo/reminder"
@@ -29,11 +32,17 @@ func main() {
 		startMailReminders()
 	}
 
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
+	originsOk := handlers.AllowedOrigins([]string{"*"})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+
 	router := mux.NewRouter()
 	router.HandleFunc("/format", formatMoments).Methods("POST")
+	router.HandleFunc("/moments", getCalendarEntries).Methods("GET")
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	srv := &http.Server{
-		Handler:      router,
+		Handler:      handlers.CORS(originsOk, headersOk, methodsOk)(router),
 		Addr:         fmt.Sprintf("%s:%d", "localhost", *port),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
@@ -84,4 +93,23 @@ func formatMoments(w http.ResponseWriter, r *http.Request) {
 	res := format.FormatVSCode(todos)
 	fmt.Fprintf(w, res)
 	fmt.Printf("response time: %dms\n", int(time.Now().Sub(tm)/time.Millisecond))
+}
+
+func getCalendarEntries(w http.ResponseWriter, r *http.Request) {
+	start, err := time.Parse("2006-01-02", r.FormValue("start"))
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+	}
+	end, err := time.Parse("2006-01-02", r.FormValue("end"))
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+	}
+	todos, err := parse.ParseFile(*todoFile)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+
+	entries := calendar.CompileCalendarEntries(todos, start, end)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(entries)
 }

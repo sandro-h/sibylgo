@@ -54,6 +54,9 @@ jobs:
       - store_artifacts:
           path: sibylgo.exe
           destination: binaries/sibylgo.exe
+      - store_artifacts:
+          path: sibylcal.html
+          destination: binaries/sibylcal.html
 
       ##############################
       # Sonar
