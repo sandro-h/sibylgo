@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/base64"
 	"encoding/json"
 	"flag"
@@ -8,11 +9,13 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/sandro-h/sibylgo/calendar"
+	"github.com/sandro-h/sibylgo/cleanup"
 	"github.com/sandro-h/sibylgo/format"
 	"github.com/sandro-h/sibylgo/parse"
 	"github.com/sandro-h/sibylgo/reminder"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -32,25 +35,9 @@ func main() {
 		startMailReminders()
 	}
 
-	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
-	originsOk := handlers.AllowedOrigins([]string{"*"})
-	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+	startRestServer()
 
-	router := mux.NewRouter()
-	router.HandleFunc("/format", formatMoments).Methods("POST")
-	router.HandleFunc("/moments", getCalendarEntries).Methods("GET")
-	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-
-	srv := &http.Server{
-		Handler:      handlers.CORS(originsOk, headersOk, methodsOk)(router),
-		Addr:         fmt.Sprintf("%s:%d", "localhost", *port),
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
-	}
-	err := srv.ListenAndServe()
-	if err != nil {
-		panic(err)
-	}
+	handleUserCommands()
 }
 
 func startMailReminders() {
@@ -63,6 +50,84 @@ func startMailReminders() {
 	host := reminder.MailHostProperties{Host: *mailHost, Port: *mailPort, User: *mailUser, Password: *mailPassword}
 	p := reminder.NewMailReminderProcessForSMTP(*todoFile, host, *mailFrom, *mailTo)
 	go p.CheckInfinitely()
+}
+
+func startRestServer() {
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
+	originsOk := handlers.AllowedOrigins([]string{"*"})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+
+	router := mux.NewRouter()
+	router.HandleFunc("/format", formatMoments).Methods("POST")
+	router.HandleFunc("/moments", getCalendarEntries).Methods("GET")
+
+	srv := &http.Server{
+		Handler:      handlers.CORS(originsOk, headersOk, methodsOk)(router),
+		Addr:         fmt.Sprintf("%s:%d", "localhost", *port),
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
+	go srv.ListenAndServe()
+}
+
+func handleUserCommands() {
+	scanner := bufio.NewScanner(os.Stdin)
+	fmt.Print("Command> ")
+	for scanner.Scan() {
+		cmd := scanner.Text()
+		switch cmd {
+		case "help":
+			printCommands()
+		case "quit":
+			return
+		case "clean":
+			clean()
+		case "trash":
+			trash()
+		default:
+			fmt.Printf("Unknown command\n")
+		}
+		fmt.Print("Command> ")
+	}
+}
+
+func printCommands() {
+	fmt.Print("help  - show this\n")
+	fmt.Print("quit  - end app\n")
+	fmt.Print("clean - move done moments to end of todo file\n")
+	fmt.Print("trash - move done moments to trash file\n")
+}
+
+func clean() {
+	assertStringFlagSet("todoFile", todoFile)
+
+	err := cleanup.CleanupDoneFromFileToEnd(*todoFile, true)
+	if err != nil {
+		fmt.Printf("Error cleaning up: %s", err)
+	} else {
+		fmt.Printf("Moved done to end of: %s\n", *todoFile)
+	}
+}
+
+func trash() {
+	if *todoFile == "" {
+		fmt.Print("No -todoFile defined\n")
+		return
+	}
+
+	trashFile := removeExt(*todoFile) + "-trash.txt"
+
+	err := cleanup.CleanupDoneFromFile(*todoFile, trashFile, true)
+	if err != nil {
+		fmt.Printf("Error trashing: %s", err)
+	} else {
+		fmt.Printf("Trashed: %s\n", *todoFile)
+		fmt.Printf("Moved done moments to: %s\n", trashFile)
+	}
+}
+
+func removeExt(s string) string {
+	return s[:len(s)-len(filepath.Ext(s))]
 }
 
 func assertStringFlagSet(name string, s *string) {
