@@ -62,31 +62,32 @@ jobs:
       # Sonar
       ##############################
 
-      - restore_cache:
-          name: Restore buildtools cache
-          key: v1-buildtools
+    # Excluded because sonarcloud doesn't support free private github repos.
+    #   - restore_cache:
+    #       name: Restore buildtools cache
+    #       key: v1-buildtools
 
-      - run:
-          name: Fetch sonar scanner
-          command: |
-            if [ ! -d buildtools/sonar-scanner ]; then
-              wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.2.0.1227-linux.zip
-              unzip -d buildtools/ sonar-scanner-cli-3.2.0.1227-linux.zip
-              mv buildtools/sonar-scanner-3.2.0.1227-linux buildtools/sonar-scanner
-            fi
+    #   - run:
+    #       name: Fetch sonar scanner
+    #       command: |
+    #         if [ ! -d buildtools/sonar-scanner ]; then
+    #           wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.2.0.1227-linux.zip
+    #           unzip -d buildtools/ sonar-scanner-cli-3.2.0.1227-linux.zip
+    #           mv buildtools/sonar-scanner-3.2.0.1227-linux buildtools/sonar-scanner
+    #         fi
 
-      - save_cache:
-          name: Save buildtools cache
-          paths:
-            - buildtools
-          key: v1-buildtools
+    #   - save_cache:
+    #       name: Save buildtools cache
+    #       paths:
+    #         - buildtools
+    #       key: v1-buildtools
 
-      - run:
-          name: Run sonar analysis
-          command: |
-            buildtools/sonar-scanner/bin/sonar-scanner \
-              -Dsonar.host.url=https://sonarcloud.io \
-              -Dsonar.login=$SONAR_TOKEN
+    #   - run:
+    #       name: Run sonar analysis
+    #       command: |
+    #         buildtools/sonar-scanner/bin/sonar-scanner \
+    #           -Dsonar.host.url=https://sonarcloud.io \
+    #           -Dsonar.login=$SONAR_TOKEN
 
   build-vs-ext:
     docker:
