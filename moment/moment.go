@@ -22,6 +22,7 @@ type Moment interface {
 	GetSubMoments() []Moment
 	GetLastComment() *CommentLine
 	GetDocCoords() DocCoords
+	GetTimeOfDay() *Date
 }
 
 type Todos struct {
@@ -42,6 +43,7 @@ type BaseMoment struct {
 	category   *Category
 	comments   []*CommentLine
 	subMoments []Moment
+	TimeOfDay  *Date
 	DocCoords
 }
 
@@ -112,6 +114,10 @@ func (m *BaseMoment) GetDocCoords() DocCoords {
 	return m.DocCoords
 }
 
+func (m *BaseMoment) GetTimeOfDay() *Date {
+	return m.TimeOfDay
+}
+
 type SingleMoment struct {
 	BaseMoment
 	Start *Date
@@ -155,6 +161,7 @@ type MomentInstance struct {
 	Name         string
 	Start        time.Time
 	End          time.Time
+	TimeOfDay    *time.Time
 	Priority     int
 	Done         bool
 	EndsInRange  bool

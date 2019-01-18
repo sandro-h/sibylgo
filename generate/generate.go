@@ -85,6 +85,10 @@ func createSingleInstances(mom *moment.SingleMoment, from time.Time, to time.Tim
 	inst.Priority = mom.GetPriority()
 	inst.Done = mom.IsDone()
 	inst.EndsInRange = mom.End != nil && !mom.End.Time.After(end)
+	if mom.TimeOfDay != nil {
+		tm := mom.TimeOfDay.Time
+		inst.TimeOfDay = &tm
+	}
 	return []*moment.MomentInstance{&inst}
 }
 
@@ -96,6 +100,10 @@ func createRecurInstances(mom *moment.RecurMoment, from time.Time, to time.Time)
 		inst.Priority = mom.GetPriority()
 		inst.Done = mom.IsDone()
 		inst.EndsInRange = true
+		if mom.TimeOfDay != nil {
+			tm := mom.TimeOfDay.Time
+			inst.TimeOfDay = &tm
+		}
 		insts = append(insts, &inst)
 	}
 	return insts

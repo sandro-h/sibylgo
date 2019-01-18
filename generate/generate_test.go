@@ -112,6 +112,12 @@ func TestGenerateRecurringWithChildren(t *testing.T) {
 		"20.07.2016", "20.07.2016") // 1.2
 }
 
+func TestGenerateWithTime(t *testing.T) {
+	todos, _ := parse.ParseString("[] bla (21.06.2016 13:15)")
+	insts := GenerateInstances(todos.Moments[0], tu.Dt("20.06.2016"), tu.Dt("22.06.2016"))
+	assert.Equal(t, "13:15:00", tu.Tts(*insts[0].TimeOfDay))
+}
+
 func assertInstanceDates(t *testing.T, insts []*moment.MomentInstance, dates ...string) {
 	assert.Equal(t, len(dates)/2, len(insts))
 	for i := 0; i < len(dates); i += 2 {

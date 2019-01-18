@@ -28,7 +28,12 @@ export function activate(context: vscode.ExtensionContext) {
 	const dateDecorationType = vscode.window.createTextEditorDecorationType({
 		after: {
 			contentIconPath: context.asAbsolutePath('cal.png')
-			//contentText: 'u: ' + context.asAbsolutePath('cal.png')
+		}
+	});
+
+	const timeDecorationType = vscode.window.createTextEditorDecorationType({
+		after: {
+			contentIconPath: context.asAbsolutePath('time.png')
 		}
 	});
 
@@ -119,6 +124,7 @@ export function activate(context: vscode.ExtensionContext) {
 					'mom.priority': {dec: momPriorityDecorationType, list: []},
 					'mom.done': {dec: momDoneDecorationType, list: []},
 					'date': {dec: dateDecorationType, list: [], hoverMessage: 'Date'},
+					'time': {dec: timeDecorationType, list: [], hoverMessage: 'Time'},
 					'com.done': {dec: comDoneDecorationType, list: []},
 				};
 				for (let key in momUntilDecorationTypes) {

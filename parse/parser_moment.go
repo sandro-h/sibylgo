@@ -34,9 +34,10 @@ func parseRecurMoment(line *Line, lineVal string) (*moment.RecurMoment, string) 
 	if !strings.HasSuffix(lineVal, ")") {
 		return nil, lineVal
 	}
-	re, newLineVal := parseRecurrence(line, lineVal)
+	re, timeOfDay, newLineVal := parseRecurrence(line, lineVal)
 	if re != nil {
 		mom := &moment.RecurMoment{Recurrence: *re}
+		mom.TimeOfDay = timeOfDay
 		mom.DocCoords = moment.DocCoords{line.LineNumber(), line.Offset(), line.Length()}
 		return mom, newLineVal
 	}
@@ -46,10 +47,12 @@ func parseRecurMoment(line *Line, lineVal string) (*moment.RecurMoment, string) 
 func parseSingleMoment(line *Line, lineVal string) (*moment.SingleMoment, string) {
 	var start *moment.Date
 	var end *moment.Date
+	var timeOfDay *moment.Date
 	if strings.HasSuffix(lineVal, ")") {
-		start, end, lineVal = parseTimeSuffix(line, lineVal)
+		start, end, timeOfDay, lineVal = parseDateSuffix(line, lineVal)
 	}
 	mom := &moment.SingleMoment{Start: start, End: end}
+	mom.TimeOfDay = timeOfDay
 	mom.DocCoords = moment.DocCoords{line.LineNumber(), line.Offset(), line.Length()}
 	return mom, lineVal
 }

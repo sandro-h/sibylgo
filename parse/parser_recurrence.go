@@ -15,10 +15,15 @@ var weeklyPattern, _ = regexp.Compile("(?i)every (monday|tuesday|wednesday|thurs
 var monthlyPattern, _ = regexp.Compile("(?i)every (\\d{1,2})\\.?$")
 var yearlyPattern, _ = regexp.Compile("(?i)every (\\d{1,2})\\.(\\d{1,2})\\.?$")
 
-func parseRecurrence(line *Line, lineVal string) (*moment.Recurrence, string) {
+// expected lineVal: .*(\s+<recur>\s+)
+func parseRecurrence(line *Line, lineVal string) (*moment.Recurrence, *moment.Date, string) {
 	p := strings.LastIndex(lineVal, "(")
-	reStr := lineVal[p+1 : len(lineVal)-1]
 	untrimmedPos := strings.LastIndex(line.Content(), "(") + 1
+	reStr := lineVal[p+1 : len(lineVal)-1]
+	timeOfDay, reStr := parseTimeSuffix(line, reStr)
+	if timeOfDay != nil {
+		timeOfDay.Offset += line.Offset() + untrimmedPos
+	}
 
 	var re *moment.Recurrence
 	re = tryParseDaily(reStr)
@@ -33,9 +38,10 @@ func parseRecurrence(line *Line, lineVal string) (*moment.Recurrence, string) {
 	}
 
 	if re == nil {
-		return nil, lineVal
+		return nil, nil, lineVal
 	}
 	return setDocCoords(re, line.LineNumber(), line.Offset()+untrimmedPos, len(reStr)),
+		timeOfDay,
 		strings.TrimSpace(lineVal[:p])
 }
 

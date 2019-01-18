@@ -58,6 +58,6 @@ func TestInvalidRecurrence(t *testing.T) {
 
 func parseRe(content string) *moment.Recurrence {
 	line := &Line{content: content}
-	re, _ := parseRecurrence(line, line.Content())
+	re, _, _ := parseRecurrence(line, line.Content())
 	return re
 }

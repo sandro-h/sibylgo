@@ -12,6 +12,7 @@ const catMarker = "cat"
 const momMarker = "mom"
 const commentMarker = "com"
 const dateMarker = "date"
+const timeMarker = "time"
 const doneSuffix = ".done"
 const prioritySuffix = ".priority"
 const untilSuffix = ".until%d"
@@ -67,6 +68,10 @@ func formatDates(res *string, m moment.Moment) {
 		}
 	case *moment.RecurMoment:
 		appendFmt(res, v.Recurrence.RefDate.DocCoords, dateMarker)
+	}
+
+	if m.GetTimeOfDay() != nil {
+		appendFmt(res, m.GetTimeOfDay().DocCoords, timeMarker)
 	}
 }
 

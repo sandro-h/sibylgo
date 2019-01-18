@@ -120,6 +120,28 @@ func TestFaultyRangeDate(t *testing.T) {
 	assert.Equal(t, "nil", dateStr(mom.End))
 }
 
+func TestSingleDateWithTime(t *testing.T) {
+	mom, _ := parseSingleMom("[] blabla (24.12.2015 13:15)")
+
+	assert.Equal(t, "blabla", mom.GetName())
+	assert.Equal(t, "24.12.2015 00:00", dateStr(mom.Start))
+	assert.Equal(t, "24.12.2015 23:59", dateStr(mom.End))
+	assert.Equal(t, "13:15:00", timeStr(mom.TimeOfDay))
+	assert.Equal(t, 22, mom.TimeOfDay.Offset)
+	assert.Equal(t, 5, mom.TimeOfDay.Length)
+}
+
+func TestRangeDateWithTime(t *testing.T) {
+	mom, _ := parseSingleMom("[] blabla (24.12.2015-25.12.2015 13:15)")
+
+	assert.Equal(t, "blabla", mom.GetName())
+	assert.Equal(t, "24.12.2015 00:00", dateStr(mom.Start))
+	assert.Equal(t, "25.12.2015 23:59", dateStr(mom.End))
+	assert.Equal(t, "13:15:00", timeStr(mom.TimeOfDay))
+	assert.Equal(t, 33, mom.TimeOfDay.Offset)
+	assert.Equal(t, 5, mom.TimeOfDay.Length)
+}
+
 func TestCalculateSingleCoords(t *testing.T) {
 	line := &Line{content: "[] blabla (4.1.2015)"}
 	mom, _ := parseSingleMoment(line, line.Content())
@@ -207,11 +229,29 @@ func TestPriorityRecurringMoment(t *testing.T) {
 	assert.Equal(t, 8, mom.Recurrence.RefDate.Length)
 }
 
+func TestRecurringMomentWithTime(t *testing.T) {
+	mom, _ := parseRecurMom("[] blabla (every 5. 13:15)")
+
+	assert.Equal(t, "blabla", mom.GetName())
+	assert.Equal(t, moment.RE_MONTHLY, mom.Recurrence.Recurrence)
+	assert.Equal(t, 5, mom.Recurrence.RefDate.Time.Day())
+	assert.Equal(t, "13:15:00", timeStr(mom.TimeOfDay))
+	assert.Equal(t, 20, mom.TimeOfDay.Offset)
+	assert.Equal(t, 5, mom.TimeOfDay.Length)
+}
+
 func dateStr(dt *moment.Date) string {
 	if dt == nil {
 		return "nil"
 	}
 	return dt.Time.Format("02.01.2006 15:04")
+}
+
+func timeStr(dt *moment.Date) string {
+	if dt == nil {
+		return "nil"
+	}
+	return dt.Time.Format("15:04:05")
 }
 
 func parseMom(content string) (moment.Moment, error) {
