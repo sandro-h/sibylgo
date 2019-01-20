@@ -50,3 +50,8 @@ func SetToEndOfDay(dt time.Time) time.Time {
 	y, m, d := dt.Date()
 	return time.Date(y, m, d, 23, 59, 59, 999999999, time.Local)
 }
+
+func SetTime(dt time.Time, tm time.Time) time.Time {
+	y, m, d := dt.Date()
+	return time.Date(y, m, d, tm.Hour(), tm.Minute(), tm.Second(), tm.Nanosecond(), time.Local)
+}

@@ -161,11 +161,11 @@ func formatMoments(w http.ResponseWriter, r *http.Request) {
 }
 
 func getCalendarEntries(w http.ResponseWriter, r *http.Request) {
-	start, err := time.Parse("2006-01-02", r.FormValue("start"))
+	start, err := time.ParseInLocation("2006-01-02", r.FormValue("start"), time.Local)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 	}
-	end, err := time.Parse("2006-01-02", r.FormValue("end"))
+	end, err := time.ParseInLocation("2006-01-02", r.FormValue("end"), time.Local)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 	}

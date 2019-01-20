@@ -63,7 +63,7 @@ func TestCleanupDoneFromFile(t *testing.T) {
 
 	testTime := "13.01.2019 12:02:42"
 	getNow = func() time.Time {
-		t, _ := time.Parse("02.01.2006 15:04:05", testTime)
+		t, _ := time.ParseInLocation("02.01.2006 15:04:05", testTime, time.Local)
 		return t
 	}
 

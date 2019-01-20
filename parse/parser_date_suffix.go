@@ -106,7 +106,7 @@ func parseDateSuffixRanged(lineVal string, dashPos int) (*moment.Date, *moment.D
 func parseDate(str string) (bool, time.Time) {
 	str = strings.TrimSpace(str)
 	for _, fmt := range dateFormats {
-		tm, err := time.Parse(fmt, str)
+		tm, err := time.ParseInLocation(fmt, str, time.Local)
 		if err == nil {
 			return true, tm
 		}

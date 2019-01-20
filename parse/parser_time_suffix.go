@@ -28,7 +28,7 @@ func parseTimeSuffix(line *Line, lineVal string) (*moment.Date, string) {
 
 func parseTime(str string) (bool, time.Time) {
 	str = strings.TrimSpace(str)
-	tm, err := time.Parse("15:04", str)
+	tm, err := time.ParseInLocation("15:04", str, time.Local)
 	if err != nil {
 		return false, time.Unix(0, 0)
 

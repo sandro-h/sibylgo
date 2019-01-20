@@ -23,7 +23,7 @@ func startup() {
 	os.Remove(testLastSentFile)
 }
 
-func TestNoneReminder(t *testing.T) {
+func TestEmptyDailyReminder(t *testing.T) {
 	defer os.Remove(testLastSentFile)
 	todoFile := writeTodoFile("")
 	var rcvTitle string
@@ -38,7 +38,7 @@ func TestNoneReminder(t *testing.T) {
 `, rcvContent)
 }
 
-func TestReminder(t *testing.T) {
+func TestDailyReminder(t *testing.T) {
 	defer os.Remove(testLastSentFile)
 	todoFile := writeTodoFile(`
 [] foo (5.1.19)
@@ -93,6 +93,59 @@ func TestRepeatOnNextDay(t *testing.T) {
 	assert.Equal(t, "TODOs for Saturday, 5 Jan 2019", rcvTitle)
 }
 
+func TestTimedReminder(t *testing.T) {
+	defer os.Remove(testLastSentFile)
+	getNow = func() time.Time { return tu.Dtt("05.01.2019 13:02") }
+	setLastSentFileToToday()
+
+	todoFile := writeTodoFile(`
+[] foo (5.1.19 13:15)
+`)
+	var rcvTitle string
+	var rcvContent string
+	p := createTestReminderProcess(todoFile, &rcvTitle, &rcvContent)
+	p.CheckOnce()
+
+	assert.Equal(t, "Reminder for foo in 13min", rcvTitle)
+	assert.Equal(t, "foo starts at 13:15", rcvContent)
+}
+
+func TestTimedReminderTooEarly(t *testing.T) {
+	defer os.Remove(testLastSentFile)
+	getNow = func() time.Time { return tu.Dtt("05.01.2019 12:59") }
+	setLastSentFileToToday()
+
+	todoFile := writeTodoFile(`
+[] foo (5.1.19 13:15)
+`)
+	var rcvTitle string
+	var rcvContent string
+	p := createTestReminderProcess(todoFile, &rcvTitle, &rcvContent)
+	p.CheckOnce()
+
+	assert.Equal(t, "", rcvTitle)
+	assert.Equal(t, "", rcvContent)
+}
+
+func TestTimedReminderTooLate(t *testing.T) {
+	defer os.Remove(testLastSentFile)
+	// 13:12 means with check interval of 5min, reminder would've already been sent
+	// in a previous check
+	getNow = func() time.Time { return tu.Dtt("05.01.2019 13:12") }
+	setLastSentFileToToday()
+
+	todoFile := writeTodoFile(`
+[] foo (5.1.19 13:15)
+`)
+	var rcvTitle string
+	var rcvContent string
+	p := createTestReminderProcess(todoFile, &rcvTitle, &rcvContent)
+	p.CheckOnce()
+
+	assert.Equal(t, "", rcvTitle)
+	assert.Equal(t, "", rcvContent)
+}
+
 func writeTodoFile(todos string) string {
 	path := filepath.Join(os.TempDir(), "mail_reminder_test_todo.txt")
 	file, _ := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
@@ -110,4 +163,12 @@ func createTestReminderProcess(todoFile string, rcvTitle *string, rcvContent *st
 		})
 	p.LastSentFile = testLastSentFile
 	return p
+}
+
+func setLastSentFileToToday() {
+	todoFile := writeTodoFile("")
+	var rcvTitle string
+	var rcvContent string
+	p := createTestReminderProcess(todoFile, &rcvTitle, &rcvContent)
+	p.CheckOnce()
 }

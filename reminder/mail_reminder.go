@@ -22,45 +22,46 @@ const defaultLastSentFile = "sibylgo_lastsent.txt"
 type SendMailFunction func(string, string) error
 
 type MailReminderProcess struct {
-	todoFilePath string
-	sendMailFunc SendMailFunction
-	LastSentFile string
+	todoFilePath  string
+	sendMailFunc  SendMailFunction
+	LastSentFile  string
+	checkInterval time.Duration
+	reminderTime  time.Duration
 }
 
 func NewMailReminderProcess(todoFilePath string, sendMailFunc SendMailFunction) *MailReminderProcess {
 	return &MailReminderProcess{todoFilePath, sendMailFunc,
-		filepath.Join(os.TempDir(), defaultLastSentFile)}
+		filepath.Join(os.TempDir(), defaultLastSentFile),
+		5 * time.Minute,
+		15 * time.Minute}
 }
 
 func NewMailReminderProcessForSMTP(todoFilePath string, host MailHostProperties, from string, to string) *MailReminderProcess {
-	return &MailReminderProcess{todoFilePath,
+	return NewMailReminderProcess(todoFilePath,
 		func(subject string, body string) error {
 			return sendMail(host, from, to, subject, body)
-		},
-		filepath.Join(os.TempDir(), defaultLastSentFile)}
+		})
 }
 
 func (p *MailReminderProcess) CheckInfinitely() {
 	for {
 		p.CheckOnce()
-		time.Sleep(10 * time.Minute)
+		time.Sleep(p.checkInterval)
 	}
 }
 
 func (p *MailReminderProcess) CheckOnce() {
-	lastDaySent := p.loadLastDaySent()
-	fmt.Printf("Last sent %s\n", lastDaySent)
-	today := util.SetToStartOfDay(getNow())
-	if today.After(lastDaySent) {
-		fmt.Printf("Sending reminder for %s\n", today)
-		err := p.sendReminderForToday(today)
-		if err != nil {
-			fmt.Printf("Could not send reminder: %s\n", err.Error())
-			return
-		}
-		lastDaySent = today
-		p.saveLastDaySent(today)
+	now := getNow()
+	today := util.SetToStartOfDay(now)
+
+	insts, err := p.loadTodaysMoments(today)
+	if err != nil {
+		fmt.Printf("Could not load moments for reminders: %s\n", err.Error())
+		return
 	}
+
+	p.checkDailyReminder(today, insts)
+	p.checkTimedReminders(now, insts)
 }
 
 func (p *MailReminderProcess) loadLastDaySent() time.Time {
@@ -76,7 +77,7 @@ func (p *MailReminderProcess) loadLastDaySent() time.Time {
 	if !sc.Scan() || sc.Err() != nil {
 		return errDt
 	}
-	dt, err := time.Parse("2006-01-02", sc.Text())
+	dt, err := time.ParseInLocation("2006-01-02", sc.Text(), time.Local)
 	if err != nil {
 		fmt.Printf("%s\n", err.Error())
 		return errDt
@@ -97,22 +98,35 @@ func (p *MailReminderProcess) saveLastDaySent(dt time.Time) {
 	}
 }
 
-func (p *MailReminderProcess) sendReminderForToday(today time.Time) error {
+func (p *MailReminderProcess) loadTodaysMoments(today time.Time) ([]*moment.MomentInstance, error) {
 	todos, err := parse.ParseFile(p.todoFilePath)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	subject := fmt.Sprintf("TODOs for %s", today.Format("Monday, 2 Jan 2006"))
-	content := compileMomentsForToday(today, todos)
-	return p.sendMailFunc(subject, content)
-}
-
-func compileMomentsForToday(today time.Time, todos *moment.Todos) string {
 	insts := generate.GenerateInstancesFiltered(todos, today, util.SetToEndOfDay(today),
 		func(mom *moment.MomentInstance) bool { return !mom.Done })
+	return insts, nil
+}
+
+func (p *MailReminderProcess) checkDailyReminder(today time.Time, insts []*moment.MomentInstance) {
+	lastDaySent := p.loadLastDaySent()
+	if today.After(lastDaySent) {
+		fmt.Printf("Sending daily reminder for %s\n", today)
+		err := p.sendDailyReminder(today, insts)
+		if err != nil {
+			fmt.Printf("Could not send reminder: %s\n", err.Error())
+			return
+		}
+		lastDaySent = today
+		p.saveLastDaySent(today)
+	}
+}
+
+func (p *MailReminderProcess) sendDailyReminder(today time.Time, insts []*moment.MomentInstance) error {
+	subject := fmt.Sprintf("TODOs for %s", today.Format("Monday, 2 Jan 2006"))
 	content := ""
 	addMomentsEndingInRange(&content, insts)
-	return content
+	return p.sendMailFunc(subject, content)
 }
 
 func addMomentsEndingInRange(content *string, insts []*moment.MomentInstance) {
@@ -149,6 +163,37 @@ func hasSubsEndingInRange(m *moment.MomentInstance) bool {
 		}
 	}
 	return false
+}
+
+func (p *MailReminderProcess) checkTimedReminders(now time.Time, insts []*moment.MomentInstance) {
+	upcoming := p.findUpcomingTimedMoments(now, p.reminderTime, p.checkInterval, insts)
+	for _, m := range upcoming {
+		fmt.Print(m.Delta)
+		subject := fmt.Sprintf("Reminder for %s in %.0fmin", m.Name, m.Delta.Minutes())
+		content := fmt.Sprintf("%s starts at %s", m.Name, m.TimeOfDay.Format("15:04"))
+		p.sendMailFunc(subject, content)
+	}
+}
+
+type Upcoming struct {
+	Name      string
+	TimeOfDay time.Time
+	Delta     time.Duration
+}
+
+func (p *MailReminderProcess) findUpcomingTimedMoments(now time.Time, dur time.Duration,
+	checkInterval time.Duration, insts []*moment.MomentInstance) []Upcoming {
+	var res []Upcoming
+	for _, i := range insts {
+		if i.TimeOfDay != nil {
+			delta := i.TimeOfDay.Sub(now)
+			if delta <= dur && delta+checkInterval > dur {
+				res = append(res, Upcoming{i.Name, *i.TimeOfDay, delta})
+			}
+		}
+		res = append(res, p.findUpcomingTimedMoments(now, dur, checkInterval, i.SubInstances)...)
+	}
+	return res
 }
 
 type MailHostProperties struct {
