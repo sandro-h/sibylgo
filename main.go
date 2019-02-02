@@ -11,6 +11,7 @@ import (
 	"github.com/sandro-h/sibylgo/calendar"
 	"github.com/sandro-h/sibylgo/cleanup"
 	"github.com/sandro-h/sibylgo/format"
+	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/parse"
 	"github.com/sandro-h/sibylgo/reminder"
 	"net/http"
@@ -60,6 +61,7 @@ func startRestServer() {
 	router := mux.NewRouter()
 	router.HandleFunc("/format", formatMoments).Methods("POST")
 	router.HandleFunc("/moments", getCalendarEntries).Methods("GET")
+	router.HandleFunc("/reminders/{date}/weekly", getWeeklyReminders).Methods("GET")
 
 	srv := &http.Server{
 		Handler:      handlers.CORS(originsOk, headersOk, methodsOk)(router),
@@ -164,17 +166,41 @@ func getCalendarEntries(w http.ResponseWriter, r *http.Request) {
 	start, err := time.ParseInLocation("2006-01-02", r.FormValue("start"), time.Local)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
+		return
 	}
 	end, err := time.ParseInLocation("2006-01-02", r.FormValue("end"), time.Local)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
+		return
 	}
 	todos, err := parse.ParseFile(*todoFile)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
+		return
 	}
 
 	entries := calendar.CompileCalendarEntries(todos, start, end)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(entries)
+}
+
+func getWeeklyReminders(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	date, err := time.ParseInLocation("2006-01-02", vars["date"], time.Local)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+	todos, err := parse.ParseFile(*todoFile)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	todays, weeks := reminder.CompileRemindersForTodayAndThisWeek(todos, date)
+	res := map[string][]*moment.MomentInstance{
+		"today": todays,
+		"week":  weeks}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(res)
 }

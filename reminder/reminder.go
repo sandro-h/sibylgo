@@ -4,12 +4,14 @@ import (
 	"github.com/sandro-h/sibylgo/generate"
 	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/util"
+	"sort"
 	"time"
 )
 
 func CompileRemindersForTodayAndThisWeek(todos *moment.Todos, today time.Time) ([]*moment.MomentInstance, []*moment.MomentInstance) {
 	todaysReminders := CompileMomentsEndingInRange(todos, util.SetToStartOfDay(today), util.SetToEndOfDay(today))
 	weeksReminders := CompileMomentsEndingInRange(todos, util.SetToStartOfWeek(today), util.SetToEndOfWeek(today))
+	sort.Sort(ByStartDate(weeksReminders))
 	return todaysReminders, weeksReminders
 }
 
@@ -30,3 +32,9 @@ func FilterMomentsEndingInRange(insts []*moment.MomentInstance) []*moment.Moment
 	}
 	return res
 }
+
+type ByStartDate []*moment.MomentInstance
+
+func (a ByStartDate) Len() int           { return len(a) }
+func (a ByStartDate) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByStartDate) Less(i, j int) bool { return a[i].Start.Before(a[j].Start) }
