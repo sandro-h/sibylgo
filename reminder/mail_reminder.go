@@ -125,32 +125,28 @@ func (p *MailReminderProcess) checkDailyReminder(today time.Time, insts []*momen
 func (p *MailReminderProcess) sendDailyReminder(today time.Time, insts []*moment.MomentInstance) error {
 	subject := fmt.Sprintf("TODOs for %s", today.Format("Monday, 2 Jan 2006"))
 	content := ""
-	addMomentsEndingInRange(&content, insts)
+	ending := FilterMomentsEndingInRange(insts)
+	addMomentHtml(&content, ending)
 	return p.sendMailFunc(subject, content)
 }
 
-func addMomentsEndingInRange(content *string, insts []*moment.MomentInstance) {
-	found := false
+func addMomentHtml(content *string, insts []*moment.MomentInstance) {
 	*content += "<ul>\n"
 	for _, m := range insts {
-		subsEnding := hasSubsEndingInRange(m)
-		if m.EndsInRange || subsEnding {
-			found = true
-			*content += "<li>"
-			if m.EndsInRange {
-				*content += "<b>"
-			}
-			*content += m.Name
-			if m.EndsInRange {
-				*content += "</b>"
-			}
-			if subsEnding {
-				addMomentsEndingInRange(content, m.SubInstances)
-			}
-			*content += "</li>\n"
+		*content += "<li>"
+		if m.EndsInRange {
+			*content += "<b>"
 		}
+		*content += m.Name
+		if m.EndsInRange {
+			*content += "</b>"
+		}
+		if len(m.SubInstances) > 0 {
+			addMomentHtml(content, m.SubInstances)
+		}
+		*content += "</li>\n"
 	}
-	if !found {
+	if len(insts) == 0 {
 		*content += "<li>None</li>\n"
 	}
 	*content += "</ul>\n"

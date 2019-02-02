@@ -158,12 +158,27 @@ type DocCoords struct {
 }
 
 type MomentInstance struct {
-	Name         string
-	Start        time.Time
-	End          time.Time
-	TimeOfDay    *time.Time
-	Priority     int
-	Done         bool
-	EndsInRange  bool
-	SubInstances []*MomentInstance
+	Name         string            `json:"name"`
+	Start        time.Time         `json:"start"`
+	End          time.Time         `json:"end"`
+	TimeOfDay    *time.Time        `json:"timeOfDay"`
+	Priority     int               `json:"priority"`
+	Done         bool              `json:"done"`
+	EndsInRange  bool              `json:"endsInRange"`
+	SubInstances []*MomentInstance `json:"subInstances"`
+}
+
+// CloneShallow creates a clone of the moment instances without its sub instances.
+func (m *MomentInstance) CloneShallow() *MomentInstance {
+	c := MomentInstance{
+		Name:        m.Name,
+		Start:       m.Start,
+		Priority:    m.Priority,
+		Done:        m.Done,
+		EndsInRange: m.EndsInRange}
+	if m.TimeOfDay != nil {
+		cp := *m.TimeOfDay
+		c.TimeOfDay = &cp
+	}
+	return &c
 }

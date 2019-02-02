@@ -21,3 +21,7 @@ func Dts(t time.Time) string {
 func Tts(t time.Time) string {
 	return t.Format("15:04:05")
 }
+
+func Dtts(t time.Time) string {
+	return t.Format("02.01.2006 15:04:05")
+}

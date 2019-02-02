@@ -51,6 +51,18 @@ func SetToEndOfDay(dt time.Time) time.Time {
 	return time.Date(y, m, d, 23, 59, 59, 999999999, time.Local)
 }
 
+func SetToStartOfWeek(dt time.Time) time.Time {
+	// shift so monday=0, sunday=6
+	wd := (dt.Weekday() + 6) % 7
+	return SetToStartOfDay(dt.AddDate(0, 0, int(-wd)))
+}
+
+func SetToEndOfWeek(dt time.Time) time.Time {
+	// shift so monday=0, sunday=6
+	wd := (dt.Weekday() + 6) % 7
+	return SetToEndOfDay(dt.AddDate(0, 0, int(6-wd)))
+}
+
 func SetTime(dt time.Time, tm time.Time) time.Time {
 	y, m, d := dt.Date()
 	return time.Date(y, m, d, tm.Hour(), tm.Minute(), tm.Second(), tm.Nanosecond(), time.Local)
