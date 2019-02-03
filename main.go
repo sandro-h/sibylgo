@@ -166,7 +166,6 @@ func failUnsetFlag(name string) {
 }
 
 func formatMoments(w http.ResponseWriter, r *http.Request) {
-	tm := time.Now()
 	reader := base64.NewDecoder(base64.StdEncoding, r.Body)
 	todos, err := parse.ParseReader(reader)
 	if err != nil {
@@ -174,7 +173,6 @@ func formatMoments(w http.ResponseWriter, r *http.Request) {
 	}
 	res := format.FormatVSCode(todos)
 	fmt.Fprintf(w, res)
-	fmt.Printf("response time: %dms\n", int(time.Now().Sub(tm)/time.Millisecond))
 }
 
 func getCalendarEntries(w http.ResponseWriter, r *http.Request) {
