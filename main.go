@@ -14,6 +14,8 @@ import (
 	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/parse"
 	"github.com/sandro-h/sibylgo/reminder"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -40,9 +42,14 @@ var mailTo = flag.String("mailTo", "", "E-mail address to which to send mail rem
 var todoFile = flag.String("todoFile", "", "Todo file to monitor for reminders.")
 
 func main() {
-	flag.Parse()
 	fmt.Printf("%s\n", ascii)
 	fmt.Printf("Version %s.%s (%s)\n", buildVersion, buildNumber, buildRevision)
+
+	loadConfig()
+
+	if *todoFile != "" {
+		fmt.Printf("Using todo file %s\n", *todoFile)
+	}
 
 	if *mailTo != "" {
 		startMailReminders()
@@ -51,6 +58,27 @@ func main() {
 	startRestServer()
 
 	handleUserCommands()
+}
+
+func loadConfig() {
+	flag.Parse()
+
+	// Override flag values from sibylgo.yml config file if it exists.
+	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+	cfgFile := filepath.Join(dir, "sibylgo.yml")
+	fmt.Printf("%s\n", cfgFile)
+	if _, err := os.Stat(cfgFile); !os.IsNotExist(err) {
+		data, _ := ioutil.ReadFile(cfgFile)
+		var cfg map[string]string
+		yaml.Unmarshal(data, &cfg)
+
+		flag.VisitAll(func(f *flag.Flag) {
+			cfgval, ok := cfg[f.Name]
+			if ok {
+				f.Value.Set(cfgval)
+			}
+		})
+	}
 }
 
 func startMailReminders() {
@@ -83,10 +111,11 @@ func startRestServer() {
 		ReadTimeout:  15 * time.Second,
 	}
 	go srv.ListenAndServe()
-	fmt.Print("Started REST server\n")
+	fmt.Printf("Started REST server on localhost:%d\n", *port)
 }
 
 func handleUserCommands() {
+	fmt.Println()
 	printCommands()
 	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Print("Command> ")
