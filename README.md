@@ -4,6 +4,12 @@
 
 Text-based TODO application
 
+# Development
+
+## Update version
+
+The main version is updated in version.txt. CI takes care of injecting it into the go binary and vscode extension.
+
 # TODOS
 
 - Build scripts for local dev (version injection, etc)
