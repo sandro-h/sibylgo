@@ -20,6 +20,12 @@ import (
 	"time"
 )
 
+var ascii = `.▄▄ · ▪  ▄▄▄▄·  ▄· ▄▌▄▄▌  
+▐█ ▀. ██ ▐█ ▀█▪▐█▪██▌██•  
+▄▀▀▀█▄▐█·▐█▀▀█▄▐█▌▐█▪██▪  
+▐█▄▪▐█▐█▌██▄▪▐█ ▐█▀·.▐█▌▐▌
+ ▀▀▀▀ ▀▀▀·▀▀▀▀   ▀ • .▀▀▀ `
+
 var port = flag.Int("port", 8082, "REST port. Default: 8082")
 var mailHost = flag.String("mailHost", "", "STMP host for sending mail reminders.")
 var mailPort = flag.Int("mailPort", 0, "STMP port for sending mail reminders.")
@@ -31,6 +37,7 @@ var todoFile = flag.String("todoFile", "", "Todo file to monitor for reminders."
 
 func main() {
 	flag.Parse()
+	fmt.Printf("%s\n", ascii)
 
 	if *mailTo != "" {
 		startMailReminders()
@@ -51,6 +58,7 @@ func startMailReminders() {
 	host := reminder.MailHostProperties{Host: *mailHost, Port: *mailPort, User: *mailUser, Password: *mailPassword}
 	p := reminder.NewMailReminderProcessForSMTP(*todoFile, host, *mailFrom, *mailTo)
 	go p.CheckInfinitely()
+	fmt.Print("Started mail reminders\n")
 }
 
 func startRestServer() {
@@ -70,9 +78,11 @@ func startRestServer() {
 		ReadTimeout:  15 * time.Second,
 	}
 	go srv.ListenAndServe()
+	fmt.Print("Started REST server\n")
 }
 
 func handleUserCommands() {
+	printCommands()
 	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Print("Command> ")
 	for scanner.Scan() {
