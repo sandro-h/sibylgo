@@ -42,11 +42,11 @@ jobs:
 
       - run:
           name: Build for linux
-          command: go build -v
+          command: go build -v -ldflags="-X 'main.buildVersion=$(cat version.txt)' -X 'main.buildNumber=$CIRCLE_BUILD_NUM' -X 'main.buildRevision=${CIRCLE_SHA1:0:7}'"
 
       - run:
           name: Build for windows
-          command: GOOS=windows GOARCH=amd64 go build -v
+          command: GOOS=windows GOARCH=amd64 go build -v -ldflags="-X 'main.buildVersion=$(cat version.txt)' -X 'main.buildNumber=$CIRCLE_BUILD_NUM' -X 'main.buildRevision=${CIRCLE_SHA1:0:7}'"
 
       - store_artifacts:
           path: sibylgo
@@ -110,6 +110,11 @@ jobs:
           paths:
             - vscode_ext/node_modules
           key: v1-node_modules-{{ checksum "vscode_ext/package-lock.json" }}
+
+      - run:
+          working_directory: vscode_ext
+          name: Update version
+          command: npm version $(cat ../version.txt)
 
       - run:
           working_directory: vscode_ext

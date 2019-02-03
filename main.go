@@ -26,6 +26,10 @@ var ascii = `.▄▄ · ▪  ▄▄▄▄·  ▄· ▄▌▄▄▌
 ▐█▄▪▐█▐█▌██▄▪▐█ ▐█▀·.▐█▌▐▌
  ▀▀▀▀ ▀▀▀·▀▀▀▀   ▀ • .▀▀▀ `
 
+var buildVersion = "0.0.0"
+var buildNumber = "0"
+var buildRevision = "-"
+
 var port = flag.Int("port", 8082, "REST port. Default: 8082")
 var mailHost = flag.String("mailHost", "", "STMP host for sending mail reminders.")
 var mailPort = flag.Int("mailPort", 0, "STMP port for sending mail reminders.")
@@ -38,6 +42,7 @@ var todoFile = flag.String("todoFile", "", "Todo file to monitor for reminders."
 func main() {
 	flag.Parse()
 	fmt.Printf("%s\n", ascii)
+	fmt.Printf("Version %s.%s (%s)\n", buildVersion, buildNumber, buildRevision)
 
 	if *mailTo != "" {
 		startMailReminders()
