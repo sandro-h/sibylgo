@@ -70,6 +70,10 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	}
 
+	vscode.languages.registerFoldingRangeProvider(
+		{pattern: '**/todo.txt'},
+		new MyFoldingRangeProvider()
+	);
 	let activeEditor = null;
 	
 	setActiveEditor(vscode.window.activeTextEditor);
@@ -150,4 +154,31 @@ export function activate(context: vscode.ExtensionContext) {
 	}
 }
 
+export class MyFoldingRangeProvider implements vscode.FoldingRangeProvider {
 
+	async provideFoldingRanges(document: vscode.TextDocument, context: vscode.FoldingContext, token: vscode.CancellationToken): Promise<vscode.FoldingRange[]> {
+		const text = document.getText();
+		return new Promise<vscode.FoldingRange[]>((resolve, reject) => {
+			request.post({
+				headers: {'content-type' : 'text/plain'},
+				url:     'http://localhost:8082/folding',
+				body:    new Buffer(text).toString('base64')
+			  },
+			  function (error, response, body) {
+					  if (error) {
+						  reject(error);
+						  return;
+					  }
+					  if (!response || response.statusCode !== 200) {
+						  reject()
+						  return;
+					  }
+
+					  var completedRegions: vscode.FoldingRange[] = [];
+					  var foldingRange = new vscode.FoldingRange(0, 10, vscode.FoldingRangeKind.Region)
+					  completedRegions.push(foldingRange);
+					  resolve(completedRegions);
+			  });
+		});
+	}
+}

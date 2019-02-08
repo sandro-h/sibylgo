@@ -171,6 +171,7 @@ func getMaxLine(mom moment.Moment, cur int) int {
 	if mom.GetLastComment() != nil && mom.GetLastComment().LineNumber > cur {
 		cur = mom.GetLastComment().LineNumber
 	}
+	// TODO: can just check the last submoment
 	for _, s := range mom.GetSubMoments() {
 		cur = getMaxLine(s, cur)
 	}

@@ -101,6 +101,7 @@ func startRestServer() {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/format", formatMoments).Methods("POST")
+	router.HandleFunc("/folding", foldMoments).Methods("POST")
 	router.HandleFunc("/moments", getCalendarEntries).Methods("GET")
 	router.HandleFunc("/reminders/{date}/weekly", getWeeklyReminders).Methods("GET")
 
@@ -202,6 +203,11 @@ func formatMoments(w http.ResponseWriter, r *http.Request) {
 	}
 	res := format.FormatVSCode(todos)
 	fmt.Fprintf(w, res)
+}
+
+func foldMoments(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("fold\n")
+	fmt.Fprintf(w, "oke")
 }
 
 func getCalendarEntries(w http.ResponseWriter, r *http.Request) {
