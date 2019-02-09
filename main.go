@@ -206,8 +206,13 @@ func formatMoments(w http.ResponseWriter, r *http.Request) {
 }
 
 func foldMoments(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("fold\n")
-	fmt.Fprintf(w, "oke")
+	reader := base64.NewDecoder(base64.StdEncoding, r.Body)
+	todos, err := parse.ParseReader(reader)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+	}
+	res := format.FoldForVSCode(todos)
+	fmt.Fprintf(w, res)
 }
 
 func getCalendarEntries(w http.ResponseWriter, r *http.Request) {

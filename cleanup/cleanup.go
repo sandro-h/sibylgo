@@ -161,21 +161,7 @@ func computeDoneLines(moms []moment.Moment, onlyTopLevel bool) []LineRange {
 }
 
 func getFullLineRange(mom moment.Moment) LineRange {
-	return LineRange{mom.GetDocCoords().LineNumber, getMaxLine(mom)}
-}
-
-func getMaxLine(mom moment.Moment) int {
-	max := mom.GetDocCoords().LineNumber
-	if mom.GetLastComment() != nil && mom.GetLastComment().LineNumber > max {
-		max = mom.GetLastComment().LineNumber
-	}
-	if mom.GetLastSubMoment() != nil {
-		subMax := getMaxLine(mom.GetLastSubMoment())
-		if subMax > max {
-			max = subMax
-		}
-	}
-	return max
+	return LineRange{mom.GetDocCoords().LineNumber, mom.GetBottomLineNumber()}
 }
 
 type LineRange struct {

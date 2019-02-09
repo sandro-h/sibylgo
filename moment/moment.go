@@ -24,6 +24,7 @@ type Moment interface {
 	GetLastComment() *CommentLine
 	GetDocCoords() DocCoords
 	GetTimeOfDay() *Date
+	GetBottomLineNumber() int
 }
 
 type Todos struct {
@@ -124,6 +125,20 @@ func (m *BaseMoment) GetDocCoords() DocCoords {
 
 func (m *BaseMoment) GetTimeOfDay() *Date {
 	return m.TimeOfDay
+}
+
+func (m *BaseMoment) GetBottomLineNumber() int {
+	max := m.GetDocCoords().LineNumber
+	if m.GetLastComment() != nil && m.GetLastComment().LineNumber > max {
+		max = m.GetLastComment().LineNumber
+	}
+	if m.GetLastSubMoment() != nil {
+		subMax := m.GetLastSubMoment().GetBottomLineNumber()
+		if subMax > max {
+			max = subMax
+		}
+	}
+	return max
 }
 
 type SingleMoment struct {
