@@ -32,6 +32,7 @@ var buildVersion = "0.0.0"
 var buildNumber = "0"
 var buildRevision = "-"
 
+var showVersion = flag.Bool("version", false, "Show version")
 var port = flag.Int("port", 8082, "REST port. Default: 8082")
 var mailHost = flag.String("mailHost", "", "STMP host for sending mail reminders.")
 var mailPort = flag.Int("mailPort", 0, "STMP port for sending mail reminders.")
@@ -42,6 +43,13 @@ var mailTo = flag.String("mailTo", "", "E-mail address to which to send mail rem
 var todoFile = flag.String("todoFile", "", "Todo file to monitor for reminders.")
 
 func main() {
+	flag.Parse()
+
+	if *showVersion {
+		fmt.Printf("%s.%s\n", buildVersion, buildNumber)
+		return
+	}
+
 	fmt.Printf("%s\n", ascii)
 	fmt.Printf("Version %s.%s (%s)\n", buildVersion, buildNumber, buildRevision)
 
@@ -61,8 +69,6 @@ func main() {
 }
 
 func loadConfig() {
-	flag.Parse()
-
 	// Override flag values from sibylgo.yml config file if it exists.
 	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
 	cfgFile := filepath.Join(dir, "sibylgo.yml")

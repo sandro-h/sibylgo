@@ -5,6 +5,14 @@ workflows:
     jobs:
       - build
       - build-vs-ext
+      - hold-for-release:
+          type: approval
+          requires:
+            - build
+            - build-vs-ext
+      - release:
+          requires:
+            - hold-for-release
 jobs:
   build:
     working_directory: /go/src/github.com/sandro-h/sibylgo
@@ -48,6 +56,11 @@ jobs:
           name: Build for windows
           command: GOOS=windows GOARCH=amd64 go build -v -ldflags="-X 'main.buildVersion=$(cat version.txt)' -X 'main.buildNumber=$CIRCLE_BUILD_NUM' -X 'main.buildRevision=${CIRCLE_SHA1:0:7}'"
 
+      - run:
+          # Print it here because the ghr image to publish to github is so minimal it can't run the executable.
+          name: Print final version
+          command: ./sibylgo --version > final_version.txt
+
       - store_artifacts:
           path: sibylgo
           destination: binaries/sibylgo
@@ -57,6 +70,14 @@ jobs:
       - store_artifacts:
           path: sibylcal.html
           destination: binaries/sibylcal.html
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - sibylgo
+            - sibylgo.exe
+            - sibylcal.html
+            - final_version.txt
 
       ##############################
       # Sonar
@@ -124,3 +145,21 @@ jobs:
       - store_artifacts:
           path: vscode_ext/sibyl.vsix
           destination: sibyl.vsix
+
+      - persist_to_workspace:
+          root: vscode_ext
+          paths:
+            - sibyl.vsix
+
+  release:
+    docker:
+      - image: cibuilds/github:0.12
+    steps:
+      - attach_workspace:
+          at: ./artifacts
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            VERSION=$(cat ./artifacts/final_version.txt)
+            rm -f ./artifacts/final_version.txt
+            ghr -t ${GITHUB_RELEASE_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -b "Version ${VERSION}" ${VERSION} ./artifacts/
