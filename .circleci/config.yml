@@ -98,7 +98,7 @@ jobs:
 
       - restore_cache:
           name: Restore node_modules cache
-          key: v1-node_modules-{{ checksum "vscode_ext/package-lock.json" }}
+          key: v1-node_modules-{{ checksum "vscode_ext/package.json" }}
 
       - run:
           working_directory: vscode_ext
@@ -109,7 +109,7 @@ jobs:
           name: Save node_modules cache
           paths:
             - vscode_ext/node_modules
-          key: v1-node_modules-{{ checksum "vscode_ext/package-lock.json" }}
+          key: v1-node_modules-{{ checksum "vscode_ext/package.json" }}
 
       - run:
           working_directory: vscode_ext
