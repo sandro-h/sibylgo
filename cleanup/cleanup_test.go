@@ -12,9 +12,9 @@ import (
 var testInput = `
 [] foo
 [x] bar
+	some commet
 	[] bar1
 	[] bar2
-	some commet
 [] gib
 	[x] ja
 [x] haba
@@ -30,9 +30,9 @@ func TestCleanupDoneTopLevel(t *testing.T) {
 	[x] ja
 [] yo`, kept)
 	assert.Equal(t, `[x] bar
+	some commet
 	[] bar1
 	[] bar2
-	some commet
 [x] haba
 	comments1
 	comments2
@@ -45,9 +45,9 @@ func TestCleanupDoneAll(t *testing.T) {
 [] gib
 [] yo`, kept)
 	assert.Equal(t, `[x] bar
+	some commet
 	[] bar1
 	[] bar2
-	some commet
 	[x] ja
 [x] haba
 	comments1
@@ -83,9 +83,9 @@ func TestCleanupDoneFromFile(t *testing.T) {
   Trash from 13.01.2019 12:02:42
 ------------------
 [x] bar
+	some commet
 	[] bar1
 	[] bar2
-	some commet
 [x] haba
 	comments1
 	comments2
@@ -108,9 +108,9 @@ func TestCleanupDoneFromFileToEnd(t *testing.T) {
 	[x] ja
 [] yo
 [x] bar
+	some commet
 	[] bar1
 	[] bar2
-	some commet
 [x] haba
 	comments1
 	comments2

@@ -20,6 +20,7 @@ type Moment interface {
 	GetComments() []*CommentLine
 	GetComment(index int) *CommentLine
 	GetSubMoments() []Moment
+	GetLastSubMoment() Moment
 	GetLastComment() *CommentLine
 	GetDocCoords() DocCoords
 	GetTimeOfDay() *Date
@@ -101,6 +102,13 @@ func (m *BaseMoment) GetComment(index int) *CommentLine {
 
 func (m *BaseMoment) GetSubMoments() []Moment {
 	return m.subMoments
+}
+
+func (m *BaseMoment) GetLastSubMoment() Moment {
+	if len(m.subMoments) == 0 {
+		return nil
+	}
+	return m.subMoments[len(m.subMoments)-1]
 }
 
 func (m *BaseMoment) GetLastComment() *CommentLine {
