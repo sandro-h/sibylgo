@@ -69,7 +69,7 @@ export function activate(context: vscode.ExtensionContext, cfg: util.SibylConfig
 		}
     }
     
-    let activeEditor = null;
+  let activeEditor = null;
 	setActiveEditor(vscode.window.activeTextEditor);
 	triggerUpdateDecorations();
 

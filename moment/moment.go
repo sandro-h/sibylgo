@@ -176,8 +176,10 @@ type CommentLine struct {
 
 type DocCoords struct {
 	LineNumber int
-	Offset     int
-	Length     int
+	// Offset in runes
+	Offset int
+	// Length in runes
+	Length int
 }
 
 type MomentInstance struct {

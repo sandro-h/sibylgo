@@ -5,6 +5,7 @@ import (
 	"github.com/sandro-h/sibylgo/util"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 var dateFormats = [...]string{
@@ -16,14 +17,14 @@ var dateFormats = [...]string{
 // expected lineVal: .*(\s+<date>\s+)
 func parseDateSuffix(line *Line, lineVal string) (*moment.Date, *moment.Date, *moment.Date, string) {
 	p := strings.LastIndex(lineVal, "(")
-	untrimmedPos := strings.LastIndex(line.Content(), "(") + 1
+	untrimmedPos := LastRuneIndex(line.Content(), "(") + 1
 	dtStr := lineVal[p+1 : len(lineVal)-1]
 	timeOfDay, dtStr := parseTimeSuffix(line, dtStr)
 	finalizeDocCoords(timeOfDay, line.LineNumber(), line.Offset()+untrimmedPos)
 	dsTrimLen := countStartWhitespaces(dtStr)
 	dtStr = strings.TrimSpace(dtStr)
 
-	dashPos := strings.IndexRune(dtStr, '-')
+	dashPos := strings.Index(dtStr, "-")
 	var start *moment.Date
 	var end *moment.Date
 	if dashPos >= 0 {
@@ -96,7 +97,7 @@ func parseDateSuffixRanged(lineVal string, dashPos int) (*moment.Date, *moment.D
 		end = &moment.Date{
 			Time: tm,
 			DocCoords: moment.DocCoords{
-				Offset: len(startStr) + 1 + countStartWhitespaces(endStr),
+				Offset: utf8.RuneCountInString(startStr) + 1 + countStartWhitespaces(endStr),
 				Length: lengthWithoutStartEndWhitespaces(endStr)}}
 	}
 

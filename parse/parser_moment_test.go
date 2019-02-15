@@ -159,6 +159,16 @@ func TestCalculateSingleCoords(t *testing.T) {
 	assert.Equal(t, 8, mom.End.Length)
 }
 
+func TestCalculateSingleUnicodeCoords(t *testing.T) {
+	line := &Line{content: "[] bläbla (4.1.2015)"}
+	mom, _ := parseSingleMoment(line, line.Content())
+
+	assert.Equal(t, 11, mom.Start.Offset)
+	assert.Equal(t, 8, mom.Start.Length)
+	assert.Equal(t, 11, mom.End.Offset)
+	assert.Equal(t, 8, mom.End.Length)
+}
+
 func TestCalculateRangeCoords(t *testing.T) {
 	line := &Line{content: "[] blabla (4.1.2015-5.1.2015)"}
 	mom, _ := parseSingleMoment(line, line.Content())
@@ -201,6 +211,15 @@ func TestRecurringMoment(t *testing.T) {
 	assert.Equal(t, 20, mom.Length)
 	assert.Equal(t, moment.RE_MONTHLY, mom.Recurrence.Recurrence)
 	assert.Equal(t, 5, mom.Recurrence.RefDate.Time.Day())
+	assert.Equal(t, 11, mom.Recurrence.RefDate.Offset)
+	assert.Equal(t, 8, mom.Recurrence.RefDate.Length)
+}
+
+func TestUnicodeRecurringMoment(t *testing.T) {
+	mom, _ := parseRecurMom("[] bläbla (every 5.)")
+	assert.Equal(t, "bläbla", mom.GetName())
+	assert.Equal(t, 0, mom.Offset)
+	assert.Equal(t, 20, mom.Length)
 	assert.Equal(t, 11, mom.Recurrence.RefDate.Offset)
 	assert.Equal(t, 8, mom.Recurrence.RefDate.Length)
 }

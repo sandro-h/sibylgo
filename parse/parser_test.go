@@ -152,6 +152,31 @@ func TestBadCategory(t *testing.T) {
 	assert.Contains(t, err.Error(), "Expected a delimiter after category a cat")
 }
 
+func TestUnicodeMoments(t *testing.T) {
+	// Non-unicode version for range references
+	// 	todos, _ := ParseString(`
+	// [] ao
+	// 	hehe aa
+	// 	[] aba
+	// 		heyyy aa
+	// 		gobobob
+	// 	`)
+	todos, _ := ParseString(`
+[] äö
+	hehe ää
+	[] äbä
+		héyyy ää
+		gobobob
+		`)
+
+	assertComments(t, todos, "äö", "hehe ää")
+	assertComments(t, todos, "äö/äbä", "héyyy ää", "gobobob")
+	assertDocCoords(t, 1, 1, 5, momentByPath(todos, "äö").GetDocCoords())
+	assertDocCoords(t, 3, 16, 7, momentByPath(todos, "äö/äbä").GetDocCoords())
+	assertDocCoords(t, 4, 26, 8, momentByPath(todos, "äö/äbä").GetComment(0).DocCoords)
+	assertDocCoords(t, 5, 37, 7, momentByPath(todos, "äö/äbä").GetComment(1).DocCoords)
+}
+
 func assertMomentExists(t *testing.T, todos *moment.Todos, path string) moment.Moment {
 	mom := momentByPath(todos, path)
 	if mom == nil {

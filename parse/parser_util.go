@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 )
 
 func countStartWhitespaces(str string) int {
@@ -12,7 +13,7 @@ func countStartWhitespaces(str string) int {
 			return i
 		}
 	}
-	return len(str)
+	return utf8.RuneCountInString(str)
 }
 
 func lengthWithoutStartEndWhitespaces(str string) int {
@@ -47,4 +48,9 @@ func parsePriority(str string) (int, string) {
 		prio++
 	}
 	return prio, strings.TrimSpace(str[0 : len(str)-prio])
+}
+
+func LastRuneIndex(s string, substr string) int {
+	i := strings.LastIndex(s, substr)
+	return utf8.RuneCountInString(s[:i])
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/sandro-h/sibylgo/moment"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 // expected lineVal: .*<timeval>\s*
@@ -14,6 +15,7 @@ func parseTimeSuffix(line *Line, lineVal string) (*moment.Date, string) {
 	if p < 0 || p == len(trimmed)-1 {
 		return nil, lineVal
 	}
+	unip := utf8.RuneCountInString(trimmed[:p])
 	tmStr := trimmed[p+1:]
 	ok, tm := parseTime(tmStr)
 	if !ok {
@@ -21,8 +23,8 @@ func parseTimeSuffix(line *Line, lineVal string) (*moment.Date, string) {
 	}
 	return &moment.Date{Time: tm,
 			DocCoords: moment.DocCoords{
-				Offset: p + 1,
-				Length: len(tmStr)}},
+				Offset: unip + 1,
+				Length: utf8.RuneCountInString(tmStr)}},
 		lineVal[0:p]
 }
 

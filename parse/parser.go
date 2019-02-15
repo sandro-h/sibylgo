@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"unicode/utf8"
 )
 
 const categoryDelim = "------"
@@ -164,7 +165,7 @@ func (p *Parser) handleSubLine(mom moment.Moment, line *Line, lineVal string, in
 		// Assume it's a comment
 		comment := &moment.CommentLine{
 			Content:   lineVal,
-			DocCoords: moment.DocCoords{line.LineNumber(), line.Offset() + len(indent+indentChar), len(lineVal)}}
+			DocCoords: moment.DocCoords{line.LineNumber(), line.Offset() + len(indent+indentChar), utf8.RuneCountInString(lineVal)}}
 		mom.AddComment(comment)
 	}
 	return nil

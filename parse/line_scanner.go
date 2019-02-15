@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"unicode/utf8"
 )
 
 type LineScanner struct {
@@ -64,7 +65,7 @@ func (s *LineScanner) Scan() bool {
 	s.line = Line{
 		content:    ret,
 		lineNumber: s.lineNumber - 2,
-		offset:     s.lastOffset - len(ret) - s.nlLen}
+		offset:     s.lastOffset - utf8.RuneCountInString(ret) - s.nlLen}
 	return true
 }
 
@@ -95,7 +96,7 @@ func (s *LineScanner) updateNextLine() {
 	if s.scanner.Scan() {
 		s.nextLine = s.scanner.Text()
 		s.hasNextLine = true
-		s.offset += len(s.nextLine) + s.nlLen
+		s.offset += utf8.RuneCountInString(s.nextLine) + s.nlLen
 	} else {
 		s.hasNextLine = false
 	}
@@ -124,7 +125,7 @@ func (l *Line) Offset() int {
 }
 
 func (l *Line) Length() int {
-	return len(l.content)
+	return utf8.RuneCountInString(l.content)
 }
 
 func (l *Line) Content() string {
