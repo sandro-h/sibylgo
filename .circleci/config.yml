@@ -34,7 +34,7 @@ jobs:
           command: curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
       - run: 
           name: Get dependencies
-          command: dep ensure --vendor-only -v
+          command: GOBIN=/go/bin make deps-go
       - save_cache:
           name: Save dependency cache
           paths:
@@ -46,20 +46,16 @@ jobs:
       ##############################
       - run:
           name: Test
-          command: go test -v -coverprofile="coverage.out" ./...
+          command: make test-go
 
       - run:
-          name: Build for linux
-          command: go build -v -ldflags="-X 'main.buildVersion=$(cat version.txt)' -X 'main.buildNumber=$CIRCLE_BUILD_NUM' -X 'main.buildRevision=${CIRCLE_SHA1:0:7}'"
-
-      - run:
-          name: Build for windows
-          command: GOOS=windows GOARCH=amd64 go build -v -ldflags="-X 'main.buildVersion=$(cat version.txt)' -X 'main.buildNumber=$CIRCLE_BUILD_NUM' -X 'main.buildRevision=${CIRCLE_SHA1:0:7}'"
+          name: Build
+          command: BUILD_NUM=$CIRCLE_BUILD_NUM GIT_SHA=${CIRCLE_SHA1:0:7} make build-go
 
       - run:
           # Print it here because the ghr image to publish to github is so minimal it can't run the executable.
           name: Print final version
-          command: ./sibylgo --version > final_version.txt
+          command: make version > final_version.txt
 
       - store_artifacts:
           path: sibylgo
@@ -122,9 +118,8 @@ jobs:
           key: v1-node_modules-{{ checksum "vscode_ext/package.json" }}
 
       - run:
-          working_directory: vscode_ext
           name: Install
-          command: "[ -d node_modules ] || npm install --unsafe-perm"
+          command: "[ -d vscode_ext/node_modules ] || make deps-vscode"
 
       - save_cache:
           name: Save node_modules cache
@@ -133,14 +128,8 @@ jobs:
           key: v1-node_modules-{{ checksum "vscode_ext/package.json" }}
 
       - run:
-          working_directory: vscode_ext
-          name: Update version
-          command: npm version $(cat ../version.txt)
-
-      - run:
-          working_directory: vscode_ext
           name: Build
-          command: node node_modules/vsce/out/vsce package -o sibyl.vsix
+          command: make build-vscode
 
       - store_artifacts:
           path: vscode_ext/sibyl.vsix

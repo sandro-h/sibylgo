@@ -4,7 +4,7 @@
 	"description": "Sibyl vscode extension",
 	"publisher": "mentalvary",
 	"repository": "sibylgo",
-	"version": "0.0.0",
+	"version": "1.0.1",
 	"license": "MIT",
 	"engines": {
 		"vscode": "^1.24.0"
