@@ -55,7 +55,7 @@ jobs:
       - run:
           # Print it here because the ghr image to publish to github is so minimal it can't run the executable.
           name: Print final version
-          command: make version > final_version.txt
+          command: ./sibylgo --version > final_version.txt
 
       - store_artifacts:
           path: sibylgo

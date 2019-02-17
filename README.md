@@ -6,14 +6,20 @@ Text-based TODO application
 
 # Development
 
-## Update version
+Main Go application:
+```
+make deps-go
+make build-go
+```
 
-The main version is updated in version.txt. CI takes care of injecting it into the go binary and vscode extension.
+VSCode Extension:
+```
+make deps-vscode
+make build-vscode
+```
 
 ## See vscode extension errors
 
 When packaging, you won't see compile errors, so simply run `npm run compile` to see them.
 
 # TODOS
-
-- Build scripts for local dev (version injection, etc)

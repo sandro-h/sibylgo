@@ -1,4 +1,4 @@
-VERSION=1.0.1
+VERSION=1.0.2
 
 deps-go:
 	${GOBIN}/dep ensure --vendor-only -v
@@ -22,8 +22,3 @@ build-vscode:
 	cd vscode_ext && \
 	npm version ${VERSION} --allow-same-version && \
 	node node_modules/vsce/out/vsce package -o sibyl.vsix
-
-version:
-	@echo ${VERSION}
-
-
