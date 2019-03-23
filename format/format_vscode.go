@@ -17,6 +17,10 @@ const doneSuffix = ".done"
 const prioritySuffix = ".priority"
 const untilSuffix = ".until%d"
 
+var getNow = func() time.Time {
+	return time.Now()
+}
+
 func FormatVSCode(todos *moment.Todos) string {
 
 	res := ""
@@ -78,10 +82,20 @@ func formatDates(res *string, m moment.Moment) {
 func formatDueSoon(momFmt *string, m moment.Moment) {
 	// Due until 10 (n-1) days in the future
 	n := 11
-	today := util.SetToStartOfDay(time.Now())
-	insts := generate.GenerateInstancesWithoutSubs(m, today, today.AddDate(0, 0, n))
+	today := util.SetToStartOfDay(getNow())
+	nDaysFromToday := today.AddDate(0, 0, n)
+	nRealHours := nDaysFromToday.Sub(today) / time.Hour
+
+	insts := generate.GenerateInstancesWithoutSubs(m, today, nDaysFromToday)
 	earliest := n
 	for _, inst := range insts {
+		// We need to compare hours here because of daylight saving time.
+		// Instead of 264h (=11 days) it might only be 263h or 265h,
+		// which would lead to the wrong number of days calculated.
+		if inst.End.Sub(today)/time.Hour >= nRealHours {
+			continue
+		}
+
 		d := int(inst.End.Sub(today) / util.Days)
 		if d < earliest {
 			earliest = d

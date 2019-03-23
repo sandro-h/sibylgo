@@ -60,6 +60,28 @@ func TestFormatDueSoon(t *testing.T) {
 		"until0")
 }
 
+func TestDueSoonDaylightSavings(t *testing.T) {
+	// Scenario:
+	// It's the 23.3
+	// Daylight savings time happens on 31.3
+	// The moment date 3.4. will be seen as 263 hours away, instead of 264 (=11 days)
+	getNow = func() time.Time { return tu.Dt("23.03.2019") }
+
+	input := `
+[] bla1 (3.4.19)
+[] bla2 (2.4.19)`
+	todos, _ := parse.ParseString(input)
+
+	format := FormatVSCode(todos)
+
+	fmt.Printf("%s\n", format)
+	assert.Equal(t, `1,17,mom
+10,16,date
+18,34,mom.until10
+27,33,date
+`, format)
+}
+
 func assertUntils(t *testing.T, format string, expected ...string) {
 	lines := strings.Split(format, "\n")
 	k := 0
