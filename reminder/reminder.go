@@ -21,7 +21,9 @@ func CompileMomentsEndingInRange(todos *moment.Todos, from time.Time, to time.Ti
 }
 
 func FilterMomentsEndingInRange(insts []*moment.MomentInstance) []*moment.MomentInstance {
-	var res []*moment.MomentInstance
+	// Explicitly make it a 0-len array, otherwise it's 'nil' and will be converted
+	// to null by the JSON encoder.
+	res := make([]*moment.MomentInstance, 0)
 	for _, m := range insts {
 		subs := FilterMomentsEndingInRange(m.SubInstances)
 		if len(subs) > 0 || m.EndsInRange {
