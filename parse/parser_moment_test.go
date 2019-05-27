@@ -259,6 +259,12 @@ func TestRecurringMomentWithTime(t *testing.T) {
 	assert.Equal(t, 5, mom.TimeOfDay.Length)
 }
 
+func TestEndingWithBracket(t *testing.T) {
+	mom, _ := parseSingleMom("[] blabla)")
+
+	assert.Equal(t, "blabla)", mom.GetName())
+}
+
 func dateStr(dt *moment.Date) string {
 	if dt == nil {
 		return "nil"
