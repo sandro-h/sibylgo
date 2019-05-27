@@ -52,5 +52,8 @@ func parsePriority(str string) (int, string) {
 
 func LastRuneIndex(s string, substr string) int {
 	i := strings.LastIndex(s, substr)
+	if i < 0 {
+		return i
+	}
 	return utf8.RuneCountInString(s[:i])
 }

@@ -18,6 +18,9 @@ var yearlyPattern, _ = regexp.Compile("(?i)every (\\d{1,2})\\.(\\d{1,2})\\.?$")
 // expected lineVal: .*(\s+<recur>\s+)
 func parseRecurrence(line *Line, lineVal string) (*moment.Recurrence, *moment.Date, string) {
 	p := strings.LastIndex(lineVal, "(")
+	if p < 0 {
+		return nil, nil, lineVal
+	}
 	untrimmedPos := LastRuneIndex(line.Content(), "(") + 1
 	reStr := lineVal[p+1 : len(lineVal)-1]
 	timeOfDay, reStr := parseTimeSuffix(line, reStr)

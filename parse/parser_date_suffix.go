@@ -17,6 +17,9 @@ var dateFormats = [...]string{
 // expected lineVal: .*(\s+<date>\s+)
 func parseDateSuffix(line *Line, lineVal string) (*moment.Date, *moment.Date, *moment.Date, string) {
 	p := strings.LastIndex(lineVal, "(")
+	if p < 0 {
+		return nil, nil, nil, lineVal
+	}
 	untrimmedPos := LastRuneIndex(line.Content(), "(") + 1
 	dtStr := lineVal[p+1 : len(lineVal)-1]
 	timeOfDay, dtStr := parseTimeSuffix(line, dtStr)
