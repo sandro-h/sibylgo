@@ -33,6 +33,7 @@ var buildNumber = "0"
 var buildRevision = "-"
 
 var showVersion = flag.Bool("version", false, "Show version")
+var host = flag.String("host", "localhost", "REST host. Default: localhost")
 var port = flag.Int("port", 8082, "REST port. Default: 8082")
 var mailHost = flag.String("mailHost", "", "STMP host for sending mail reminders.")
 var mailPort = flag.Int("mailPort", 0, "STMP port for sending mail reminders.")
@@ -113,12 +114,12 @@ func startRestServer() {
 
 	srv := &http.Server{
 		Handler:      handlers.CORS(originsOk, headersOk, methodsOk)(router),
-		Addr:         fmt.Sprintf("%s:%d", "localhost", *port),
+		Addr:         fmt.Sprintf("%s:%d", *host, *port),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
 	go srv.ListenAndServe()
-	fmt.Printf("Started REST server on localhost:%d\n", *port)
+	fmt.Printf("Started REST server on %s:%d\n", *host, *port)
 }
 
 func handleUserCommands() {
