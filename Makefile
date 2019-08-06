@@ -24,4 +24,4 @@ build-vscode:
 	node node_modules/vsce/out/vsce package -o sibyl.vsix
 
 lint:
-	${GOBIN}/golint ./...
+	@golint ./... | grep -v vendor

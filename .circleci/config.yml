@@ -35,6 +35,9 @@ jobs:
       - run: 
           name: Get dependencies
           command: GOBIN=/go/bin make deps-go
+      - run:
+          name: Install golint
+          command: go get github.com/golang/lint/golint
       - save_cache:
           name: Save dependency cache
           paths:
@@ -57,6 +60,10 @@ jobs:
           name: Print final version
           command: ./sibylgo --version > final_version.txt
 
+      - run:
+          name: Lint
+          command: make lint > lint_report.txt && [ ! -s lint_report.txt ] || echo "Lint failed" && exit 1
+
       - store_artifacts:
           path: sibylgo
           destination: binaries/sibylgo
@@ -66,6 +73,9 @@ jobs:
       - store_artifacts:
           path: sibylcal.html
           destination: binaries/sibylcal.html
+      - store_artifacts:
+          path: lint_report.txt
+          destination: reports/lint_report.txt
 
       - persist_to_workspace:
           root: .

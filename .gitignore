@@ -2,3 +2,4 @@ vendor/
 coverage.out
 vscode_ext/sibyl.vsix
 sibylgo
+lint_report.txt
