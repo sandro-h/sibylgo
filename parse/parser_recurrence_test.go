@@ -17,6 +17,15 @@ func TestDaily(t *testing.T) {
 	assert.Equal(t, 9, re.RefDate.Length)
 }
 
+func TestDailyWithTodayAlias(t *testing.T) {
+	re := parseRe("[] bla (today)")
+	assert.NotNil(t, re)
+	assert.Equal(t, moment.RE_DAILY, re.Recurrence)
+	assert.NotNil(t, re.RefDate)
+	assert.Equal(t, 8, re.RefDate.Offset)
+	assert.Equal(t, 5, re.RefDate.Length)
+}
+
 func TestWeekly(t *testing.T) {
 	days := [...]interface{}{
 		"sunday", time.Sunday,

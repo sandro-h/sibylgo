@@ -9,8 +9,7 @@ import (
 	"time"
 )
 
-const dailyPattern = "every day"
-
+var dailyPattern, _ = regexp.Compile("(?i)(every day|today)")
 var weeklyPattern, _ = regexp.Compile("(?i)every (monday|tuesday|wednesday|thursday|friday|saturday|sunday)")
 var monthlyPattern, _ = regexp.Compile("(?i)every (\\d{1,2})\\.?$")
 var yearlyPattern, _ = regexp.Compile("(?i)every (\\d{1,2})\\.(\\d{1,2})\\.?$")
@@ -49,7 +48,7 @@ func parseRecurrence(line *Line, lineVal string) (*moment.Recurrence, *moment.Da
 }
 
 func tryParseDaily(reStr string) *moment.Recurrence {
-	if strings.EqualFold(reStr, dailyPattern) {
+	if dailyPattern.MatchString(reStr) {
 		return &moment.Recurrence{
 			Recurrence: moment.RE_DAILY,
 			RefDate:    &moment.Date{Time: time.Now()}}
