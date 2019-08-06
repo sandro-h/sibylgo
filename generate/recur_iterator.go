@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// RecurIterator generates timestamps within a time range based on a recurrence type.
 type RecurIterator struct {
 	recurrence moment.Recurrence
 	from       time.Time
@@ -14,6 +15,8 @@ type RecurIterator struct {
 	next       time.Time
 }
 
+// NewRecurIterator creates a new recurrence iterator for the given recurrence type in the
+// given time range.
 func NewRecurIterator(recurrence moment.Recurrence, from time.Time, until time.Time) *RecurIterator {
 	it := &RecurIterator{
 		recurrence: recurrence,
@@ -24,10 +27,12 @@ func NewRecurIterator(recurrence moment.Recurrence, from time.Time, until time.T
 	return it
 }
 
+// HasNext returns true if there are more timestamps the iterator can generate in the time range.
 func (it *RecurIterator) HasNext() bool {
 	return !it.next.After(it.until)
 }
 
+// Next returns the next timestamp in the time range.
 func (it *RecurIterator) Next() time.Time {
 	res := it.next
 	it.prepareNext()
@@ -36,13 +41,13 @@ func (it *RecurIterator) Next() time.Time {
 
 func (it *RecurIterator) prepareNext() {
 	switch it.recurrence.Recurrence {
-	case moment.RE_DAILY:
+	case moment.RecurDaily:
 		it.next = getNextDaily(it.cur)
-	case moment.RE_WEEKLY:
+	case moment.RecurWeekly:
 		it.next = getNextWeekly(it.cur, it.recurrence.RefDate.Time)
-	case moment.RE_MONTHLY:
+	case moment.RecurMonthly:
 		it.next = getNextMonthly(it.cur, it.recurrence.RefDate.Time)
-	case moment.RE_YEARLY:
+	case moment.RecurYearly:
 		it.next = getNextYearly(it.cur, it.recurrence.RefDate.Time)
 	}
 	it.cur = it.next

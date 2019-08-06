@@ -9,7 +9,7 @@ import (
 )
 
 func TestIterateDaily(t *testing.T) {
-	it := NewRecurIterator(re(moment.RE_DAILY, "02.01.2019"),
+	it := NewRecurIterator(re(moment.RecurDaily, "02.01.2019"),
 		tu.Dt("10.01.2019"), tu.Dt("13.01.2019"))
 	assertIterations(t, it,
 		"10.01.2019",
@@ -19,7 +19,7 @@ func TestIterateDaily(t *testing.T) {
 }
 
 func TestIterateWeekly(t *testing.T) {
-	it := NewRecurIterator(re(moment.RE_WEEKLY, "02.01.2019"), // wednesday
+	it := NewRecurIterator(re(moment.RecurWeekly, "02.01.2019"), // wednesday
 		tu.Dt("10.01.2019"), tu.Dt("31.01.2019"))
 	assertIterations(t, it,
 		"16.01.2019",
@@ -28,7 +28,7 @@ func TestIterateWeekly(t *testing.T) {
 }
 
 func TestIterateMonthly(t *testing.T) {
-	it := NewRecurIterator(re(moment.RE_MONTHLY, "02.01.2019"),
+	it := NewRecurIterator(re(moment.RecurMonthly, "02.01.2019"),
 		tu.Dt("10.01.2019"), tu.Dt("30.04.2019"))
 	assertIterations(t, it,
 		"02.02.2019",
@@ -37,7 +37,7 @@ func TestIterateMonthly(t *testing.T) {
 }
 
 func TestIterateYearly(t *testing.T) {
-	it := NewRecurIterator(re(moment.RE_YEARLY, "02.01.2019"),
+	it := NewRecurIterator(re(moment.RecurYearly, "02.01.2019"),
 		tu.Dt("10.01.2019"), tu.Dt("30.04.2022"))
 	assertIterations(t, it,
 		"02.01.2020",

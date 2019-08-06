@@ -21,7 +21,20 @@ var getNow = func() time.Time {
 	return time.Now()
 }
 
-func FormatVSCode(todos *moment.Todos) string {
+// ForVSCode returns a string of lines containing formatting instructions that
+// are understood by the sibyl Visual Studio Code extension to format a todo file.
+//
+// A formatting instruction has the syntax <start offset>,<end offset>,<formatting string>.
+// The offsets are the absolute offsets of the string to be formatted, for the entire file
+// (so not scoped by line number). The formatting strings are specific to the vscode extension
+// and mark things like a done moment or a comment, or a moment that is due soon.
+//
+// Example output:
+//     1,17,mom
+//     10,16,date
+//     18,34,mom.until10
+//     27,33,date
+func ForVSCode(todos *moment.Todos) string {
 
 	res := ""
 	for _, c := range todos.Categories {
@@ -86,7 +99,7 @@ func formatDueSoon(momFmt *string, m moment.Moment) {
 	nDaysFromToday := today.AddDate(0, 0, n)
 	nRealHours := nDaysFromToday.Sub(today) / time.Hour
 
-	insts := generate.GenerateInstancesWithoutSubs(m, today, nDaysFromToday)
+	insts := generate.InstancesWithoutSubs(m, today, nDaysFromToday)
 	earliest := n
 	for _, inst := range insts {
 		// We need to compare hours here because of daylight saving time.

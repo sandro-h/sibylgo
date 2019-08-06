@@ -15,12 +15,13 @@ var getNow = func() time.Time {
 	return time.Now()
 }
 
-func CleanupDoneFromFile(todoFilePath string, trashFilePath string, onlyTopLevel bool) error {
+// MoveDoneToTrashFile moves all done moments in the todo file to a fixed trash file
+func MoveDoneToTrashFile(todoFilePath string, trashFilePath string, onlyTopLevel bool) error {
 	b, err := ioutil.ReadFile(todoFilePath)
 	if err != nil {
 		return err
 	}
-	s := string(b)
+	rawTodoContent := string(b)
 
 	todoFile, err := os.OpenFile(todoFilePath, os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
@@ -34,7 +35,7 @@ func CleanupDoneFromFile(todoFilePath string, trashFilePath string, onlyTopLevel
 	}
 	defer trashFile.Close()
 
-	cleanupDone(s, onlyTopLevel,
+	cleanupDone(rawTodoContent, onlyTopLevel,
 		func(line string) { fmt.Fprintf(todoFile, "%s\n", line) },
 		func(line string) { fmt.Fprintf(trashFile, "%s\n", line) },
 		func() {
@@ -46,7 +47,8 @@ func CleanupDoneFromFile(todoFilePath string, trashFilePath string, onlyTopLevel
 	return nil
 }
 
-func CleanupDoneFromFileToEnd(todoFilePath string, onlyTopLevel bool) error {
+// MoveDoneToEndOfFile moves all done moments in the todo file to the end of that file.
+func MoveDoneToEndOfFile(todoFilePath string, onlyTopLevel bool) error {
 	b, err := ioutil.ReadFile(todoFilePath)
 	if err != nil {
 		return err
@@ -72,7 +74,9 @@ func CleanupDoneFromFileToEnd(todoFilePath string, onlyTopLevel bool) error {
 	return nil
 }
 
-func CleanupDoneFromString(content string, onlyTopLevel bool) (string, string, error) {
+// SeparateDoneFromString separates the moments from the raw content string into
+// done and not done moments and returns them.
+func SeparateDoneFromString(content string, onlyTopLevel bool) (string, string, error) {
 	kept := ""
 	deleted := ""
 	err := cleanupDone(content, onlyTopLevel,
@@ -104,7 +108,7 @@ func cleanupDone(content string, onlyTopLevel bool,
 	scanner := bufio.NewScanner(strings.NewReader(content))
 	ln := 0
 	k := 0
-	var curRange *LineRange
+	var curRange *lineRange
 	firstDelete := true
 	if len(toDel) > 0 {
 		curRange = &toDel[0]
@@ -147,11 +151,11 @@ func cleanupDone(content string, onlyTopLevel bool,
 	return nil
 }
 
-func computeDoneLines(moms []moment.Moment, onlyTopLevel bool) []LineRange {
-	var toDel []LineRange
+func computeDoneLines(moms []moment.Moment, onlyTopLevel bool) []lineRange {
+	var toDel []lineRange
 	for _, m := range moms {
 		if m.IsDone() {
-			toDel = append(toDel, getFullLineRange(m))
+			toDel = append(toDel, getFulllineRange(m))
 		} else if !onlyTopLevel {
 			subDels := computeDoneLines(m.GetSubMoments(), onlyTopLevel)
 			toDel = append(toDel, subDels...)
@@ -160,11 +164,11 @@ func computeDoneLines(moms []moment.Moment, onlyTopLevel bool) []LineRange {
 	return toDel
 }
 
-func getFullLineRange(mom moment.Moment) LineRange {
-	return LineRange{mom.GetDocCoords().LineNumber, mom.GetBottomLineNumber()}
+func getFulllineRange(mom moment.Moment) lineRange {
+	return lineRange{mom.GetDocCoords().LineNumber, mom.GetBottomLineNumber()}
 }
 
-type LineRange struct {
+type lineRange struct {
 	startLine int
 	endLine   int
 }

@@ -155,7 +155,7 @@ func printCommands() {
 func clean() {
 	assertStringFlagSet("todoFile", todoFile)
 
-	err := cleanup.CleanupDoneFromFileToEnd(*todoFile, true)
+	err := cleanup.MoveDoneToEndOfFile(*todoFile, true)
 	if err != nil {
 		fmt.Printf("Error cleaning up: %s", err)
 	} else {
@@ -171,7 +171,7 @@ func trash() {
 
 	trashFile := removeExt(*todoFile) + "-trash.txt"
 
-	err := cleanup.CleanupDoneFromFile(*todoFile, trashFile, true)
+	err := cleanup.MoveDoneToTrashFile(*todoFile, trashFile, true)
 	if err != nil {
 		fmt.Printf("Error trashing: %s", err)
 	} else {
@@ -208,7 +208,7 @@ func formatMoments(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 	}
-	res := format.FormatVSCode(todos)
+	res := format.ForVSCode(todos)
 	fmt.Fprintf(w, res)
 }
 
@@ -258,7 +258,7 @@ func getWeeklyReminders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	todays, weeks := reminder.CompileRemindersForTodayAndThisWeek(todos, date)
-	res := map[string][]*moment.MomentInstance{
+	res := map[string][]*moment.Instance{
 		"today": todays,
 		"week":  weeks}
 	w.Header().Set("Content-Type", "application/json")

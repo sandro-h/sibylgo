@@ -25,7 +25,7 @@ func TestFormatCat(t *testing.T) {
 [] foo
 	`)
 
-	format := FormatVSCode(todos)
+	format := ForVSCode(todos)
 	assert.Equal(t, `20,25,cat
 73,78,cat
 46,52,mom
@@ -51,7 +51,7 @@ func TestFormatDueSoon(t *testing.T) {
 	input = strings.Replace(input, "$in11Days", in11Days, -1)
 	todos, _ := parse.ParseString(input)
 
-	format := FormatVSCode(todos)
+	format := ForVSCode(todos)
 
 	fmt.Printf("%s\n", format)
 	assertUntils(t, format,
@@ -72,7 +72,7 @@ func TestDueSoonDaylightSavings(t *testing.T) {
 [] bla2 (2.4.19)`
 	todos, _ := parse.ParseString(input)
 
-	format := FormatVSCode(todos)
+	format := ForVSCode(todos)
 
 	fmt.Printf("%s\n", format)
 	assert.Equal(t, `1,17,mom

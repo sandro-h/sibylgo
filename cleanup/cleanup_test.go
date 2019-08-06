@@ -24,7 +24,7 @@ var testInput = `
 [] yo`
 
 func TestCleanupDoneTopLevel(t *testing.T) {
-	kept, deleted, _ := CleanupDoneFromString(testInput, true)
+	kept, deleted, _ := SeparateDoneFromString(testInput, true)
 	assert.Equal(t, `[] foo
 [] gib
 	[x] ja
@@ -40,7 +40,7 @@ func TestCleanupDoneTopLevel(t *testing.T) {
 }
 
 func TestCleanupDoneAll(t *testing.T) {
-	kept, deleted, _ := CleanupDoneFromString(testInput, false)
+	kept, deleted, _ := SeparateDoneFromString(testInput, false)
 	assert.Equal(t, `[] foo
 [] gib
 [] yo`, kept)
@@ -55,7 +55,7 @@ func TestCleanupDoneAll(t *testing.T) {
 	comments3`, deleted)
 }
 
-func TestCleanupDoneFromFile(t *testing.T) {
+func TestMoveDoneToTrashFile(t *testing.T) {
 	var testfiles []string
 	writeTestFile(&testfiles, "todo.txt", testInput)
 	writeTestFile(&testfiles, "trash.txt", "")
@@ -67,7 +67,7 @@ func TestCleanupDoneFromFile(t *testing.T) {
 		return t
 	}
 
-	CleanupDoneFromFile(testfiles[0], testfiles[1], true)
+	MoveDoneToTrashFile(testfiles[0], testfiles[1], true)
 
 	cleanedTodo := readFile(testfiles[0])
 	trash := readFile(testfiles[1])
@@ -93,12 +93,12 @@ func TestCleanupDoneFromFile(t *testing.T) {
 `, trash)
 }
 
-func TestCleanupDoneFromFileToEnd(t *testing.T) {
+func TestMoveDoneToEndOfFile(t *testing.T) {
 	var testfiles []string
 	writeTestFile(&testfiles, "todo.txt", testInput)
 	defer deleteTestFiles(&testfiles)
 
-	CleanupDoneFromFileToEnd(testfiles[0], true)
+	MoveDoneToEndOfFile(testfiles[0], true)
 
 	cleanedTodo := readFile(testfiles[0])
 

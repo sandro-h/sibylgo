@@ -209,7 +209,7 @@ func TestRecurringMoment(t *testing.T) {
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.Equal(t, 0, mom.Offset)
 	assert.Equal(t, 20, mom.Length)
-	assert.Equal(t, moment.RE_MONTHLY, mom.Recurrence.Recurrence)
+	assert.Equal(t, moment.RecurMonthly, mom.Recurrence.Recurrence)
 	assert.Equal(t, 5, mom.Recurrence.RefDate.Time.Day())
 	assert.Equal(t, 11, mom.Recurrence.RefDate.Offset)
 	assert.Equal(t, 8, mom.Recurrence.RefDate.Length)
@@ -230,7 +230,7 @@ func TestDoneRecurringMoment(t *testing.T) {
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.True(t, mom.IsDone())
 	assert.Equal(t, 21, mom.Length)
-	assert.Equal(t, moment.RE_MONTHLY, mom.Recurrence.Recurrence)
+	assert.Equal(t, moment.RecurMonthly, mom.Recurrence.Recurrence)
 	assert.Equal(t, 5, mom.Recurrence.RefDate.Time.Day())
 	assert.Equal(t, 12, mom.Recurrence.RefDate.Offset)
 	assert.Equal(t, 8, mom.Recurrence.RefDate.Length)
@@ -242,7 +242,7 @@ func TestPriorityRecurringMoment(t *testing.T) {
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.Equal(t, 1, mom.GetPriority())
 	assert.Equal(t, 21, mom.Length)
-	assert.Equal(t, moment.RE_MONTHLY, mom.Recurrence.Recurrence)
+	assert.Equal(t, moment.RecurMonthly, mom.Recurrence.Recurrence)
 	assert.Equal(t, 5, mom.Recurrence.RefDate.Time.Day())
 	assert.Equal(t, 12, mom.Recurrence.RefDate.Offset)
 	assert.Equal(t, 8, mom.Recurrence.RefDate.Length)
@@ -252,7 +252,7 @@ func TestRecurringMomentWithTime(t *testing.T) {
 	mom, _ := parseRecurMom("[] blabla (every 5. 13:15)")
 
 	assert.Equal(t, "blabla", mom.GetName())
-	assert.Equal(t, moment.RE_MONTHLY, mom.Recurrence.Recurrence)
+	assert.Equal(t, moment.RecurMonthly, mom.Recurrence.Recurrence)
 	assert.Equal(t, 5, mom.Recurrence.RefDate.Time.Day())
 	assert.Equal(t, "13:15:00", timeStr(mom.TimeOfDay))
 	assert.Equal(t, 20, mom.TimeOfDay.Offset)
@@ -281,7 +281,7 @@ func timeStr(dt *moment.Date) string {
 
 func parseMom(content string) (moment.Moment, error) {
 	line := &Line{content: content}
-	return ParseMoment(line, line.Content())
+	return parseMoment(line, line.Content())
 }
 
 func parseSingleMom(content string) (*moment.SingleMoment, error) {

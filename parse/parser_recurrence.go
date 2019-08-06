@@ -50,7 +50,7 @@ func parseRecurrence(line *Line, lineVal string) (*moment.Recurrence, *moment.Da
 func tryParseDaily(reStr string) *moment.Recurrence {
 	if dailyPattern.MatchString(reStr) {
 		return &moment.Recurrence{
-			Recurrence: moment.RE_DAILY,
+			Recurrence: moment.RecurDaily,
 			RefDate:    &moment.Date{Time: time.Now()}}
 	}
 	return nil
@@ -62,7 +62,7 @@ func tryParseWeekly(reStr string) *moment.Recurrence {
 		wd := parseWeekday(matches[1])
 		dt := util.SetWeekday(time.Now(), wd)
 		return &moment.Recurrence{
-			Recurrence: moment.RE_WEEKLY,
+			Recurrence: moment.RecurWeekly,
 			RefDate:    &moment.Date{Time: dt}}
 	}
 	return nil
@@ -98,7 +98,7 @@ func tryParseMonthly(reStr string) *moment.Recurrence {
 		y, m, _ := time.Now().Date()
 		dt := time.Date(y, m, day, 0, 0, 0, 0, time.Local)
 		return &moment.Recurrence{
-			Recurrence: moment.RE_MONTHLY,
+			Recurrence: moment.RecurMonthly,
 			RefDate:    &moment.Date{Time: dt}}
 	}
 	return nil
@@ -118,7 +118,7 @@ func tryParseYearly(reStr string) *moment.Recurrence {
 		y := time.Now().Year()
 		dt := time.Date(y, time.Month(month), day, 0, 0, 0, 0, time.Local)
 		return &moment.Recurrence{
-			Recurrence: moment.RE_YEARLY,
+			Recurrence: moment.RecurYearly,
 			RefDate:    &moment.Date{Time: dt}}
 	}
 	return nil

@@ -98,17 +98,17 @@ func (p *MailReminderProcess) saveLastDaySent(dt time.Time) {
 	}
 }
 
-func (p *MailReminderProcess) loadTodaysMoments(today time.Time) ([]*moment.MomentInstance, error) {
+func (p *MailReminderProcess) loadTodaysMoments(today time.Time) ([]*moment.Instance, error) {
 	todos, err := parse.ParseFile(p.todoFilePath)
 	if err != nil {
 		return nil, err
 	}
-	insts := generate.GenerateInstancesFiltered(todos, today, util.SetToEndOfDay(today),
-		func(mom *moment.MomentInstance) bool { return !mom.Done })
+	insts := generate.InstancesFiltered(todos, today, util.SetToEndOfDay(today),
+		func(mom *moment.Instance) bool { return !mom.Done })
 	return insts, nil
 }
 
-func (p *MailReminderProcess) checkDailyReminder(today time.Time, insts []*moment.MomentInstance) {
+func (p *MailReminderProcess) checkDailyReminder(today time.Time, insts []*moment.Instance) {
 	lastDaySent := p.loadLastDaySent()
 	if today.After(lastDaySent) {
 		fmt.Printf("Sending daily reminder for %s\n", today)
@@ -122,7 +122,7 @@ func (p *MailReminderProcess) checkDailyReminder(today time.Time, insts []*momen
 	}
 }
 
-func (p *MailReminderProcess) sendDailyReminder(today time.Time, insts []*moment.MomentInstance) error {
+func (p *MailReminderProcess) sendDailyReminder(today time.Time, insts []*moment.Instance) error {
 	subject := fmt.Sprintf("TODOs for %s", today.Format("Monday, 2 Jan 2006"))
 	content := ""
 	ending := FilterMomentsEndingInRange(insts)
@@ -130,7 +130,7 @@ func (p *MailReminderProcess) sendDailyReminder(today time.Time, insts []*moment
 	return p.sendMailFunc(subject, content)
 }
 
-func addMomentHtml(content *string, insts []*moment.MomentInstance) {
+func addMomentHtml(content *string, insts []*moment.Instance) {
 	*content += "<ul>\n"
 	for _, m := range insts {
 		*content += "<li>"
@@ -152,7 +152,7 @@ func addMomentHtml(content *string, insts []*moment.MomentInstance) {
 	*content += "</ul>\n"
 }
 
-func hasSubsEndingInRange(m *moment.MomentInstance) bool {
+func hasSubsEndingInRange(m *moment.Instance) bool {
 	for _, s := range m.SubInstances {
 		if s.EndsInRange || hasSubsEndingInRange(s) {
 			return true
@@ -161,7 +161,7 @@ func hasSubsEndingInRange(m *moment.MomentInstance) bool {
 	return false
 }
 
-func (p *MailReminderProcess) checkTimedReminders(now time.Time, insts []*moment.MomentInstance) {
+func (p *MailReminderProcess) checkTimedReminders(now time.Time, insts []*moment.Instance) {
 	upcoming := p.findUpcomingTimedMoments(now, p.reminderTime, p.checkInterval, insts)
 	for _, m := range upcoming {
 		fmt.Print(m.Delta)
@@ -178,7 +178,7 @@ type Upcoming struct {
 }
 
 func (p *MailReminderProcess) findUpcomingTimedMoments(now time.Time, dur time.Duration,
-	checkInterval time.Duration, insts []*moment.MomentInstance) []Upcoming {
+	checkInterval time.Duration, insts []*moment.Instance) []Upcoming {
 	var res []Upcoming
 	for _, i := range insts {
 		if i.TimeOfDay != nil {

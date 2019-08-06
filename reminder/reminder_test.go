@@ -17,7 +17,7 @@ func TestFilterMomentsEndingInRange(t *testing.T) {
 	[] yes (2.2.19)
 	[] mop
 [] more (4.2.19)`)
-	insts := generate.GenerateInstancesFiltered(todos, tu.Dt("01.02.2019"), tu.Dt("03.02.2019"), nil)
+	insts := generate.InstancesFiltered(todos, tu.Dt("01.02.2019"), tu.Dt("03.02.2019"), nil)
 	res := FilterMomentsEndingInRange(insts)
 	assert.Equal(t, 2, len(res))
 	assert.Equal(t, "bar", res[0].Name)

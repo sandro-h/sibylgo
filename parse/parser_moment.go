@@ -5,7 +5,9 @@ import (
 	"strings"
 )
 
-func ParseMoment(line *Line, lineVal string) (moment.Moment, error) {
+// parseMoment parses a moment from the line. It only parses the moment of this current line
+// and none of the sub moments or comments appear on subsequent lines.
+func parseMoment(line *Line, lineVal string) (moment.Moment, error) {
 	mom, lineVal := parseBaseMoment(line, lineVal)
 
 	done, lineVal, err := parseDoneMark(line, lineVal)
@@ -38,7 +40,7 @@ func parseRecurMoment(line *Line, lineVal string) (*moment.RecurMoment, string) 
 	if re != nil {
 		mom := &moment.RecurMoment{Recurrence: *re}
 		mom.TimeOfDay = timeOfDay
-		mom.DocCoords = moment.DocCoords{line.LineNumber(), line.Offset(), line.Length()}
+		mom.DocCoords = moment.DocCoords{LineNumber: line.LineNumber(), Offset: line.Offset(), Length: line.Length()}
 		return mom, newLineVal
 	}
 	return nil, lineVal
@@ -53,7 +55,7 @@ func parseSingleMoment(line *Line, lineVal string) (*moment.SingleMoment, string
 	}
 	mom := &moment.SingleMoment{Start: start, End: end}
 	mom.TimeOfDay = timeOfDay
-	mom.DocCoords = moment.DocCoords{line.LineNumber(), line.Offset(), line.Length()}
+	mom.DocCoords = moment.DocCoords{LineNumber: line.LineNumber(), Offset: line.Offset(), Length: line.Length()}
 	return mom, lineVal
 }
 
