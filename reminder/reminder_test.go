@@ -9,7 +9,7 @@ import (
 )
 
 func TestFilterMomentsEndingInRange(t *testing.T) {
-	todos, _ := parse.ParseString(`
+	todos, _ := parse.String(`
 [] foo
 [] bar (2.2.19)
 	[] hello
@@ -28,7 +28,7 @@ func TestFilterMomentsEndingInRange(t *testing.T) {
 }
 
 func TestCompileMomentsEndingInRange(t *testing.T) {
-	todos, _ := parse.ParseString(`
+	todos, _ := parse.String(`
 [] foo
 [] bar (2.2.19)
 	[] hello
@@ -50,7 +50,7 @@ func TestCompileMomentsEndingInRange(t *testing.T) {
 }
 
 func TestCompileRemindersForTodayAndThisWeek(t *testing.T) {
-	todos, _ := parse.ParseString(`
+	todos, _ := parse.String(`
 [] foo
 [] start of week (28.01.2019)
 [] today (30.01.2019)

@@ -170,7 +170,7 @@ func (m *BaseMoment) GetBottomLineNumber() int {
 }
 
 // SingleMoment is a moment that only occurs once in time.
-// It may be a single point in time or a time range, but it only happens once.
+// It can happen at a single point in time, in a time range, or always (if no start or end is defined).
 type SingleMoment struct {
 	BaseMoment
 	Start *Date

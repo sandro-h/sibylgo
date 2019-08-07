@@ -19,8 +19,13 @@ var getNow = func() time.Time {
 
 const defaultLastSentFile = "sibylgo_lastsent.txt"
 
+// SendMailFunction takes an e-mail subject and content and sends
+// it to a predefined recipient.
 type SendMailFunction func(string, string) error
 
+// MailReminderProcess checks the moments in the given todo file
+// and sends a reminder mail for those moments that are due on the current day
+// or due within a couple of minutes (if they have a TimeOfDay set).
 type MailReminderProcess struct {
 	todoFilePath  string
 	sendMailFunc  SendMailFunction
@@ -29,6 +34,8 @@ type MailReminderProcess struct {
 	reminderTime  time.Duration
 }
 
+// NewMailReminderProcess creates a MailReminderProcess that uses the given sendMailFunc to send the
+// reminder mails.
 func NewMailReminderProcess(todoFilePath string, sendMailFunc SendMailFunction) *MailReminderProcess {
 	return &MailReminderProcess{todoFilePath, sendMailFunc,
 		filepath.Join(os.TempDir(), defaultLastSentFile),
@@ -36,6 +43,8 @@ func NewMailReminderProcess(todoFilePath string, sendMailFunc SendMailFunction) 
 		15 * time.Minute}
 }
 
+// NewMailReminderProcessForSMTP creates a MailReminderProjcess that uses SMTP to send reminder mails to the given
+// recipient.
 func NewMailReminderProcessForSMTP(todoFilePath string, host MailHostProperties, from string, to string) *MailReminderProcess {
 	return NewMailReminderProcess(todoFilePath,
 		func(subject string, body string) error {
@@ -43,6 +52,8 @@ func NewMailReminderProcessForSMTP(todoFilePath string, host MailHostProperties,
 		})
 }
 
+// CheckInfinitely repeatedly checks for reminders in the check interval.
+// This method blocks indefinitely and should be run as a go routine.
 func (p *MailReminderProcess) CheckInfinitely() {
 	for {
 		p.CheckOnce()
@@ -50,6 +61,7 @@ func (p *MailReminderProcess) CheckInfinitely() {
 	}
 }
 
+// CheckOnce does a single check for reminders and sends them if found.
 func (p *MailReminderProcess) CheckOnce() {
 	now := getNow()
 	today := util.SetToStartOfDay(now)
@@ -99,7 +111,7 @@ func (p *MailReminderProcess) saveLastDaySent(dt time.Time) {
 }
 
 func (p *MailReminderProcess) loadTodaysMoments(today time.Time) ([]*moment.Instance, error) {
-	todos, err := parse.ParseFile(p.todoFilePath)
+	todos, err := parse.File(p.todoFilePath)
 	if err != nil {
 		return nil, err
 	}
@@ -126,11 +138,11 @@ func (p *MailReminderProcess) sendDailyReminder(today time.Time, insts []*moment
 	subject := fmt.Sprintf("TODOs for %s", today.Format("Monday, 2 Jan 2006"))
 	content := ""
 	ending := FilterMomentsEndingInRange(insts)
-	addMomentHtml(&content, ending)
+	addMomentHTML(&content, ending)
 	return p.sendMailFunc(subject, content)
 }
 
-func addMomentHtml(content *string, insts []*moment.Instance) {
+func addMomentHTML(content *string, insts []*moment.Instance) {
 	*content += "<ul>\n"
 	for _, m := range insts {
 		*content += "<li>"
@@ -142,7 +154,7 @@ func addMomentHtml(content *string, insts []*moment.Instance) {
 			*content += "</b>"
 		}
 		if len(m.SubInstances) > 0 {
-			addMomentHtml(content, m.SubInstances)
+			addMomentHTML(content, m.SubInstances)
 		}
 		*content += "</li>\n"
 	}
@@ -171,20 +183,20 @@ func (p *MailReminderProcess) checkTimedReminders(now time.Time, insts []*moment
 	}
 }
 
-type Upcoming struct {
+type upcoming struct {
 	Name      string
 	TimeOfDay time.Time
 	Delta     time.Duration
 }
 
 func (p *MailReminderProcess) findUpcomingTimedMoments(now time.Time, dur time.Duration,
-	checkInterval time.Duration, insts []*moment.Instance) []Upcoming {
-	var res []Upcoming
+	checkInterval time.Duration, insts []*moment.Instance) []upcoming {
+	var res []upcoming
 	for _, i := range insts {
 		if i.TimeOfDay != nil {
 			delta := i.TimeOfDay.Sub(now)
 			if delta <= dur && delta+checkInterval > dur {
-				res = append(res, Upcoming{i.Name, *i.TimeOfDay, delta})
+				res = append(res, upcoming{i.Name, *i.TimeOfDay, delta})
 			}
 		}
 		res = append(res, p.findUpcomingTimedMoments(now, dur, checkInterval, i.SubInstances)...)
@@ -192,6 +204,7 @@ func (p *MailReminderProcess) findUpcomingTimedMoments(now time.Time, dur time.D
 	return res
 }
 
+// MailHostProperties defines the mail host used for SMTP.
 type MailHostProperties struct {
 	Host     string
 	Port     int

@@ -16,13 +16,14 @@ const doneMarkUpper = 'X'
 const priorityMark = '!'
 const indentChar = "\t"
 
-type Parser struct {
+type parserState struct {
 	todos       *moment.Todos
 	curCategory *moment.Category
 	scanner     *LineScanner
 }
 
-func ParseFile(path string) (*moment.Todos, error) {
+// File parses a text file into a Todos object.
+func File(path string) (*moment.Todos, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -32,31 +33,36 @@ func ParseFile(path string) (*moment.Todos, error) {
 	return parse(NewFileLineScanner(file))
 }
 
-func ParseString(str string) (*moment.Todos, error) {
+// String parses a string into a Todos object. The string
+// is usually the content of a text file and therefore contains
+// one or more lines.
+func String(str string) (*moment.Todos, error) {
 	return parse(NewLineStringScanner(str))
 }
 
-func ParseReader(reader io.Reader) (*moment.Todos, error) {
+// Reader parses the contents returned by the given reader into
+// a Todos object.
+func Reader(reader io.Reader) (*moment.Todos, error) {
 	return parse(NewLineScanner(reader))
 }
 
 func parse(scanner *LineScanner) (*moment.Todos, error) {
-	parser := Parser{todos: &moment.Todos{}, scanner: scanner}
-	for parser.scanner.Scan() {
-		err := parser.handleLine(parser.scanner.Line())
+	parserState := parserState{todos: &moment.Todos{}, scanner: scanner}
+	for parserState.scanner.Scan() {
+		err := parserState.handleLine(parserState.scanner.Line())
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if err := parser.scanner.Err(); err != nil {
+	if err := parserState.scanner.Err(); err != nil {
 		return nil, err
 	}
 
-	return parser.todos, nil
+	return parserState.todos, nil
 }
 
-func (p *Parser) handleLine(line *Line) error {
+func (p *parserState) handleLine(line *Line) error {
 	if line.IsEmpty() {
 		return nil
 	}
@@ -70,7 +76,7 @@ func (p *Parser) handleLine(line *Line) error {
 	return err
 }
 
-func (p *Parser) handleCategoryLine(line *Line) error {
+func (p *parserState) handleCategoryLine(line *Line) error {
 	ok, catLine := p.scanner.ScanAndLine()
 
 	p.curCategory = parseCategory(catLine)
@@ -99,10 +105,10 @@ func parseCategory(line *Line) *moment.Category {
 	return &moment.Category{
 		Name:      lineVal,
 		Priority:  prio,
-		DocCoords: moment.DocCoords{line.LineNumber(), line.Offset(), line.Length()}}
+		DocCoords: moment.DocCoords{LineNumber: line.LineNumber(), Offset: line.Offset(), Length: line.Length()}}
 }
 
-func (p *Parser) handleMomentLine(line *Line) error {
+func (p *parserState) handleMomentLine(line *Line) error {
 	mom, err := p.parseFullMoment(line, line.TrimmedContent(), "")
 	if err != nil {
 		return err
@@ -111,7 +117,7 @@ func (p *Parser) handleMomentLine(line *Line) error {
 	return nil
 }
 
-func (p *Parser) parseFullMoment(line *Line, lineVal string, indent string) (moment.Moment, error) {
+func (p *parserState) parseFullMoment(line *Line, lineVal string, indent string) (moment.Moment, error) {
 	mom, err := parseMoment(line, lineVal)
 	if err != nil {
 		return nil, err
@@ -126,7 +132,7 @@ func (p *Parser) parseFullMoment(line *Line, lineVal string, indent string) (mom
 	return mom, nil
 }
 
-func (p *Parser) parseCommentsAndSubMoments(mom moment.Moment, indent string) error {
+func (p *parserState) parseCommentsAndSubMoments(mom moment.Moment, indent string) error {
 	nextIndent := indent + indentChar
 	for p.scanner.Scan() {
 		line := p.scanner.Line()
@@ -136,7 +142,7 @@ func (p *Parser) parseCommentsAndSubMoments(mom moment.Moment, indent string) er
 			// special case: treat empty line between comments as a comment
 			comment := &moment.CommentLine{
 				Content:   "",
-				DocCoords: moment.DocCoords{line.LineNumber(), line.Offset(), 0}}
+				DocCoords: moment.DocCoords{LineNumber: line.LineNumber(), Offset: line.Offset(), Length: 0}}
 			mom.AddComment(comment)
 		} else {
 			p.scanner.Unscan()
@@ -154,7 +160,7 @@ func (p *Parser) parseCommentsAndSubMoments(mom moment.Moment, indent string) er
 	return nil
 }
 
-func (p *Parser) handleSubLine(mom moment.Moment, line *Line, lineVal string, indent string) error {
+func (p *parserState) handleSubLine(mom moment.Moment, line *Line, lineVal string, indent string) error {
 	if strings.HasPrefix(lineVal, doneLBracket) {
 		subMom, err := p.parseFullMoment(line, lineVal, indent+indentChar)
 		if err != nil {
@@ -164,8 +170,10 @@ func (p *Parser) handleSubLine(mom moment.Moment, line *Line, lineVal string, in
 	} else {
 		// Assume it's a comment
 		comment := &moment.CommentLine{
-			Content:   lineVal,
-			DocCoords: moment.DocCoords{line.LineNumber(), line.Offset() + len(indent+indentChar), utf8.RuneCountInString(lineVal)}}
+			Content: lineVal,
+			DocCoords: moment.DocCoords{LineNumber: line.LineNumber(),
+				Offset: line.Offset() + len(indent+indentChar),
+				Length: utf8.RuneCountInString(lineVal)}}
 		mom.AddComment(comment)
 	}
 	return nil

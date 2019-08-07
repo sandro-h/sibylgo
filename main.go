@@ -204,7 +204,7 @@ func failUnsetFlag(name string) {
 
 func formatMoments(w http.ResponseWriter, r *http.Request) {
 	reader := base64.NewDecoder(base64.StdEncoding, r.Body)
-	todos, err := parse.ParseReader(reader)
+	todos, err := parse.Reader(reader)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 	}
@@ -214,7 +214,7 @@ func formatMoments(w http.ResponseWriter, r *http.Request) {
 
 func foldMoments(w http.ResponseWriter, r *http.Request) {
 	reader := base64.NewDecoder(base64.StdEncoding, r.Body)
-	todos, err := parse.ParseReader(reader)
+	todos, err := parse.Reader(reader)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 	}
@@ -233,7 +233,7 @@ func getCalendarEntries(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	todos, err := parse.ParseFile(*todoFile)
+	todos, err := parse.File(*todoFile)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -251,7 +251,7 @@ func getWeeklyReminders(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	todos, err := parse.ParseFile(*todoFile)
+	todos, err := parse.File(*todoFile)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return

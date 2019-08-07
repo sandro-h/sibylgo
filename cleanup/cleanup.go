@@ -98,7 +98,7 @@ func addLine(s *string, l string) {
 
 func cleanupDone(content string, onlyTopLevel bool,
 	keepFunc func(string), deleteFunc func(string), firstDeleteFunc func()) error {
-	todos, err := parse.ParseString(content)
+	todos, err := parse.String(content)
 	if err != nil {
 		return err
 	}

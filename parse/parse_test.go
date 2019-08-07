@@ -8,7 +8,7 @@ import (
 )
 
 func TestSubMoments(t *testing.T) {
-	todos, _ := ParseString(`
+	todos, _ := String(`
 [] 1
 	[] 1.1
 	[] 1.2
@@ -29,7 +29,7 @@ func TestSubMoments(t *testing.T) {
 }
 
 func TestComments(t *testing.T) {
-	todos, _ := ParseString(`
+	todos, _ := String(`
 [] 1
 	some comment
 	more more more
@@ -45,7 +45,7 @@ func TestComments(t *testing.T) {
 }
 
 func TestCommentsWithMoreIndentation(t *testing.T) {
-	todos, _ := ParseString(`
+	todos, _ := String(`
 [] 1
 	some comment
 		more tabs should still work
@@ -59,7 +59,7 @@ func TestCommentsWithMoreIndentation(t *testing.T) {
 }
 
 func TestSubMomentComments(t *testing.T) {
-	todos, _ := ParseString(`
+	todos, _ := String(`
 [] 1
 	some comment
 	[] 1.1
@@ -74,7 +74,7 @@ func TestSubMomentComments(t *testing.T) {
 }
 
 func TestMoreCommentsAfterSubMoments(t *testing.T) {
-	todos, _ := ParseString(`
+	todos, _ := String(`
 [] 1
 	some comment
 	[] 1.1
@@ -86,7 +86,7 @@ func TestMoreCommentsAfterSubMoments(t *testing.T) {
 }
 
 func TestCommentsWithEmptyLines(t *testing.T) {
-	todos, _ := ParseString(`
+	todos, _ := String(`
 [] 1
 	some comment
 
@@ -97,7 +97,7 @@ func TestCommentsWithEmptyLines(t *testing.T) {
 }
 
 func TestEmptyTrailingComments(t *testing.T) {
-	todos, _ := ParseString(`
+	todos, _ := String(`
 [] 1
 	some comment
 	more more more
@@ -110,7 +110,7 @@ func TestEmptyTrailingComments(t *testing.T) {
 }
 
 func TestCategory(t *testing.T) {
-	todos, _ := ParseString(`
+	todos, _ := String(`
 [] 1
 ------------------
  a cat
@@ -129,7 +129,7 @@ func TestCategory(t *testing.T) {
 }
 
 func TestPriorityCategory(t *testing.T) {
-	todos, _ := ParseString(`
+	todos, _ := String(`
 ------------------
  a cat!!
 ------------------
@@ -142,7 +142,7 @@ func TestPriorityCategory(t *testing.T) {
 }
 
 func TestBadCategory(t *testing.T) {
-	_, err := ParseString(`
+	_, err := String(`
 ------------------
  a cat
  invalid more stuff
@@ -154,14 +154,14 @@ func TestBadCategory(t *testing.T) {
 
 func TestUnicodeMoments(t *testing.T) {
 	// Non-unicode version for range references
-	// 	todos, _ := ParseString(`
+	// 	todos, _ := String(`
 	// [] ao
 	// 	hehe aa
 	// 	[] aba
 	// 		heyyy aa
 	// 		gobobob
 	// 	`)
-	todos, _ := ParseString(`
+	todos, _ := String(`
 [] äö
 	hehe ää
 	[] äbä
@@ -211,9 +211,8 @@ func navigateToMoment(moms []moment.Moment, parts *[]string, index int) moment.M
 			index++
 			if index == len(*parts) {
 				return m
-			} else {
-				return navigateToMoment(m.GetSubMoments(), parts, index)
 			}
+			return navigateToMoment(m.GetSubMoments(), parts, index)
 		}
 	}
 	return nil

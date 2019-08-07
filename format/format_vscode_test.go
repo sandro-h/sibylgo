@@ -11,7 +11,7 @@ import (
 )
 
 func TestFormatCat(t *testing.T) {
-	todos, _ := parse.ParseString(`
+	todos, _ := parse.String(`
 ------------------
  cat1
 ------------------
@@ -49,7 +49,7 @@ func TestFormatDueSoon(t *testing.T) {
 	input = strings.Replace(input, "$in2Days", in2Days, -1)
 	input = strings.Replace(input, "$in10Days", in10Days, -1)
 	input = strings.Replace(input, "$in11Days", in11Days, -1)
-	todos, _ := parse.ParseString(input)
+	todos, _ := parse.String(input)
 
 	format := ForVSCode(todos)
 
@@ -70,7 +70,7 @@ func TestDueSoonDaylightSavings(t *testing.T) {
 	input := `
 [] bla1 (3.4.19)
 [] bla2 (2.4.19)`
-	todos, _ := parse.ParseString(input)
+	todos, _ := parse.String(input)
 
 	format := ForVSCode(todos)
 

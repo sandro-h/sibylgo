@@ -7,7 +7,7 @@ import (
 )
 
 func TestFoldForVSCode(t *testing.T) {
-	todos, _ := parse.ParseString(`[] foo
+	todos, _ := parse.String(`[] foo
 [] bar
 	[] hoho
 	hello

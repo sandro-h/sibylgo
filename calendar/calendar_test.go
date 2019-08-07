@@ -10,7 +10,7 @@ import (
 )
 
 func TestCalendar(t *testing.T) {
-	todos, _ := parse.ParseString(`
+	todos, _ := parse.String(`
 [] foo (5.1.19)
 [] bar (every wednesday)
 [x] done (4.1.19)
@@ -23,7 +23,7 @@ func TestCalendar(t *testing.T) {
 }
 
 func TestCalendarPriority(t *testing.T) {
-	todos, _ := parse.ParseString(`
+	todos, _ := parse.String(`
 [] foo (5.1.19)
 [] bar! (every wednesday)
 [x] done (4.1.19)

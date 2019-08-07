@@ -50,6 +50,7 @@ func parsePriority(str string) (int, string) {
 	return prio, strings.TrimSpace(str[0 : len(str)-prio])
 }
 
+// LastRuneIndex returns the rune index of the last instance of substr in s, or -1 if substr is not present in s.
 func LastRuneIndex(s string, substr string) int {
 	i := strings.LastIndex(s, substr)
 	if i < 0 {

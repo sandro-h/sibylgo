@@ -8,18 +8,23 @@ import (
 	"time"
 )
 
+// CompileRemindersForTodayAndThisWeek returns a list of moments that are due today, and a list of moments
+// that are due this week.
 func CompileRemindersForTodayAndThisWeek(todos *moment.Todos, today time.Time) ([]*moment.Instance, []*moment.Instance) {
 	todaysReminders := CompileMomentsEndingInRange(todos, util.SetToStartOfDay(today), util.SetToEndOfDay(today))
 	weeksReminders := CompileMomentsEndingInRange(todos, util.SetToStartOfWeek(today), util.SetToEndOfWeek(today))
-	sort.Sort(ByStartDate(weeksReminders))
+	sort.Sort(byStartDate(weeksReminders))
 	return todaysReminders, weeksReminders
 }
 
+// CompileMomentsEndingInRange returns a list of moments that are due in the given time range.
 func CompileMomentsEndingInRange(todos *moment.Todos, from time.Time, to time.Time) []*moment.Instance {
 	insts := generate.InstancesFiltered(todos, from, to, func(mom *moment.Instance) bool { return !mom.Done })
 	return FilterMomentsEndingInRange(insts)
 }
 
+// FilterMomentsEndingInRange keeps only the moments and sub moments that have the EndsInRange
+// flag set.
 func FilterMomentsEndingInRange(insts []*moment.Instance) []*moment.Instance {
 	// Explicitly make it a 0-len array, otherwise it's 'nil' and will be converted
 	// to null by the JSON encoder.
@@ -35,8 +40,8 @@ func FilterMomentsEndingInRange(insts []*moment.Instance) []*moment.Instance {
 	return res
 }
 
-type ByStartDate []*moment.Instance
+type byStartDate []*moment.Instance
 
-func (a ByStartDate) Len() int           { return len(a) }
-func (a ByStartDate) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByStartDate) Less(i, j int) bool { return a[i].Start.Before(a[j].Start) }
+func (a byStartDate) Len() int           { return len(a) }
+func (a byStartDate) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byStartDate) Less(i, j int) bool { return a[i].Start.Before(a[j].Start) }

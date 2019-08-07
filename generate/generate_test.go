@@ -9,34 +9,34 @@ import (
 )
 
 func TestGenerateInSmallerRange(t *testing.T) {
-	todos, _ := parse.ParseString("[] bla (18.06.2016-25.06.2016)")
+	todos, _ := parse.String("[] bla (18.06.2016-25.06.2016)")
 	insts := Instances(todos.Moments[0], tu.Dt("20.06.2016"), tu.Dt("22.06.2016"))
 	assertInstanceDates(t, insts, "20.06.2016", "22.06.2016")
 	assert.False(t, insts[0].EndsInRange)
 }
 
 func TestGenerateInLargerRange(t *testing.T) {
-	todos, _ := parse.ParseString("[] bla (18.06.2016-25.06.2016)")
+	todos, _ := parse.String("[] bla (18.06.2016-25.06.2016)")
 	insts := Instances(todos.Moments[0], tu.Dt("01.06.2016"), tu.Dt("01.08.2016"))
 	assertInstanceDates(t, insts, "18.06.2016", "25.06.2016")
 	assert.True(t, insts[0].EndsInRange)
 }
 
 func TestGenerateUnbounded(t *testing.T) {
-	todos, _ := parse.ParseString("[] bla")
+	todos, _ := parse.String("[] bla")
 	insts := Instances(todos.Moments[0], tu.Dt("20.06.2016"), tu.Dt("22.06.2016"))
 	assertInstanceDates(t, insts, "20.06.2016", "22.06.2016")
 	assert.False(t, insts[0].EndsInRange)
 }
 
 func TestGenerateOutOfRange(t *testing.T) {
-	todos, _ := parse.ParseString("[] bla (18.06.2016-25.06.2016)")
+	todos, _ := parse.String("[] bla (18.06.2016-25.06.2016)")
 	insts := Instances(todos.Moments[0], tu.Dt("01.07.2016"), tu.Dt("13.07.2016"))
 	assert.Equal(t, 0, len(insts))
 }
 
 func TestGenerateChildren(t *testing.T) {
-	todos, _ := parse.ParseString(`
+	todos, _ := parse.String(`
 [] 1 (18.06.2016-25.06.2016)
 	[] 1.1 (20.06.2016-23.06.2016)
 	[] 1.2 (18.06.2016-19.06.2016)
@@ -48,7 +48,7 @@ func TestGenerateChildren(t *testing.T) {
 }
 
 func TestGenerateChildrenCutOffByParent(t *testing.T) {
-	todos, _ := parse.ParseString(`
+	todos, _ := parse.String(`
 [] 1 (18.06.2016-25.06.2016)
 	[] 1.1 (20.06.2016-30.06.2016)
 	[] 1.2 (01.07.2016-05.07.2016)
@@ -60,7 +60,7 @@ func TestGenerateChildrenCutOffByParent(t *testing.T) {
 }
 
 func TestGenerateChildrenCutOffByRange(t *testing.T) {
-	todos, _ := parse.ParseString(`
+	todos, _ := parse.String(`
 [] 1 (18.06.2016-25.06.2016)
 	[] 1.1 (20.06.2016-23.06.2016)
 `)
@@ -70,7 +70,7 @@ func TestGenerateChildrenCutOffByRange(t *testing.T) {
 }
 
 func TestGenerateRecurring(t *testing.T) {
-	todos, _ := parse.ParseString("[] bla (every day)")
+	todos, _ := parse.String("[] bla (every day)")
 	insts := Instances(todos.Moments[0], tu.Dt("20.06.2016"), tu.Dt("22.06.2016"))
 	assertInstanceDates(t, insts,
 		"20.06.2016", "20.06.2016",
@@ -79,13 +79,13 @@ func TestGenerateRecurring(t *testing.T) {
 }
 
 func TestGenerateRecurringNotInRange(t *testing.T) {
-	todos, _ := parse.ParseString("[] bla (every 23.)")
+	todos, _ := parse.String("[] bla (every 23.)")
 	insts := Instances(todos.Moments[0], tu.Dt("20.06.2016"), tu.Dt("22.06.2016"))
 	assert.Equal(t, 0, len(insts))
 }
 
 func TestGenerateRecurringAsChildren(t *testing.T) {
-	todos, _ := parse.ParseString(`
+	todos, _ := parse.String(`
 [] 1 (18.06.2016-25.06.2016)
 	[] 1.1 (every 20.)
 	[] 1.2 (every day)
@@ -99,7 +99,7 @@ func TestGenerateRecurringAsChildren(t *testing.T) {
 }
 
 func TestGenerateRecurringWithChildren(t *testing.T) {
-	todos, _ := parse.ParseString(`
+	todos, _ := parse.String(`
 [] 1 (every 20.)
 	[] 1.1 (every 20.6)
 	[] 1.2 (20.7.2016)
@@ -113,7 +113,7 @@ func TestGenerateRecurringWithChildren(t *testing.T) {
 }
 
 func TestGenerateWithTime(t *testing.T) {
-	todos, _ := parse.ParseString("[] bla (21.06.2016 13:15)")
+	todos, _ := parse.String("[] bla (21.06.2016 13:15)")
 	insts := Instances(todos.Moments[0], tu.Dt("20.06.2016"), tu.Dt("22.06.2016"))
 	assert.Equal(t, "13:15:00", tu.Tts(*insts[0].TimeOfDay))
 }
