@@ -62,7 +62,7 @@ jobs:
 
       - run:
           name: Lint
-          command: make lint > lint_report.txt && [ ! -s lint_report.txt ] || echo "Lint failed" && exit 1
+          command: ./lint.sh
 
       - store_artifacts:
           path: sibylgo
