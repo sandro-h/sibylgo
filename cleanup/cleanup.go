@@ -110,12 +110,14 @@ func cleanupDone(content string, onlyTopLevel bool,
 	k := 0
 	var curRange *lineRange
 	firstDelete := true
+	prevLineWasDeleted := false
 	if len(toDel) > 0 {
 		curRange = &toDel[0]
 	}
 	for scanner.Scan() {
 		line := scanner.Text()
 		delete := false
+		// Check if line is part of current to-delete range.
 		if curRange != nil {
 			if ln >= curRange.startLine && ln <= curRange.endLine {
 				delete = true
@@ -129,7 +131,13 @@ func cleanupDone(content string, onlyTopLevel bool,
 				}
 			}
 		}
+		// Check if line is empty right after a deleted line -> trim superfluous empty lines.
+		if prevLineWasDeleted && strings.TrimSpace(line) == "" {
+			delete = true
+		}
+		// Delete or keep the line
 		if delete {
+			prevLineWasDeleted = true
 			if firstDelete {
 				firstDelete = false
 				if firstDeleteFunc != nil {
@@ -140,6 +148,7 @@ func cleanupDone(content string, onlyTopLevel bool,
 				deleteFunc(line)
 			}
 		} else {
+			prevLineWasDeleted = false
 			if keepFunc != nil {
 				keepFunc(line)
 			}
@@ -155,7 +164,7 @@ func computeDoneLines(moms []moment.Moment, onlyTopLevel bool) []lineRange {
 	var toDel []lineRange
 	for _, m := range moms {
 		if m.IsDone() {
-			toDel = append(toDel, getFulllineRange(m))
+			toDel = append(toDel, getFullLineRange(m))
 		} else if !onlyTopLevel {
 			subDels := computeDoneLines(m.GetSubMoments(), onlyTopLevel)
 			toDel = append(toDel, subDels...)
@@ -164,7 +173,7 @@ func computeDoneLines(moms []moment.Moment, onlyTopLevel bool) []lineRange {
 	return toDel
 }
 
-func getFulllineRange(mom moment.Moment) lineRange {
+func getFullLineRange(mom moment.Moment) lineRange {
 	return lineRange{mom.GetDocCoords().LineNumber, mom.GetBottomLineNumber()}
 }
 

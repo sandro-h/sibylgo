@@ -118,6 +118,35 @@ func TestMoveDoneToEndOfFile(t *testing.T) {
 `, cleanedTodo)
 }
 
+func TestTrimEmptyLinesAfterCleanup(t *testing.T) {
+	input := `
+[] foo
+
+[x] bar
+	some commet
+	[] bar1
+	[] bar2
+
+[] gib
+	[x] ja
+
+[x] haba
+	comments1
+	comments2
+	comments3
+
+
+	
+[] yo`
+	kept, _, _ := SeparateDoneFromString(input, true)
+	assert.Equal(t, `[] foo
+
+[] gib
+	[x] ja
+
+[] yo`, kept)
+}
+
 func writeTestFile(testfiles *[]string, filename string, content string) {
 	p := getTestFilePath(filename)
 	os.Mkdir(filepath.Dir(p), 0755)

@@ -41,7 +41,7 @@ var mailUser = flag.String("mailUser", "", "User name for STMP auth for sending 
 var mailPassword = flag.String("mailPassword", "", "Password for STMP auth for sending mail reminders.")
 var mailFrom = flag.String("mailFrom", "", "E-mail address to use as sender for sending mail reminders.")
 var mailTo = flag.String("mailTo", "", "E-mail address to which to send mail reminders.")
-var todoFile = flag.String("todoFile", "", "Todo file to monitor for reminders.")
+var todoFile = flag.String("todoFile", "", "Todo file to monitor for reminders and clean up.")
 
 func main() {
 	flag.Parse()
