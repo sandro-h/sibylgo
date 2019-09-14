@@ -17,7 +17,7 @@ jobs:
   build:
     working_directory: /go/src/github.com/sandro-h/sibylgo
     docker:
-      - image: circleci/golang:1.11.2-stretch
+      - image: circleci/golang:1.13.0-stretch
 
     steps:
       - checkout
@@ -37,7 +37,7 @@ jobs:
           command: GOBIN=/go/bin make deps-go
       - run:
           name: Install golint
-          command: go get github.com/golang/lint/golint
+          command: go get golang.org/x/lint/golint
       - save_cache:
           name: Save dependency cache
           paths:
