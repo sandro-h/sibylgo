@@ -32,6 +32,7 @@ type Moment interface {
 type Category struct {
 	Name     string
 	Priority int
+	Color    string
 	DocCoords
 }
 
@@ -234,6 +235,7 @@ type Instance struct {
 	End          time.Time   `json:"end"`
 	TimeOfDay    *time.Time  `json:"timeOfDay"`
 	Priority     int         `json:"priority"`
+	Category     *Category   `json:"-"`
 	Done         bool        `json:"done"`
 	EndsInRange  bool        `json:"endsInRange"`
 	SubInstances []*Instance `json:"subInstances"`

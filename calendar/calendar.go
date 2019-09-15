@@ -15,14 +15,19 @@ type Entry struct {
 	Title string `json:"title"`
 	Start string `json:"start"`
 	End   string `json:"end"`
+	Color string `json:"color,omitempty"`
 }
 
 // NewEntry maps a moment instance to a new calendar entry.
 func NewEntry(inst *moment.Instance) Entry {
-	return Entry{
+	entry := Entry{
 		Title: inst.Name,
 		Start: inst.Start.Format(dateFormat),
 		End:   inst.End.AddDate(0, 0, 1).Format(dateFormat)} // +1 because fullcalendar is non-inclusive
+	if inst.Category != nil {
+		entry.Color = inst.Category.Color
+	}
+	return entry
 }
 
 // CompileCalendarEntries maps all moment instances that are not done and end in the given

@@ -141,6 +141,20 @@ func TestPriorityCategory(t *testing.T) {
 	assert.Equal(t, 2, todos.Categories[0].Priority)
 }
 
+func TestColorCategory(t *testing.T) {
+	todos, _ := String(`
+------------------
+ a cat! [green]
+------------------
+[] 1
+	`)
+
+	assert.Equal(t, 1, len(todos.Categories))
+	assert.Equal(t, "a cat", todos.Categories[0].Name)
+	assert.Equal(t, 1, todos.Categories[0].Priority)
+	assert.Equal(t, "green", todos.Categories[0].Color)
+}
+
 func TestBadCategory(t *testing.T) {
 	_, err := String(`
 ------------------

@@ -35,6 +35,27 @@ func TestGenerateOutOfRange(t *testing.T) {
 	assert.Equal(t, 0, len(insts))
 }
 
+func TestGenerateWithCategory(t *testing.T) {
+	todos, _ := parse.String(`
+------------------
+a cat
+------------------
+[] 1
+	[] 1.1
+------------------
+another cat
+------------------
+[] 2
+`)
+	insts := InstancesFiltered(todos, tu.Dt("01.06.2016"), tu.Dt("01.08.2016"), nil)
+	assert.NotNil(t, insts[0].Category)
+	assert.Equal(t, "a cat", insts[0].Category.Name)
+	assert.NotNil(t, insts[0].SubInstances[0].Category)
+	assert.Equal(t, "a cat", insts[0].SubInstances[0].Category.Name)
+	assert.NotNil(t, insts[1].Category)
+	assert.Equal(t, "another cat", insts[1].Category.Name)
+}
+
 func TestGenerateChildren(t *testing.T) {
 	todos, _ := parse.String(`
 [] 1 (18.06.2016-25.06.2016)

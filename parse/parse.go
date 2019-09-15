@@ -100,12 +100,23 @@ func (p *parserState) handleCategoryLine(line *Line) error {
 func parseCategory(line *Line) *moment.Category {
 	lineVal := line.Content()
 
+	col, lineVal := parseCategoryColor(lineVal)
 	prio, lineVal := parsePriority(lineVal)
 
 	return &moment.Category{
 		Name:      lineVal,
 		Priority:  prio,
+		Color:     col,
 		DocCoords: moment.DocCoords{LineNumber: line.LineNumber(), Offset: line.Offset(), Length: line.Length()}}
+}
+
+func parseCategoryColor(lineVal string) (string, string) {
+	if !strings.HasSuffix(lineVal, "]") {
+		return "", lineVal
+	}
+	p := LastRuneIndex(lineVal, "[")
+	colStr := lineVal[p+1 : len(lineVal)-1]
+	return colStr, strings.TrimSpace(lineVal[:p])
 }
 
 func (p *parserState) handleMomentLine(line *Line) error {
