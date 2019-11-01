@@ -9,8 +9,13 @@ import (
 	"time"
 )
 
+var getNow = func() time.Time {
+	return time.Now()
+}
+
 var dailyPattern, _ = regexp.Compile("(?i)(every day|today)")
 var weeklyPattern, _ = regexp.Compile("(?i)every (monday|tuesday|wednesday|thursday|friday|saturday|sunday)")
+var nWeeklyPattern, _ = regexp.Compile("(?i)every (2nd|3rd|4th) (monday|tuesday|wednesday|thursday|friday|saturday|sunday)")
 var monthlyPattern, _ = regexp.Compile("(?i)every (\\d{1,2})\\.?$")
 var yearlyPattern, _ = regexp.Compile("(?i)every (\\d{1,2})\\.(\\d{1,2})\\.?$")
 
@@ -33,6 +38,9 @@ func parseRecurrence(line *Line, lineVal string) (*moment.Recurrence, *moment.Da
 		re = tryParseWeekly(reStr)
 	}
 	if re == nil {
+		re = tryParseNWeekly(reStr)
+	}
+	if re == nil {
 		re = tryParseMonthly(reStr)
 	}
 	if re == nil {
@@ -51,7 +59,7 @@ func tryParseDaily(reStr string) *moment.Recurrence {
 	if dailyPattern.MatchString(reStr) {
 		return &moment.Recurrence{
 			Recurrence: moment.RecurDaily,
-			RefDate:    &moment.Date{Time: time.Now()}}
+			RefDate:    &moment.Date{Time: getNow()}}
 	}
 	return nil
 }
@@ -60,9 +68,28 @@ func tryParseWeekly(reStr string) *moment.Recurrence {
 	matches := weeklyPattern.FindStringSubmatch(reStr)
 	if matches != nil {
 		wd := parseWeekday(matches[1])
-		dt := util.SetWeekday(time.Now(), wd)
+		dt := util.SetWeekday(getNow(), wd)
 		return &moment.Recurrence{
 			Recurrence: moment.RecurWeekly,
+			RefDate:    &moment.Date{Time: dt}}
+	}
+	return nil
+}
+
+func tryParseNWeekly(reStr string) *moment.Recurrence {
+	matches := nWeeklyPattern.FindStringSubmatch(reStr)
+	if matches != nil {
+		n, re := parseNth(matches[1])
+		if n < 0 {
+			return nil
+		}
+
+		wd := parseWeekday(matches[2])
+		dt := util.SetWeekday(getNow(), wd)
+		weekOffset := util.EpochWeek(dt) % n
+		dt = dt.AddDate(0, 0, -7*weekOffset)
+		return &moment.Recurrence{
+			Recurrence: re,
 			RefDate:    &moment.Date{Time: dt}}
 	}
 	return nil
@@ -88,6 +115,18 @@ func parseWeekday(str string) time.Weekday {
 	return -1
 }
 
+func parseNth(str string) (int, int) {
+	switch strings.ToLower(str) {
+	case "2nd":
+		return 2, moment.RecurBiWeekly
+	case "3rd":
+		return 3, moment.RecurTriWeekly
+	case "4th":
+		return 4, moment.RecurQuadriWeekly
+	}
+	return -1, -1
+}
+
 func tryParseMonthly(reStr string) *moment.Recurrence {
 	matches := monthlyPattern.FindStringSubmatch(reStr)
 	if matches != nil {
@@ -95,7 +134,7 @@ func tryParseMonthly(reStr string) *moment.Recurrence {
 		if err != nil {
 			return nil
 		}
-		y, m, _ := time.Now().Date()
+		y, m, _ := getNow().Date()
 		dt := time.Date(y, m, day, 0, 0, 0, 0, time.Local)
 		return &moment.Recurrence{
 			Recurrence: moment.RecurMonthly,
@@ -115,7 +154,7 @@ func tryParseYearly(reStr string) *moment.Recurrence {
 		if err != nil {
 			return nil
 		}
-		y := time.Now().Year()
+		y := getNow().Year()
 		dt := time.Date(y, time.Month(month), day, 0, 0, 0, 0, time.Local)
 		return &moment.Recurrence{
 			Recurrence: moment.RecurYearly,

@@ -75,3 +75,10 @@ func SetTime(dt time.Time, tm time.Time) time.Time {
 	y, m, d := dt.Date()
 	return time.Date(y, m, d, tm.Hour(), tm.Minute(), tm.Second(), tm.Nanosecond(), time.Local)
 }
+
+// EpochWeek returns the number of weeks passed since January 1, 1970 UTC.
+// Note this does not mean it's aligned for weekdays, i.e. the Monday after
+// Sunday does not necessary have a higher EpochWeek number.
+func EpochWeek(dt time.Time) int {
+	return int(dt.UTC().Unix() / 604800)
+}

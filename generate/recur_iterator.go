@@ -45,10 +45,18 @@ func (it *RecurIterator) prepareNext() {
 		it.next = getNextDaily(it.cur)
 	case moment.RecurWeekly:
 		it.next = getNextWeekly(it.cur, it.recurrence.RefDate.Time)
+	case moment.RecurBiWeekly:
+		it.next = getNextNWeekly(it.cur, it.recurrence.RefDate.Time, 2)
+	case moment.RecurTriWeekly:
+		it.next = getNextNWeekly(it.cur, it.recurrence.RefDate.Time, 3)
+	case moment.RecurQuadriWeekly:
+		it.next = getNextNWeekly(it.cur, it.recurrence.RefDate.Time, 4)
 	case moment.RecurMonthly:
 		it.next = getNextMonthly(it.cur, it.recurrence.RefDate.Time)
 	case moment.RecurYearly:
 		it.next = getNextYearly(it.cur, it.recurrence.RefDate.Time)
+	default:
+		panic("Unhandled recurrence")
 	}
 	it.cur = it.next
 }
@@ -63,6 +71,28 @@ func getNextWeekly(after time.Time, ref time.Time) time.Time {
 		dt = dt.AddDate(0, 0, 7)
 	}
 	return dt
+}
+
+func getNextNWeekly(after time.Time, ref time.Time, n int) time.Time {
+	dt := util.SetWeekday(after, ref.Weekday())
+	if !dt.After(after) {
+		dt = dt.AddDate(0, 0, 7)
+	}
+
+	offset := (util.EpochWeek(dt) - util.EpochWeek(ref)) % n
+	if offset > 0 {
+		dt = dt.AddDate(0, 0, 7*(n-offset))
+	} else if offset < 0 {
+		dt = dt.AddDate(0, 0, -7*offset)
+	}
+	return dt
+}
+
+func abs(i int) int {
+	if i < 0 {
+		return -i
+	}
+	return i
 }
 
 func getNextMonthly(after time.Time, ref time.Time) time.Time {

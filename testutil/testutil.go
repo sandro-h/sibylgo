@@ -4,9 +4,15 @@ import (
 	"time"
 )
 
-// Dt parses a date string (02.01.2006) into a Time.
+// Dt parses a date string (02.01.2006) into a Time at 00:00 Local time.
 func Dt(s string) time.Time {
 	d, _ := time.ParseInLocation("02.01.2006", s, time.Local)
+	return d
+}
+
+// DtUtc parses a date string (02.01.2006) into a Time at 00:00 UTC.
+func DtUtc(s string) time.Time {
+	d, _ := time.Parse("02.01.2006", s)
 	return d
 }
 

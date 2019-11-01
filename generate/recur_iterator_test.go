@@ -45,6 +45,90 @@ func TestIterateYearly(t *testing.T) {
 		"02.01.2022")
 }
 
+func TestIterateBiWeekly(t *testing.T) {
+	it := NewRecurIterator(re(moment.RecurBiWeekly, "02.11.2019"), // friday
+		tu.Dt("05.11.2019"), tu.Dt("31.12.2019"))
+	assertIterations(t, it,
+		"16.11.2019",
+		"30.11.2019",
+		"14.12.2019",
+		"28.12.2019")
+
+	it = NewRecurIterator(re(moment.RecurBiWeekly, "02.11.2019"), // friday
+		tu.Dt("01.11.2019"), tu.Dt("31.12.2019"))
+	assertIterations(t, it,
+		"02.11.2019",
+		"16.11.2019",
+		"30.11.2019",
+		"14.12.2019",
+		"28.12.2019")
+
+	it = NewRecurIterator(re(moment.RecurBiWeekly, "02.11.2019"), // friday
+		tu.Dt("01.10.2019"), tu.Dt("30.11.2019"))
+	assertIterations(t, it,
+		"05.10.2019",
+		"19.10.2019",
+		"02.11.2019",
+		"16.11.2019",
+		"30.11.2019")
+
+	it = NewRecurIterator(re(moment.RecurBiWeekly, "02.11.2019"), // friday
+		tu.Dt("03.11.2019"), tu.Dt("15.11.2019"))
+	assertIterations(t, it)
+}
+
+func TestIterateTriWeekly(t *testing.T) {
+	it := NewRecurIterator(re(moment.RecurTriWeekly, "02.11.2019"), // friday
+		tu.Dt("05.11.2019"), tu.Dt("31.12.2019"))
+	assertIterations(t, it,
+		"23.11.2019",
+		"14.12.2019")
+
+	it = NewRecurIterator(re(moment.RecurTriWeekly, "02.11.2019"), // friday
+		tu.Dt("01.11.2019"), tu.Dt("31.12.2019"))
+	assertIterations(t, it,
+		"02.11.2019",
+		"23.11.2019",
+		"14.12.2019")
+
+	it = NewRecurIterator(re(moment.RecurTriWeekly, "02.11.2019"), // friday
+		tu.Dt("01.10.2019"), tu.Dt("30.11.2019"))
+	assertIterations(t, it,
+		"12.10.2019",
+		"02.11.2019",
+		"23.11.2019")
+
+	it = NewRecurIterator(re(moment.RecurTriWeekly, "02.11.2019"), // friday
+		tu.Dt("03.11.2019"), tu.Dt("15.11.2019"))
+	assertIterations(t, it)
+}
+
+func TestIterateQuadriWeekly(t *testing.T) {
+	it := NewRecurIterator(re(moment.RecurQuadriWeekly, "02.11.2019"), // friday
+		tu.Dt("05.11.2019"), tu.Dt("31.12.2019"))
+	assertIterations(t, it,
+		"30.11.2019",
+		"28.12.2019")
+
+	it = NewRecurIterator(re(moment.RecurQuadriWeekly, "02.11.2019"), // friday
+		tu.Dt("01.11.2019"), tu.Dt("31.12.2019"))
+	assertIterations(t, it,
+		"02.11.2019",
+		"30.11.2019",
+		"28.12.2019")
+
+	it = NewRecurIterator(re(moment.RecurQuadriWeekly, "02.11.2019"), // friday
+		tu.Dt("01.10.2019"), tu.Dt("30.11.2019"))
+	assertIterations(t, it,
+		"05.10.2019",
+		"02.11.2019",
+		"30.11.2019")
+
+	it = NewRecurIterator(re(moment.RecurQuadriWeekly, "02.11.2019"), // friday
+		tu.Dt("03.11.2019"), tu.Dt("15.11.2019"))
+	assertIterations(t, it)
+}
+
 func re(re int, d string) moment.Recurrence {
 	return moment.Recurrence{Recurrence: re, RefDate: &moment.Date{Time: tu.Dt(d)}}
 }

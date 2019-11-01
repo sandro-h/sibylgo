@@ -194,6 +194,12 @@ const (
 	RecurMonthly
 	// RecurYearly defines a yearly recurrence.
 	RecurYearly
+	// RecurBiWeekly defines a once every two weeks recurrence.
+	RecurBiWeekly
+	// RecurTriWeekly defines a once every three weeks recurrence.
+	RecurTriWeekly
+	// RecurQuadriWeekly defines a once every four weeks recurrence.
+	RecurQuadriWeekly
 )
 
 // Recurrence defines a particular point in time that recurs.
