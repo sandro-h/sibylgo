@@ -1,13 +1,11 @@
 package cleanup
 
 import (
-	"bufio"
 	"fmt"
+	"github.com/sandro-h/sibylgo/modify"
 	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/parse"
 	"io/ioutil"
-	"os"
-	"strings"
 	"time"
 )
 
@@ -17,59 +15,49 @@ var getNow = func() time.Time {
 
 // MoveDoneToTrashFile moves all done moments in the todo file to a fixed trash file
 func MoveDoneToTrashFile(todoFilePath string, trashFilePath string, onlyTopLevel bool) error {
-	b, err := ioutil.ReadFile(todoFilePath)
+	rawTodoContent, err := readTodoFile(todoFilePath)
 	if err != nil {
 		return err
 	}
-	rawTodoContent := string(b)
 
-	todoFile, err := os.OpenFile(todoFilePath, os.O_TRUNC|os.O_WRONLY, 0644)
+	done, err := computeDoneLinesFromContent(rawTodoContent, onlyTopLevel)
 	if err != nil {
 		return err
 	}
-	defer todoFile.Close()
-
-	trashFile, err := os.OpenFile(trashFilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		return err
+	if done == nil {
+		return nil
 	}
-	defer trashFile.Close()
 
-	cleanupDone(rawTodoContent, onlyTopLevel,
-		func(line string) { fmt.Fprintf(todoFile, "%s\n", line) },
-		func(line string) { fmt.Fprintf(trashFile, "%s\n", line) },
-		func() {
-			fmt.Fprint(trashFile, "\n------------------\n")
-			fmt.Fprintf(trashFile, "  Trash from %s\n", getNow().Format("02.01.2006 15:04:05"))
-			fmt.Fprint(trashFile, "------------------\n")
-		})
+	kept, deleted := modify.Delete(rawTodoContent, done)
+	header := fmt.Sprintf(`
+------------------
+  Trash from %s
+------------------
+`, getNow().Format("02.01.2006 15:04:05"))
+
+	writeTodoFile(todoFilePath, kept)
+	writeTodoFile(trashFilePath, header+deleted)
 
 	return nil
 }
 
 // MoveDoneToEndOfFile moves all done moments in the todo file to the end of that file.
 func MoveDoneToEndOfFile(todoFilePath string, onlyTopLevel bool) error {
-	b, err := ioutil.ReadFile(todoFilePath)
+	rawTodoContent, err := readTodoFile(todoFilePath)
 	if err != nil {
 		return err
 	}
-	s := string(b)
 
-	todoFile, err := os.OpenFile(todoFilePath, os.O_TRUNC|os.O_WRONLY, 0644)
+	done, err := computeDoneLinesFromContent(rawTodoContent, onlyTopLevel)
 	if err != nil {
 		return err
 	}
-	defer todoFile.Close()
-
-	var deleted []string
-	cleanupDone(s, onlyTopLevel,
-		func(line string) { fmt.Fprintf(todoFile, "%s\n", line) },
-		func(line string) { deleted = append(deleted, line) },
-		nil)
-
-	for _, d := range deleted {
-		fmt.Fprintf(todoFile, "%s\n", d)
+	if done == nil {
+		return nil
 	}
+
+	kept, deleted := modify.Delete(rawTodoContent, done)
+	writeTodoFile(todoFilePath, kept+"\n"+deleted)
 
 	return nil
 }
@@ -77,15 +65,15 @@ func MoveDoneToEndOfFile(todoFilePath string, onlyTopLevel bool) error {
 // SeparateDoneFromString separates the moments from the raw content string into
 // done and not done moments and returns them.
 func SeparateDoneFromString(content string, onlyTopLevel bool) (string, string, error) {
-	kept := ""
-	deleted := ""
-	err := cleanupDone(content, onlyTopLevel,
-		func(line string) { addLine(&kept, line) },
-		func(line string) { addLine(&deleted, line) },
-		nil)
+	done, err := computeDoneLinesFromContent(content, onlyTopLevel)
 	if err != nil {
 		return "", "", err
 	}
+	if done == nil {
+		return content, "", nil
+	}
+
+	kept, deleted := modify.Delete(content, done)
 	return kept, deleted, nil
 }
 
@@ -96,75 +84,19 @@ func addLine(s *string, l string) {
 	*s += l
 }
 
-func cleanupDone(content string, onlyTopLevel bool,
-	keepFunc func(string), deleteFunc func(string), firstDeleteFunc func()) error {
+func computeDoneLinesFromContent(content string, onlyTopLevel bool) ([]moment.Moment, error) {
 	todos, err := parse.String(content)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	toDel := computeDoneLines(todos.Moments, onlyTopLevel)
-
-	scanner := bufio.NewScanner(strings.NewReader(content))
-	ln := 0
-	k := 0
-	var curRange *lineRange
-	firstDelete := true
-	prevLineWasDeleted := false
-	if len(toDel) > 0 {
-		curRange = &toDel[0]
-	}
-	for scanner.Scan() {
-		line := scanner.Text()
-		delete := false
-		// Check if line is part of current to-delete range.
-		if curRange != nil {
-			if ln >= curRange.startLine && ln <= curRange.endLine {
-				delete = true
-			}
-			if ln == curRange.endLine {
-				if k < len(toDel)-1 {
-					k++
-					curRange = &toDel[k]
-				} else {
-					curRange = nil
-				}
-			}
-		}
-		// Check if line is empty right after a deleted line -> trim superfluous empty lines.
-		if prevLineWasDeleted && strings.TrimSpace(line) == "" {
-			delete = true
-		}
-		// Delete or keep the line
-		if delete {
-			prevLineWasDeleted = true
-			if firstDelete {
-				firstDelete = false
-				if firstDeleteFunc != nil {
-					firstDeleteFunc()
-				}
-			}
-			if deleteFunc != nil {
-				deleteFunc(line)
-			}
-		} else {
-			prevLineWasDeleted = false
-			if keepFunc != nil {
-				keepFunc(line)
-			}
-		}
-
-		ln++
-	}
-
-	return nil
+	return computeDoneLines(todos.Moments, onlyTopLevel), nil
 }
 
-func computeDoneLines(moms []moment.Moment, onlyTopLevel bool) []lineRange {
-	var toDel []lineRange
+func computeDoneLines(moms []moment.Moment, onlyTopLevel bool) []moment.Moment {
+	var toDel []moment.Moment
 	for _, m := range moms {
 		if m.IsDone() {
-			toDel = append(toDel, getFullLineRange(m))
+			toDel = append(toDel, m)
 		} else if !onlyTopLevel {
 			subDels := computeDoneLines(m.GetSubMoments(), onlyTopLevel)
 			toDel = append(toDel, subDels...)
@@ -173,11 +105,14 @@ func computeDoneLines(moms []moment.Moment, onlyTopLevel bool) []lineRange {
 	return toDel
 }
 
-func getFullLineRange(mom moment.Moment) lineRange {
-	return lineRange{mom.GetDocCoords().LineNumber, mom.GetBottomLineNumber()}
+func writeTodoFile(filePath string, str string) error {
+	return ioutil.WriteFile(filePath, []byte(str+"\n"), 0644)
 }
 
-type lineRange struct {
-	startLine int
-	endLine   int
+func readTodoFile(filePath string) (string, error) {
+	data, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
 }

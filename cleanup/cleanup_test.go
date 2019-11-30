@@ -72,8 +72,7 @@ func TestMoveDoneToTrashFile(t *testing.T) {
 	cleanedTodo := readFile(testfiles[0])
 	trash := readFile(testfiles[1])
 
-	assert.Equal(t, `
-[] foo
+	assert.Equal(t, `[] foo
 [] gib
 	[x] ja
 [] yo
@@ -102,8 +101,7 @@ func TestMoveDoneToEndOfFile(t *testing.T) {
 
 	cleanedTodo := readFile(testfiles[0])
 
-	assert.Equal(t, `
-[] foo
+	assert.Equal(t, `[] foo
 [] gib
 	[x] ja
 [] yo
