@@ -178,6 +178,16 @@ type SingleMoment struct {
 	End   *Date
 }
 
+// NewSingleMoment creates a new SingleMoment.
+func NewSingleMoment(name string, subMoments ...Moment) *SingleMoment {
+	m := SingleMoment{}
+	m.SetName(name)
+	for _, s := range subMoments {
+		m.AddSubMoment(s)
+	}
+	return &m
+}
+
 // RecurMoment is a moment that re-occurs once or more.
 // It can currently only be a single point in time, not a time range.
 type RecurMoment struct {
