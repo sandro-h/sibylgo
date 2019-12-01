@@ -36,6 +36,11 @@ export function activate(context: vscode.ExtensionContext, cfg: util.SibylConfig
 		}
 	});
 
+	const idDecorationType = vscode.window.createTextEditorDecorationType({
+		color: '#3f679a',
+	});
+
+
 	const dueStyles = [
 		{textDecoration: 'none; font-weight: bold', color: '#ff0000'},
 		{textDecoration: 'none; font-weight: bold', color: '#ff4040'},
@@ -123,6 +128,7 @@ export function activate(context: vscode.ExtensionContext, cfg: util.SibylConfig
 					'mom.done': {dec: momDoneDecorationType, list: []},
 					'date': {dec: dateDecorationType, list: [], hoverMessage: 'Date'},
 					'time': {dec: timeDecorationType, list: [], hoverMessage: 'Time'},
+					'id': {dec: idDecorationType, list: [], hoverMessage: 'ID'},
 					'com.done': {dec: comDoneDecorationType, list: []},
 				};
 				for (let key in momUntilDecorationTypes) {

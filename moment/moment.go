@@ -7,6 +7,7 @@ import (
 // Moment defines an interface for a generic moment in time with some significance (a todo, a event, etc).
 type Moment interface {
 	SetName(name string)
+	SetID(id *Identifier)
 	SetCategory(cat *Category)
 	SetDone(done bool)
 	SetPriority(prio int)
@@ -15,6 +16,7 @@ type Moment interface {
 	RemoveLastComment()
 
 	GetName() string
+	GetID() *Identifier
 	GetPriority() int
 	GetCategory() *Category
 	IsDone() bool
@@ -26,6 +28,12 @@ type Moment interface {
 	GetDocCoords() DocCoords
 	GetTimeOfDay() *Date
 	GetBottomLineNumber() int
+}
+
+// Identifier is a string that uniquely identifies an element in a given todo file.
+type Identifier struct {
+	Value string
+	DocCoords
 }
 
 // Category can be assigned to moments to categorize them.
@@ -46,6 +54,7 @@ type Todos struct {
 // the Moment interface.
 type BaseMoment struct {
 	name       string
+	id         *Identifier
 	done       bool
 	priority   int
 	category   *Category
@@ -63,6 +72,11 @@ func (m *BaseMoment) SetCategory(cat *Category) {
 // SetName sets the name of the moment.
 func (m *BaseMoment) SetName(name string) {
 	m.name = name
+}
+
+// SetID sets the optional identifier of the moment.
+func (m *BaseMoment) SetID(id *Identifier) {
+	m.id = id
 }
 
 // SetDone sets the done state of the moment.
@@ -93,6 +107,11 @@ func (m *BaseMoment) RemoveLastComment() {
 // GetName returns the name of the moment.
 func (m *BaseMoment) GetName() string {
 	return m.name
+}
+
+// GetID returns the optional identifier of the moment.
+func (m *BaseMoment) GetID() *Identifier {
+	return m.id
 }
 
 // GetPriority returns the priority of the moment. The higher the value, the higher the priority.

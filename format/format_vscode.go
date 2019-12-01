@@ -13,6 +13,7 @@ const momMarker = "mom"
 const commentMarker = "com"
 const dateMarker = "date"
 const timeMarker = "time"
+const idMarker = "id"
 const doneSuffix = ".done"
 const prioritySuffix = ".priority"
 const untilSuffix = ".until%d"
@@ -67,6 +68,7 @@ func formatMoment(res *string, m moment.Moment, parentDone bool) {
 		}
 	} else {
 		formatDates(res, m)
+		formatID(res, m)
 	}
 
 	for _, s := range m.GetSubMoments() {
@@ -89,6 +91,12 @@ func formatDates(res *string, m moment.Moment) {
 
 	if m.GetTimeOfDay() != nil {
 		appendFmt(res, m.GetTimeOfDay().DocCoords, timeMarker)
+	}
+}
+
+func formatID(res *string, m moment.Moment) {
+	if m.GetID() != nil {
+		appendFmt(res, m.GetID().DocCoords, idMarker)
 	}
 }
 

@@ -8,7 +8,9 @@ import (
 // parseMoment parses a moment from the line. It only parses the moment of this current line
 // and none of the sub moments or comments appear on subsequent lines.
 func parseMoment(line *Line, lineVal string) (moment.Moment, error) {
+	id, lineVal := parseID(line, lineVal)
 	mom, lineVal := parseBaseMoment(line, lineVal)
+	mom.SetID(id)
 
 	done, lineVal, err := parseDoneMark(line, lineVal)
 	if err != nil {
@@ -22,6 +24,19 @@ func parseMoment(line *Line, lineVal string) (moment.Moment, error) {
 	mom.SetName(lineVal)
 
 	return mom, nil
+}
+
+func parseID(line *Line, lineVal string) (*moment.Identifier, string) {
+	idPos := strings.LastIndex(lineVal, " #")
+	if idPos < 0 {
+		return nil, lineVal
+	}
+
+	untrimmedPos := LastRuneIndex(line.Content(), " #") + 1
+	idStr := strings.TrimSpace(lineVal[idPos+2 : len(lineVal)])
+	id := moment.Identifier{Value: idStr,
+		DocCoords: moment.DocCoords{LineNumber: line.LineNumber(), Offset: line.Offset() + untrimmedPos, Length: len(idStr) + 1}}
+	return &id, strings.TrimSpace(lineVal[:idPos])
 }
 
 func parseBaseMoment(line *Line, lineVal string) (moment.Moment, string) {

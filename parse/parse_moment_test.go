@@ -265,6 +265,37 @@ func TestEndingWithBracket(t *testing.T) {
 	assert.Equal(t, "blabla)", mom.GetName())
 }
 
+func TestID(t *testing.T) {
+	mom, _ := parseSingleMom("[] blabla #my-id-123")
+
+	assert.Equal(t, "blabla", mom.GetName())
+	assert.NotNil(t, mom.GetID())
+	assert.Equal(t, "my-id-123", mom.GetID().Value)
+	assert.Equal(t, 10, mom.GetID().Offset)
+	assert.Equal(t, 10, mom.GetID().Length)
+}
+
+func TestIDWithDate(t *testing.T) {
+	mom, _ := parseSingleMom("[] blabla (1.12.19) #my-id-123")
+
+	assert.Equal(t, "blabla", mom.GetName())
+	assert.NotNil(t, mom.GetID())
+	assert.Equal(t, "my-id-123", mom.GetID().Value)
+	assert.Equal(t, 20, mom.GetID().Offset)
+	assert.Equal(t, 10, mom.GetID().Length)
+	assert.Equal(t, "01.12.2019 00:00", dateStr(mom.Start))
+}
+
+func TestIDTrimming(t *testing.T) {
+	mom, _ := parseSingleMom("[] blabla   #my-id-123  ")
+
+	assert.Equal(t, "blabla", mom.GetName())
+	assert.NotNil(t, mom.GetID())
+	assert.Equal(t, "my-id-123", mom.GetID().Value)
+	assert.Equal(t, 12, mom.GetID().Offset)
+	assert.Equal(t, 10, mom.GetID().Length)
+}
+
 func dateStr(dt *moment.Date) string {
 	if dt == nil {
 		return "nil"
