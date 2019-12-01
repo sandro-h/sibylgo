@@ -32,7 +32,7 @@ func Insert(content string, toInsert []moment.Moment) (string, error) {
 	fmt.Printf("noCatEnd.bottom=%d\n", noCatEnd.bottom)
 	if noCatEnd.bottom == -1 {
 		for _, m := range noCat {
-			res += stringify.FormatMoment(m)
+			res += stringify.Moment(m)
 		}
 	}
 	ln := 0
@@ -43,13 +43,13 @@ func Insert(content string, toInsert []moment.Moment) (string, error) {
 		res += line + "\n"
 		if noCatEnd.bottom != -1 && ln == noCatEnd.bottom {
 			for _, m := range noCat {
-				res += stringify.FormatMoment(m)
+				res += stringify.Moment(m)
 			}
 		} else if ln == catEnds[k].bottom {
 			list, ok := byCategory[catEnds[k].name]
 			if ok {
 				for _, m := range list {
-					res += stringify.FormatMoment(m)
+					res += stringify.Moment(m)
 				}
 			}
 		}
@@ -126,6 +126,88 @@ type categoryEnd struct {
 	bottom int
 }
 
+// Upsert updates moment if they exist in the todo file content, otherwise inserts them.
+// To find existing moments, the moment ID must be set.
+func Upsert(content string, toUpsert []moment.Moment) (string, error) {
+	toReplace, toInsert, err := groupByReplaceAndInsert(content, toUpsert)
+	if err != nil {
+		return "", err
+	}
+
+	res := ""
+	if len(toReplace) > 0 {
+		ln := 0
+		k := 0
+		scanner := bufio.NewScanner(strings.NewReader(content))
+		for scanner.Scan() {
+			line := scanner.Text()
+
+			if k < len(toReplace) && toReplace[k].oldLineRange.contains(ln) {
+				if ln == toReplace[k].oldLineRange.endLine {
+					res += stringify.Moment(toReplace[k].new)
+					k++
+				}
+			} else {
+				res += line + "\n"
+			}
+
+			ln++
+		}
+	}
+
+	if len(toInsert) > 0 {
+		return Insert(res, toInsert)
+	}
+	return res, nil
+}
+
+func groupByReplaceAndInsert(content string, toUpsert []moment.Moment) ([]replacement, []moment.Moment, error) {
+	toUpsertMap := make(map[string]moment.Moment)
+	for _, m := range toUpsert {
+		if m.GetID() == nil {
+			return nil, nil, fmt.Errorf("Moment '%s' doesn't have an ID", m.GetName())
+		}
+		id := m.GetID().Value
+		if _, exists := toUpsertMap[id]; exists {
+			return nil, nil, fmt.Errorf("Duplicate moment ID '%s'", id)
+		}
+		toUpsertMap[id] = m
+	}
+
+	todos, err := parse.String(content)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var toReplace []replacement
+	for _, m := range todos.Moments {
+		if m.GetID() == nil {
+			continue
+		}
+
+		new, found := toUpsertMap[m.GetID().Value]
+		if found {
+			toReplace = append(toReplace, replacement{m, new, getFullLineRange(m)})
+			delete(toUpsertMap, m.GetID().Value)
+		}
+	}
+
+	toInsert := make([]moment.Moment, len(toUpsertMap))
+	i := 0
+	for _, m := range toUpsertMap {
+		toInsert[i] = m
+		i++
+	}
+
+	return toReplace, toInsert, nil
+}
+
+type replacement struct {
+	old          moment.Moment
+	new          moment.Moment
+	oldLineRange *lineRange
+}
+
 // Delete removes moments from the todo file content. It returns
 // the content without the removed moments lines and all the removed moment
 // lines.
@@ -146,7 +228,7 @@ func Delete(content string, toDel []moment.Moment) (string, string) {
 		delete := false
 		// Check if line is part of current to-delete range.
 		if curRange != nil {
-			if ln >= curRange.startLine && ln <= curRange.endLine {
+			if curRange.contains(ln) {
 				delete = true
 			}
 			if ln == curRange.endLine {
@@ -191,4 +273,8 @@ func addLine(s *string, l string) {
 type lineRange struct {
 	startLine int
 	endLine   int
+}
+
+func (r *lineRange) contains(ln int) bool {
+	return ln >= r.startLine && ln <= r.endLine
 }

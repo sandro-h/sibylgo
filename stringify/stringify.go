@@ -5,46 +5,82 @@ import (
 	"github.com/sandro-h/sibylgo/moment"
 )
 
-// ForTodoFile converts the moments into the same string content used in a todo file.
-func ForTodoFile(todos *moment.Todos) string {
+// Todos converts the moments into the same string content used in a todo file.
+func Todos(todos *moment.Todos) string {
 
 	res := ""
 	var lastCat string
 	for _, m := range todos.Moments {
 		cat := m.GetCategory()
 		if cat != nil && cat.Name != lastCat {
-			res += formatCategory(cat)
+			res += stringifyCategory(cat)
 			lastCat = cat.Name
 		}
-		res += FormatMoment(m)
+		res += Moment(m)
 	}
 	return res
 }
 
-// FormatMoment converts the moment to the same string content used in a todo file.
-func FormatMoment(m moment.Moment) string {
-	return formatMoment(m, false, "")
+// Moment converts the moment to the same string content used in a todo file.
+func Moment(m moment.Moment) string {
+	return stringifyMoment(m, false, "")
 }
 
-func formatCategory(c *moment.Category) string {
+func stringifyCategory(c *moment.Category) string {
 	// TODO
 	return ""
 }
 
-func formatMoment(m moment.Moment, parentDone bool, indent string) string {
+func stringifyMoment(m moment.Moment, parentDone bool, indent string) string {
 	doneMarker := ""
 	if m.IsDone() {
 		doneMarker = "x"
 	}
-	res := fmt.Sprintf("%s[%s] %s\n", indent, doneMarker, m.GetName())
+
+	idSuffix := ""
+	if m.GetID() != nil {
+		idSuffix = fmt.Sprintf(" #%s", m.GetID().Value)
+	}
+
+	dateSuffix := stringifyDate(m)
+
+	prioritySuffix := ""
+	if m.GetPriority() > 0 {
+		// TODO
+		panic("priority stringify not implemented")
+	}
+
+	res := fmt.Sprintf("%s[%s] %s%s%s%s\n", indent, doneMarker, m.GetName(), prioritySuffix, dateSuffix, idSuffix)
 	for _, c := range m.GetComments() {
 		res += fmt.Sprintf("%s%s\n", indent+"\t", c.Content)
 	}
 
-	// TODO
-
 	for _, s := range m.GetSubMoments() {
-		res += formatMoment(s, parentDone || m.IsDone(), indent+"\t")
+		res += stringifyMoment(s, parentDone || m.IsDone(), indent+"\t")
 	}
 	return res
+}
+
+func stringifyDate(m moment.Moment) string {
+	switch v := m.(type) {
+	case *moment.SingleMoment:
+		if v.Start != nil {
+			// TODO
+			panic("date stringify not implemented")
+		}
+		if v.End != nil && (v.Start == nil || v.End.DocCoords != v.Start.DocCoords) {
+			// TODO
+			panic("date stringify not implemented")
+		}
+	case *moment.RecurMoment:
+		// TODO
+		panic("date stringify not implemented")
+	}
+
+	if m.GetTimeOfDay() != nil {
+		// TODO
+		panic("date stringify not implemented")
+	}
+
+	return ""
 }
