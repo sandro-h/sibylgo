@@ -8,6 +8,21 @@ import (
 	"time"
 )
 
+// FetchBitbucketPRsFromConfig calls FetchBitbucketPRs using the values in the passed config.
+func FetchBitbucketPRsFromConfig(cfg *util.Config) ([]moment.Moment, error) {
+	bbURL := cfg.GetString("bb_url", "")
+	bbToken := cfg.GetString("bb_token", "")
+	category := cfg.GetString("category", "")
+	if bbURL == "" {
+		return nil, fmt.Errorf("bb_url not set in config")
+	}
+	if bbToken == "" {
+		return nil, fmt.Errorf("bb_token not set in config")
+	}
+
+	return FetchBitbucketPRs(bbURL, bbToken, category)
+}
+
 // FetchBitbucketPRs returns a single TODO moment if the user denoted by the bbToken has any open
 // pull-requests in Bitbucket.
 func FetchBitbucketPRs(bbBaseURL string, bbToken string, category string) ([]moment.Moment, error) {

@@ -5,7 +5,7 @@ import (
 	"github.com/sandro-h/sibylgo/modify"
 	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/parse"
-	"io/ioutil"
+	"github.com/sandro-h/sibylgo/util"
 	"time"
 )
 
@@ -15,7 +15,7 @@ var getNow = func() time.Time {
 
 // MoveDoneToTrashFile moves all done moments in the todo file to a fixed trash file
 func MoveDoneToTrashFile(todoFilePath string, trashFilePath string, onlyTopLevel bool) error {
-	rawTodoContent, err := readTodoFile(todoFilePath)
+	rawTodoContent, err := util.ReadFile(todoFilePath)
 	if err != nil {
 		return err
 	}
@@ -35,15 +35,15 @@ func MoveDoneToTrashFile(todoFilePath string, trashFilePath string, onlyTopLevel
 ------------------
 `, getNow().Format("02.01.2006 15:04:05"))
 
-	writeTodoFile(todoFilePath, kept)
-	writeTodoFile(trashFilePath, header+deleted)
+	util.WriteFile(todoFilePath, kept)
+	util.WriteFile(trashFilePath, header+deleted)
 
 	return nil
 }
 
 // MoveDoneToEndOfFile moves all done moments in the todo file to the end of that file.
 func MoveDoneToEndOfFile(todoFilePath string, onlyTopLevel bool) error {
-	rawTodoContent, err := readTodoFile(todoFilePath)
+	rawTodoContent, err := util.ReadFile(todoFilePath)
 	if err != nil {
 		return err
 	}
@@ -57,7 +57,7 @@ func MoveDoneToEndOfFile(todoFilePath string, onlyTopLevel bool) error {
 	}
 
 	kept, deleted := modify.Delete(rawTodoContent, done)
-	writeTodoFile(todoFilePath, kept+"\n"+deleted)
+	util.WriteFile(todoFilePath, kept+"\n"+deleted)
 
 	return nil
 }
@@ -103,16 +103,4 @@ func computeDoneLines(moms []moment.Moment, onlyTopLevel bool) []moment.Moment {
 		}
 	}
 	return toDel
-}
-
-func writeTodoFile(filePath string, str string) error {
-	return ioutil.WriteFile(filePath, []byte(str+"\n"), 0644)
-}
-
-func readTodoFile(filePath string) (string, error) {
-	data, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return "", err
-	}
-	return string(data), nil
 }
