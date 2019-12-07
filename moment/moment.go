@@ -46,8 +46,9 @@ type Category struct {
 
 // Todos defines a list of moments and moment categories
 type Todos struct {
-	Categories []*Category
-	Moments    []Moment
+	Categories  []*Category
+	Moments     []Moment
+	MomentsByID map[string]Moment
 }
 
 // BaseMoment is the parent class of all moments and implements

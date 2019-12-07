@@ -191,6 +191,20 @@ func TestUnicodeMoments(t *testing.T) {
 	assertDocCoords(t, 5, 37, 7, momentByPath(todos, "äö/äbä").GetComment(1).DocCoords)
 }
 
+func TestMomentsByID(t *testing.T) {
+	todos, _ := String(`
+[] 1 #id1
+	[] 1.1
+[] 2 #id2
+[] 3
+	`)
+
+	assert.Equal(t, 2, len(todos.MomentsByID))
+	assert.Equal(t, "1", todos.MomentsByID["id1"].GetName())
+	assert.Equal(t, "2", todos.MomentsByID["id2"].GetName())
+	assert.Nil(t, todos.MomentsByID["not-existing-id"])
+}
+
 func assertMomentExists(t *testing.T, todos *moment.Todos, path string) moment.Moment {
 	mom := momentByPath(todos, path)
 	if mom == nil {

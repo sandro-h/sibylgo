@@ -48,6 +48,7 @@ func Reader(reader io.Reader) (*moment.Todos, error) {
 
 func parse(scanner *LineScanner) (*moment.Todos, error) {
 	parserState := parserState{todos: &moment.Todos{}, scanner: scanner}
+	parserState.todos.MomentsByID = make(map[string]moment.Moment)
 	for parserState.scanner.Scan() {
 		err := parserState.handleLine(parserState.scanner.Line())
 		if err != nil {
@@ -125,6 +126,9 @@ func (p *parserState) handleMomentLine(line *Line) error {
 		return err
 	}
 	p.todos.Moments = append(p.todos.Moments, mom)
+	if mom.GetID() != nil {
+		p.todos.MomentsByID[mom.GetID().Value] = mom
+	}
 	return nil
 }
 
