@@ -47,7 +47,10 @@ func (p *ExternalSourcesProcess) CheckOnce() {
 		fmt.Printf("[Ext sources] Failed to read todo file %s: %s\n", p.todoFilePath, err.Error())
 	}
 
-	updatedContent := p.FetchAndApplyExternalSourceMoments(content)
+	updatedContent, err := FetchAndApplyExternalSourceMoments(content, p.extSrcConfig)
+	if err != nil {
+		fmt.Printf("%s\n", err.Error())
+	}
 
 	err = util.WriteFile(p.todoFilePath, updatedContent)
 	if err != nil {
@@ -59,12 +62,12 @@ func (p *ExternalSourcesProcess) CheckOnce() {
 // updates the passed todo file content with them. It adds or updates (based on ID) all
 // moments found in the external sources. It removes any moments with an ext_* ID
 // that were not found in any external source anymore.
-func (p *ExternalSourcesProcess) FetchAndApplyExternalSourceMoments(content string) string {
-	fetchedMoments, fetchedMomentsByID := p.fetchExternalSourceMoments()
+func FetchAndApplyExternalSourceMoments(content string, extSrcConfig *util.Config) (string, error) {
+	fetchedMoments, fetchedMomentsByID := fetchExternalSourceMoments(extSrcConfig)
 
 	todos, err := parse.String(content)
 	if err != nil {
-		fmt.Printf("[Ext sources] Failed to parse todo file %s: %s\n", p.todoFilePath, err.Error())
+		return "", fmt.Errorf("[Ext sources] Failed to parse todo file: %s", err.Error())
 	}
 
 	var toDelete []moment.Moment
@@ -79,16 +82,19 @@ func (p *ExternalSourcesProcess) FetchAndApplyExternalSourceMoments(content stri
 
 	// TODO could be optimized in one modify call that does removes and upserts.
 	content, _ = modify.Delete(content, toDelete)
-	modify.Upsert(content, fetchedMoments)
-	return content
+	content, err = modify.Upsert(content, fetchedMoments)
+	if err != nil {
+		return "", fmt.Errorf("[Ext sources] Failed to upsert moments: %s", err.Error())
+	}
+	return content, nil
 }
 
-func (p *ExternalSourcesProcess) fetchExternalSourceMoments() ([]moment.Moment, map[string]moment.Moment) {
+func fetchExternalSourceMoments(extSrcConfig *util.Config) ([]moment.Moment, map[string]moment.Moment) {
 	var allMoments []moment.Moment
 	byID := make(map[string]moment.Moment)
 	for srcName, fetchFunc := range externalSources {
-		if p.extSrcConfig.HasKey(srcName) {
-			moments, err := fetchFunc(p.extSrcConfig.GetSubConfig(srcName))
+		if extSrcConfig.HasKey(srcName) {
+			moments, err := fetchFunc(extSrcConfig.GetSubConfig(srcName))
 			if err != nil {
 				fmt.Printf("[Ext sources] Fetching %s failed: %s\n", srcName, err.Error())
 			} else {

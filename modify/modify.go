@@ -29,7 +29,6 @@ func Insert(content string, toInsert []moment.Moment) (string, error) {
 	}
 
 	res = ""
-	fmt.Printf("noCatEnd.bottom=%d\n", noCatEnd.bottom)
 	if noCatEnd.bottom == -1 {
 		for _, m := range noCat {
 			res += stringify.Moment(m)
@@ -153,6 +152,8 @@ func Upsert(content string, toUpsert []moment.Moment) (string, error) {
 
 			ln++
 		}
+	} else {
+		res = content
 	}
 
 	if len(toInsert) > 0 {
