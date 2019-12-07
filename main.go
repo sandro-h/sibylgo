@@ -10,12 +10,12 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sandro-h/sibylgo/calendar"
 	"github.com/sandro-h/sibylgo/cleanup"
+	"github.com/sandro-h/sibylgo/extsources"
 	"github.com/sandro-h/sibylgo/format"
 	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/parse"
 	"github.com/sandro-h/sibylgo/reminder"
-	"gopkg.in/yaml.v2"
-	"io/ioutil"
+	"github.com/sandro-h/sibylgo/util"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -54,7 +54,7 @@ func main() {
 	fmt.Printf("%s\n", ascii)
 	fmt.Printf("Version %s.%s (%s)\n", buildVersion, buildNumber, buildRevision)
 
-	loadConfig()
+	cfg := loadConfig()
 
 	if *todoFile != "" {
 		fmt.Printf("Using todo file %s\n", *todoFile)
@@ -64,28 +64,41 @@ func main() {
 		startMailReminders()
 	}
 
+	if cfg.HasKey("external_sources") {
+		extSrcConfig := cfg.GetSubConfig("external_sources")
+		if *todoFile == "" {
+			panic("Cannot run external sources without todoFile set")
+		}
+		startExternalSources(*todoFile, extSrcConfig)
+	}
+
 	startRestServer()
 
 	handleUserCommands()
 }
 
-func loadConfig() {
-	// Override flag values from sibylgo.yml config file if it exists.
+func loadConfig() *util.Config {
+
+	cfg := &util.Config{}
 	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
 	cfgFile := filepath.Join(dir, "sibylgo.yml")
 	fmt.Printf("%s\n", cfgFile)
 	if _, err := os.Stat(cfgFile); !os.IsNotExist(err) {
-		data, _ := ioutil.ReadFile(cfgFile)
-		var cfg map[string]string
-		yaml.Unmarshal(data, &cfg)
-
-		flag.VisitAll(func(f *flag.Flag) {
-			cfgval, ok := cfg[f.Name]
-			if ok {
-				f.Value.Set(cfgval)
-			}
-		})
+		cfg, err = util.LoadConfig(cfgFile)
+		if err != nil {
+			panic(err)
+		}
 	}
+
+	// Override flag values from sibylgo.yml config file if it exists.
+	flag.VisitAll(func(f *flag.Flag) {
+		cfgval := cfg.GetString(f.Name, "")
+		if cfgval != "" {
+			f.Value.Set(cfgval)
+		}
+	})
+
+	return cfg
 }
 
 func startMailReminders() {
@@ -98,7 +111,13 @@ func startMailReminders() {
 	host := reminder.MailHostProperties{Host: *mailHost, Port: *mailPort, User: *mailUser, Password: *mailPassword}
 	p := reminder.NewMailReminderProcessForSMTP(*todoFile, host, *mailFrom, *mailTo)
 	go p.CheckInfinitely()
-	fmt.Print("Started mail reminders\n")
+	fmt.Println("Started mail reminders")
+}
+
+func startExternalSources(todoFile string, extSrcConfig *util.Config) {
+	p := extsources.NewExternalSourcesProcess(todoFile, extSrcConfig)
+	go p.CheckInfinitely()
+	fmt.Println("Started external sources")
 }
 
 func startRestServer() {
