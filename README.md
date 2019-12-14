@@ -4,6 +4,27 @@
 
 Text-based TODO application
 
+# Configuration
+
+**sibylgo.yml**
+```yaml
+todoFile: path/to/todo.txt
+host: localhost
+
+mailHost: smtp.example.com
+mailPort: 3025
+mailFrom: foo@example.com 
+mailTo: bar@example.com
+mailUser: foo
+mailPassword: lepass
+
+external_sources:
+  bitbucket_prs:
+    bb_url: http://bitbucket.example.com
+    bb_token: aba1234
+    category: Today
+```
+
 # Development
 
 Main Go application:
