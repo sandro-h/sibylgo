@@ -21,4 +21,4 @@ deps-vscode:
 build-vscode:
 	cd vscode_ext && \
 	npm version ${VERSION} --allow-same-version && \
-	node node_modules/vsce/out/vsce package -o sibyl.vsix
+	npm run package
