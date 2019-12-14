@@ -33,15 +33,8 @@ var buildNumber = "0"
 var buildRevision = "-"
 
 var showVersion = flag.Bool("version", false, "Show version")
-var host = flag.String("host", "localhost", "REST host. Default: localhost")
-var port = flag.Int("port", 8082, "REST port. Default: 8082")
-var mailHost = flag.String("mailHost", "", "STMP host for sending mail reminders.")
-var mailPort = flag.Int("mailPort", 0, "STMP port for sending mail reminders.")
-var mailUser = flag.String("mailUser", "", "User name for STMP auth for sending mail reminders.")
-var mailPassword = flag.String("mailPassword", "", "Password for STMP auth for sending mail reminders.")
-var mailFrom = flag.String("mailFrom", "", "E-mail address to use as sender for sending mail reminders.")
-var mailTo = flag.String("mailTo", "", "E-mail address to which to send mail reminders.")
-var todoFile = flag.String("todoFile", "", "Todo file to monitor for reminders and clean up.")
+var configFile = flag.String("config", "", "Path to config yml file. By default uses sibylgo.yml in same directory as this executable, if it exists.")
+var todoFile string
 
 func main() {
 	flag.Parse()
@@ -55,61 +48,65 @@ func main() {
 	fmt.Printf("Version %s.%s (%s)\n", buildVersion, buildNumber, buildRevision)
 
 	cfg := loadConfig()
-
-	if *todoFile != "" {
-		fmt.Printf("Using todo file %s\n", *todoFile)
+	todoFile = cfg.GetString("todoFile", "")
+	if todoFile != "" {
+		fmt.Printf("Using todo file %s\n", todoFile)
 	}
 
-	if *mailTo != "" {
-		startMailReminders()
+	if cfg.HasKey("mailTo") {
+		startMailReminders(cfg)
 	}
 
 	if cfg.HasKey("external_sources") {
 		extSrcConfig := cfg.GetSubConfig("external_sources")
-		if *todoFile == "" {
+		if todoFile == "" {
 			panic("Cannot run external sources without todoFile set")
 		}
-		startExternalSources(*todoFile, extSrcConfig)
+		startExternalSources(todoFile, extSrcConfig)
 	}
 
-	startRestServer()
+	startRestServer(cfg)
 
 	handleUserCommands()
 }
 
 func loadConfig() *util.Config {
+	absoluteCfgFile := *configFile
+	if absoluteCfgFile == "" {
+		dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+		absoluteCfgFile = filepath.Join(dir, "sibylgo.yml")
+	} else {
+		// We don't care if the default config file doesn't exist,
+		// but if a user set a config file explicitly, we should inform them
+		// if the file doesn't actually exist.
+		if _, err := os.Stat(absoluteCfgFile); os.IsNotExist(err) {
+			panic(fmt.Sprintf("Config file %s set with -config does not exist.\n", absoluteCfgFile))
+		}
+	}
 
 	cfg := &util.Config{}
-	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
-	cfgFile := filepath.Join(dir, "sibylgo.yml")
-	fmt.Printf("%s\n", cfgFile)
-	if _, err := os.Stat(cfgFile); !os.IsNotExist(err) {
-		cfg, err = util.LoadConfig(cfgFile)
+	fmt.Printf("%s\n", absoluteCfgFile)
+	if _, err := os.Stat(absoluteCfgFile); !os.IsNotExist(err) {
+		cfg, err = util.LoadConfig(absoluteCfgFile)
 		if err != nil {
 			panic(err)
 		}
 	}
 
-	// Override flag values from sibylgo.yml config file if it exists.
-	flag.VisitAll(func(f *flag.Flag) {
-		cfgval := cfg.GetString(f.Name, "")
-		if cfgval != "" {
-			f.Value.Set(cfgval)
-		}
-	})
-
 	return cfg
 }
 
-func startMailReminders() {
-	assertStringFlagSet("todoFile", todoFile)
-	assertStringFlagSet("mailHost", mailHost)
-	assertIntFlagSet("mailPort", mailPort)
-	assertStringFlagSet("mailFrom", mailFrom)
-	assertStringFlagSet("mailTo", mailTo)
+func startMailReminders(cfg *util.Config) {
+	cfg.GetStringOrFail("todoFile")
+	mailHost := cfg.GetStringOrFail("mailHost")
+	mailPort := cfg.GetIntOrFail("mailPort")
+	mailFrom := cfg.GetStringOrFail("mailFrom")
+	mailTo := cfg.GetStringOrFail("mailTo")
+	mailUser := cfg.GetString("mailUser", "")
+	mailPassword := cfg.GetString("mailPassword", "")
 
-	host := reminder.MailHostProperties{Host: *mailHost, Port: *mailPort, User: *mailUser, Password: *mailPassword}
-	p := reminder.NewMailReminderProcessForSMTP(*todoFile, host, *mailFrom, *mailTo)
+	host := reminder.MailHostProperties{Host: mailHost, Port: mailPort, User: mailUser, Password: mailPassword}
+	p := reminder.NewMailReminderProcessForSMTP(todoFile, host, mailFrom, mailTo)
 	go p.CheckInfinitely()
 	fmt.Println("Started mail reminders")
 }
@@ -120,7 +117,10 @@ func startExternalSources(todoFile string, extSrcConfig *util.Config) {
 	fmt.Println("Started external sources")
 }
 
-func startRestServer() {
+func startRestServer(cfg *util.Config) {
+	host := cfg.GetString("host", "localhost")
+	port := cfg.GetInt("port", 8082)
+
 	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
@@ -133,12 +133,12 @@ func startRestServer() {
 
 	srv := &http.Server{
 		Handler:      handlers.CORS(originsOk, headersOk, methodsOk)(router),
-		Addr:         fmt.Sprintf("%s:%d", *host, *port),
+		Addr:         fmt.Sprintf("%s:%d", host, port),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
 	go srv.ListenAndServe()
-	fmt.Printf("Started REST server on %s:%d\n", *host, *port)
+	fmt.Printf("Started REST server on %s:%d\n", host, port)
 }
 
 func handleUserCommands() {
@@ -172,53 +172,38 @@ func printCommands() {
 }
 
 func clean() {
-	assertStringFlagSet("todoFile", todoFile)
+	if todoFile == "" {
+		fmt.Println("Cannot clean without todoFile set")
+		return
+	}
 
-	err := cleanup.MoveDoneToEndOfFile(*todoFile, true)
+	err := cleanup.MoveDoneToEndOfFile(todoFile, true)
 	if err != nil {
-		fmt.Printf("Error cleaning up: %s", err)
+		fmt.Printf("Error cleaning up: %s\n", err)
 	} else {
-		fmt.Printf("Moved done to end of: %s\n", *todoFile)
+		fmt.Printf("Moved done to end of: %s\n", todoFile)
 	}
 }
 
 func trash() {
-	if *todoFile == "" {
-		fmt.Print("No -todoFile defined\n")
+	if todoFile == "" {
+		fmt.Println("Cannot clean without todoFile set")
 		return
 	}
 
-	trashFile := removeExt(*todoFile) + "-trash.txt"
+	trashFile := removeExt(todoFile) + "-trash.txt"
 
-	err := cleanup.MoveDoneToTrashFile(*todoFile, trashFile, true)
+	err := cleanup.MoveDoneToTrashFile(todoFile, trashFile, true)
 	if err != nil {
 		fmt.Printf("Error trashing: %s", err)
 	} else {
-		fmt.Printf("Trashed: %s\n", *todoFile)
+		fmt.Printf("Trashed: %s\n", todoFile)
 		fmt.Printf("Moved done moments to: %s\n", trashFile)
 	}
 }
 
 func removeExt(s string) string {
 	return s[:len(s)-len(filepath.Ext(s))]
-}
-
-func assertStringFlagSet(name string, s *string) {
-	if *s == "" {
-		failUnsetFlag(name)
-	}
-}
-
-func assertIntFlagSet(name string, s *int) {
-	if *s == 0 {
-		failUnsetFlag(name)
-	}
-}
-
-func failUnsetFlag(name string) {
-	flag.Usage()
-	fmt.Fprintf(os.Stderr, "%s must be set\n", name)
-	os.Exit(1)
 }
 
 func formatMoments(w http.ResponseWriter, r *http.Request) {
@@ -252,7 +237,7 @@ func getCalendarEntries(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	todos, err := parse.File(*todoFile)
+	todos, err := parse.File(todoFile)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -270,7 +255,7 @@ func getWeeklyReminders(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	todos, err := parse.File(*todoFile)
+	todos, err := parse.File(todoFile)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return

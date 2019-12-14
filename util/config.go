@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
@@ -24,6 +25,20 @@ func (cfg Config) GetString(key string, defaultVal string) string {
 		return v.(string)
 	}
 	return defaultVal
+}
+
+// GetStringOrFail returns the string value for key, or exits the program with error code 1 if it doesn't exist.
+func (cfg Config) GetStringOrFail(key string) string {
+	return cfg.getOrFail(key).(string)
+}
+
+func (cfg Config) getOrFail(key string) interface{} {
+	v, found := cfg.cfg[key]
+	if !found {
+		fmt.Fprintf(os.Stderr, "%s must be set\n", key)
+		os.Exit(1)
+	}
+	return v
 }
 
 // SetString sets the config key to string val.
@@ -52,6 +67,11 @@ func (cfg Config) GetInt(key string, defaultVal int) int {
 		return v.(int)
 	}
 	return defaultVal
+}
+
+// GetIntOrFail returns the int value for key, or exits the program with error code 1 if it doesn't exist.
+func (cfg Config) GetIntOrFail(key string) int {
+	return cfg.getOrFail(key).(int)
 }
 
 // HasKey returns true if the config contains the key.
