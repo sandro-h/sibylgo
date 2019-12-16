@@ -51,6 +51,7 @@ const todosWithUpdatedPR = `------------------
 const testConfig = `
 bitbucket_prs:
   bb_url: %s
+  bb_user: myuser
   bb_token: aba1234
   category: Today`
 

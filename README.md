@@ -21,6 +21,7 @@ mailPassword: lepass
 external_sources:
   bitbucket_prs:
     bb_url: http://bitbucket.example.com
+    bb_user: myuser
     bb_token: aba1234
     category: Today
 ```

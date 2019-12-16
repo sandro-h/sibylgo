@@ -11,25 +11,29 @@ import (
 // FetchBitbucketPRsFromConfig calls FetchBitbucketPRs using the values in the passed config.
 func FetchBitbucketPRsFromConfig(cfg *util.Config) ([]moment.Moment, error) {
 	bbURL := cfg.GetString("bb_url", "")
+	bbUser := cfg.GetString("bb_user", "")
 	bbToken := cfg.GetString("bb_token", "")
 	category := cfg.GetString("category", "")
 	if bbURL == "" {
 		return nil, fmt.Errorf("bb_url not set in config")
 	}
+	if bbUser == "" {
+		return nil, fmt.Errorf("bb_user not set in config")
+	}
 	if bbToken == "" {
 		return nil, fmt.Errorf("bb_token not set in config")
 	}
 
-	return FetchBitbucketPRs(bbURL, bbToken, category)
+	return FetchBitbucketPRs(bbURL, bbUser, bbToken, category)
 }
 
 // FetchBitbucketPRs returns a single TODO moment if the user denoted by the bbToken has any open
 // pull-requests in Bitbucket.
-func FetchBitbucketPRs(bbBaseURL string, bbToken string, category string) ([]moment.Moment, error) {
+func FetchBitbucketPRs(bbBaseURL string, bbUser string, bbToken string, category string) ([]moment.Moment, error) {
 	apiURL := fmt.Sprintf("%s/rest/api/latest/inbox/pull-requests/count", bbBaseURL)
 	client := &http.Client{Timeout: 10 * time.Second}
 	var count pullRequestCount
-	err := util.FetchJSONAsModel(client, apiURL, &count)
+	err := util.FetchJSONAsModel(client, apiURL, bbUser, bbToken, &count)
 	if err != nil {
 		return nil, err
 	}

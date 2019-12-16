@@ -13,7 +13,7 @@ func TestFetchBitbucketPRs(t *testing.T) {
 	ts := tu.MockSimpleJSONResponse(`{"count": 12}`)
 	defer ts.Close()
 
-	moms, err := FetchBitbucketPRs(ts.URL, "1234", "Today")
+	moms, err := FetchBitbucketPRs(ts.URL, "myuser", "1234", "Today")
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(moms))
 	assert.Equal(t, "Reviews - 12 PRs", moms[0].GetName())
@@ -25,7 +25,7 @@ func TestFetchBitbucketPRs_NoPRs(t *testing.T) {
 	ts := tu.MockSimpleJSONResponse(`{"count": 0}`)
 	defer ts.Close()
 
-	moms, err := FetchBitbucketPRs(ts.URL, "1234", "Today")
+	moms, err := FetchBitbucketPRs(ts.URL, "myuser", "1234", "Today")
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(moms))
 }
