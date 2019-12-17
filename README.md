@@ -48,3 +48,4 @@ When packaging, you won't see compile errors, so simply run `npm run compile` to
 
 - command to rerun ext sources
 - option to insert at start of category
+- add a space before/after insert
