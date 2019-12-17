@@ -64,10 +64,10 @@ func resetToUpsert() {
 	toUpsert[1].GetSubMoments()[0].SetDone(true)
 }
 
-func TestInsert(t *testing.T) {
+func TestAppendWithoutCategories(t *testing.T) {
 	resetToInsert()
 
-	modified, err := Insert(insertTestInput, toInsert)
+	modified, err := Append(insertTestInput, toInsert)
 
 	assert.Nil(t, err)
 	assert.Equal(t, `[] hello
@@ -93,11 +93,11 @@ func TestInsert(t *testing.T) {
 `, modified)
 }
 
-func TestInsertSeparateCategories(t *testing.T) {
+func TestAppendSeparateCategories(t *testing.T) {
 	resetToInsert()
 	toInsert[0].SetCategory(&moment.Category{Name: "cat 1"})
 
-	modified, err := Insert(insertTestInput, toInsert)
+	modified, err := Append(insertTestInput, toInsert)
 
 	fmt.Printf("%s\n", modified)
 	assert.Nil(t, err)
@@ -124,7 +124,7 @@ func TestInsertSeparateCategories(t *testing.T) {
 `, modified)
 }
 
-func TestInsertIntoEmptyCategory(t *testing.T) {
+func TestAppendIntoEmptyCategory(t *testing.T) {
 	insertTestInput := `---------------
  cat 1
 ---------------
@@ -138,7 +138,101 @@ func TestInsertIntoEmptyCategory(t *testing.T) {
 	resetToInsert()
 	toInsert[0].SetCategory(&moment.Category{Name: "cat 1"})
 
-	modified, err := Insert(insertTestInput, toInsert)
+	modified, err := Append(insertTestInput, toInsert)
+
+	assert.Nil(t, err)
+	assert.Equal(t, `[] a new thing 2
+	[x] a new sub thing 2.1
+---------------
+ cat 1
+---------------
+[] a new thing 1
+	my comment
+	haha
+
+---------------
+ cat 2
+---------------
+
+[] zonk
+`, modified)
+}
+
+func TestPrependWithoutCategories(t *testing.T) {
+	resetToInsert()
+
+	modified, err := Prepend(insertTestInput, toInsert)
+
+	assert.Nil(t, err)
+	assert.Equal(t, `[] a new thing 1
+	my comment
+	haha
+[] a new thing 2
+	[x] a new sub thing 2.1
+[] hello
+
+---------------
+ cat 1
+---------------
+[] foo
+[x] bar
+	some commet
+	[] bar1
+	[] bar2
+---------------
+ cat 2
+---------------
+
+[] zonk
+`, modified)
+}
+
+func TestPrependSeparateCategories(t *testing.T) {
+	resetToInsert()
+	toInsert[0].SetCategory(&moment.Category{Name: "cat 1"})
+
+	modified, err := Prepend(insertTestInput, toInsert)
+
+	fmt.Printf("%s\n", modified)
+	assert.Nil(t, err)
+	assert.Equal(t, `[] a new thing 2
+	[x] a new sub thing 2.1
+[] hello
+
+---------------
+ cat 1
+---------------
+[] a new thing 1
+	my comment
+	haha
+[] foo
+[x] bar
+	some commet
+	[] bar1
+	[] bar2
+---------------
+ cat 2
+---------------
+
+[] zonk
+`, modified)
+}
+
+func TestPrependIntoEmptyCategory(t *testing.T) {
+	insertTestInput := `---------------
+ cat 1
+---------------
+
+---------------
+ cat 2
+---------------
+
+[] zonk
+`
+	resetToInsert()
+	toInsert[0].SetCategory(&moment.Category{Name: "cat 1"})
+
+	modified, err := Prepend(insertTestInput, toInsert)
 
 	assert.Nil(t, err)
 	assert.Equal(t, `[] a new thing 2
@@ -162,7 +256,7 @@ func TestMissingCategory(t *testing.T) {
 	resetToInsert()
 	toInsert[0].SetCategory(&moment.Category{Name: "nonexistent cat"})
 
-	_, err := Insert(insertTestInput, toInsert)
+	_, err := Append(insertTestInput, toInsert)
 
 	assert.NotNil(t, err)
 	assert.Equal(t, "Content is missing necessary categories to insert moments: [nonexistent cat]", err.Error())
@@ -190,7 +284,7 @@ func TestUpsert(t *testing.T) {
 `, modified)
 }
 
-func TestUpsertAtEnd(t *testing.T) {
+func TestUpsertAtEndOfContent(t *testing.T) {
 	var customToUpsert []moment.Moment
 	customToUpsert = append(customToUpsert, toUpsert[0])
 	customToUpsert[0].SetID(&moment.Identifier{Value: "zonk"})

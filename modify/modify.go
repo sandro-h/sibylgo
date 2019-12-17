@@ -10,10 +10,23 @@ import (
 	"strings"
 )
 
-// Insert inserts moments into the todo file content. The moments are
-// inserted at the very end of the file, unless they are assigned to an
-// existing category, then they're inserted at the and of the respective category.
-func Insert(content string, toInsert []moment.Moment) (string, error) {
+// Append inserts moments into the todo file content. The moments are inserted at the end
+// of whichever category is set for them. The categories set for the moments must all exist in the content already,
+// new categories are not created. If no category is set, the moment will be appended into the "none"
+// category at the start of the content.
+func Append(content string, toInsert []moment.Moment) (string, error) {
+	return insert(content, toInsert, false)
+}
+
+// Prepend inserts moments into the todo file content. The moments are inserted at the start
+// of whichever category is set for them. The categories set for the moments must all exist in the content already,
+// new categories are not created. If no category is set, the moment will be prepended into the "none"
+// category at the start of the content.
+func Prepend(content string, toInsert []moment.Moment) (string, error) {
+	return insert(content, toInsert, true)
+}
+
+func insert(content string, toInsert []moment.Moment, prepend bool) (string, error) {
 	byCategory, noCat := groupByCategory(toInsert)
 
 	res := ""
@@ -21,15 +34,15 @@ func Insert(content string, toInsert []moment.Moment) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	catEnds, noCatEnd := findCategoryEnds(todos)
+	catBoundaries, noCatBoundary := findCategoryBoundaries(todos)
 
-	err = validateMissingInsertCategories(&byCategory, &catEnds)
+	err = validateMissingInsertCategories(&byCategory, &catBoundaries)
 	if err != nil {
 		return "", err
 	}
 
 	res = ""
-	if noCatEnd.bottom == -1 {
+	if noCatBoundary.getBound(prepend) == -1 {
 		for _, m := range noCat {
 			res += stringify.Moment(m)
 		}
@@ -40,12 +53,12 @@ func Insert(content string, toInsert []moment.Moment) (string, error) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		res += line + "\n"
-		if noCatEnd.bottom != -1 && ln == noCatEnd.bottom {
+		if noCatBoundary.getBound(prepend) != -1 && ln == noCatBoundary.getBound(prepend) {
 			for _, m := range noCat {
 				res += stringify.Moment(m)
 			}
-		} else if ln == catEnds[k].bottom {
-			list, ok := byCategory[catEnds[k].name]
+		} else if ln == catBoundaries[k].getBound(prepend) {
+			list, ok := byCategory[catBoundaries[k].name]
 			if ok {
 				for _, m := range list {
 					res += stringify.Moment(m)
@@ -75,14 +88,15 @@ func groupByCategory(moms []moment.Moment) (map[string][]moment.Moment, []moment
 	return byCategory, noCat
 }
 
-func findCategoryEnds(todos *moment.Todos) ([]categoryEnd, categoryEnd) {
-	noCatEnd := categoryEnd{"noCat", -1}
-	var catEnds []categoryEnd
+func findCategoryBoundaries(todos *moment.Todos) ([]categoryBoundary, categoryBoundary) {
+	noCatBoundary := categoryBoundary{"noCat", -1, -1}
+	var catBoundaries []categoryBoundary
 	for _, c := range todos.Categories {
-		catEnd := categoryEnd{
+		catBoundary := categoryBoundary{
 			c.Name,
+			c.LineNumber + 1,
 			c.LineNumber + 1}
-		catEnds = append(catEnds, catEnd)
+		catBoundaries = append(catBoundaries, catBoundary)
 	}
 
 	var lastCat string
@@ -93,25 +107,25 @@ func findCategoryEnds(todos *moment.Todos) ([]categoryEnd, categoryEnd) {
 		if cat != nil && cat.Name != lastCat {
 			// Cat change
 			if lastCat != "" {
-				catEnds[k].bottom = previousMomBottom
+				catBoundaries[k].bottom = previousMomBottom
 				k++
 			} else {
-				noCatEnd.bottom = previousMomBottom
+				noCatBoundary.bottom = previousMomBottom
 			}
 			lastCat = cat.Name
 		}
 		previousMomBottom = m.GetBottomLineNumber()
 	}
 
-	return catEnds, noCatEnd
+	return catBoundaries, noCatBoundary
 }
 
-func validateMissingInsertCategories(byCategory *map[string][]moment.Moment, catEnds *[]categoryEnd) error {
+func validateMissingInsertCategories(byCategory *map[string][]moment.Moment, catBoundaries *[]categoryBoundary) error {
 	missingCats := make(map[string]bool)
 	for c := range *byCategory {
 		missingCats[c] = true
 	}
-	for _, c := range *catEnds {
+	for _, c := range *catBoundaries {
 		delete(missingCats, c.name)
 	}
 	if len(missingCats) > 0 {
@@ -120,9 +134,17 @@ func validateMissingInsertCategories(byCategory *map[string][]moment.Moment, cat
 	return nil
 }
 
-type categoryEnd struct {
+type categoryBoundary struct {
 	name   string
+	top    int
 	bottom int
+}
+
+func (b categoryBoundary) getBound(prepend bool) int {
+	if prepend {
+		return b.top
+	}
+	return b.bottom
 }
 
 // Upsert updates moment if they exist in the todo file content, otherwise inserts them.
@@ -157,7 +179,7 @@ func Upsert(content string, toUpsert []moment.Moment) (string, error) {
 	}
 
 	if len(toInsert) > 0 {
-		return Insert(res, toInsert)
+		return insert(res, toInsert, false)
 	}
 	return res, nil
 }
