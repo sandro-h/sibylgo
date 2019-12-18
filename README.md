@@ -19,6 +19,7 @@ mailUser: foo
 mailPassword: lepass
 
 external_sources:
+  prepend: true
   bitbucket_prs:
     bb_url: http://bitbucket.example.com
     bb_user: myuser

@@ -147,9 +147,10 @@ func (b categoryBoundary) getBound(prepend bool) int {
 	return b.bottom
 }
 
-// Upsert updates moment if they exist in the todo file content, otherwise inserts them.
+// Upsert updates moment if they exist in the todo file content, otherwise
+// appends or prepends them (depending on prepend flag).
 // To find existing moments, the moment ID must be set.
-func Upsert(content string, toUpsert []moment.Moment) (string, error) {
+func Upsert(content string, toUpsert []moment.Moment, prepend bool) (string, error) {
 	toReplace, toInsert, err := groupByReplaceAndInsert(content, toUpsert)
 	if err != nil {
 		return "", err
@@ -179,7 +180,7 @@ func Upsert(content string, toUpsert []moment.Moment) (string, error) {
 	}
 
 	if len(toInsert) > 0 {
-		return insert(res, toInsert, false)
+		return insert(res, toInsert, prepend)
 	}
 	return res, nil
 }

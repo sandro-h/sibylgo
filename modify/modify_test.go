@@ -265,7 +265,7 @@ func TestMissingCategory(t *testing.T) {
 func TestUpsert(t *testing.T) {
 	resetToUpsert()
 
-	modified, err := Upsert(upsertTestInput, toUpsert)
+	modified, err := Upsert(upsertTestInput, toUpsert, false)
 
 	assert.Nil(t, err)
 	assert.Equal(t, `---------------
@@ -289,7 +289,7 @@ func TestUpsertAtEndOfContent(t *testing.T) {
 	customToUpsert = append(customToUpsert, toUpsert[0])
 	customToUpsert[0].SetID(&moment.Identifier{Value: "zonk"})
 
-	modified, err := Upsert(upsertTestInput, customToUpsert)
+	modified, err := Upsert(upsertTestInput, customToUpsert, false)
 
 	assert.Nil(t, err)
 	assert.Equal(t, `---------------
@@ -317,7 +317,7 @@ func TestUpsertWithNewMoment(t *testing.T) {
 	toUpsert[len(toUpsert)-1].SetID(&moment.Identifier{Value: "newid123"})
 	toUpsert[len(toUpsert)-1].SetCategory(&moment.Category{Name: "cat 1"})
 
-	modified, err := Upsert(upsertTestInput, toUpsert)
+	modified, err := Upsert(upsertTestInput, toUpsert, false)
 
 	assert.Nil(t, err)
 	assert.Equal(t, `---------------
@@ -341,7 +341,7 @@ func TestUpsertWithoutID(t *testing.T) {
 	resetToUpsert()
 	toUpsert[0].SetID(nil)
 
-	_, err := Upsert(upsertTestInput, toUpsert)
+	_, err := Upsert(upsertTestInput, toUpsert, false)
 
 	assert.NotNil(t, err)
 	assert.Equal(t, "Moment 'a new thing 1' doesn't have an ID", err.Error())
@@ -351,7 +351,7 @@ func TestUpsertWithDuplicateID(t *testing.T) {
 	resetToUpsert()
 	toUpsert[0].SetID(&moment.Identifier{Value: "bar"})
 
-	_, err := Upsert(upsertTestInput, toUpsert)
+	_, err := Upsert(upsertTestInput, toUpsert, false)
 
 	assert.NotNil(t, err)
 	assert.Equal(t, "Duplicate moment ID 'bar'", err.Error())

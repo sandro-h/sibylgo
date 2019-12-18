@@ -81,8 +81,9 @@ func FetchAndApplyExternalSourceMoments(content string, extSrcConfig *util.Confi
 	}
 
 	// TODO could be optimized in one modify call that does removes and upserts.
+	prepend := extSrcConfig.GetBool("prepend", false)
 	content, _ = modify.Delete(content, toDelete)
-	content, err = modify.Upsert(content, fetchedMoments)
+	content, err = modify.Upsert(content, fetchedMoments, prepend)
 	if err != nil {
 		return "", fmt.Errorf("[Ext sources] Failed to upsert moments: %s", err.Error())
 	}

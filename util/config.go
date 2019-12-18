@@ -74,6 +74,15 @@ func (cfg Config) GetIntOrFail(key string) int {
 	return cfg.getOrFail(key).(int)
 }
 
+// GetBool returns the bool value for key, or defaultVal if the key is not found.
+func (cfg Config) GetBool(key string, defaultVal bool) bool {
+	v, found := cfg.cfg[key]
+	if found {
+		return v.(string) == "true"
+	}
+	return defaultVal
+}
+
 // HasKey returns true if the config contains the key.
 func (cfg Config) HasKey(key string) bool {
 	_, found := cfg.cfg[key]
