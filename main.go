@@ -12,6 +12,7 @@ import (
 	"github.com/sandro-h/sibylgo/cleanup"
 	"github.com/sandro-h/sibylgo/extsources"
 	"github.com/sandro-h/sibylgo/format"
+	"github.com/sandro-h/sibylgo/modify"
 	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/parse"
 	"github.com/sandro-h/sibylgo/reminder"
@@ -129,6 +130,7 @@ func startRestServer(cfg *util.Config) {
 	router.HandleFunc("/format", formatMoments).Methods("POST")
 	router.HandleFunc("/folding", foldMoments).Methods("POST")
 	router.HandleFunc("/moments", getCalendarEntries).Methods("GET")
+	router.HandleFunc("/moments", insertMoment).Methods("POST")
 	router.HandleFunc("/reminders/{date}/weekly", getWeeklyReminders).Methods("GET")
 
 	srv := &http.Server{
@@ -246,6 +248,30 @@ func getCalendarEntries(w http.ResponseWriter, r *http.Request) {
 	entries := calendar.CompileCalendarEntries(todos, start, end)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(entries)
+}
+
+func insertMoment(w http.ResponseWriter, r *http.Request) {
+	name := r.FormValue("name")
+	if name == "" {
+		http.Error(w, "name parameter not set", 400)
+		return
+	}
+	category := r.FormValue("category")
+	mom := moment.NewSingleMoment(name)
+	if category != "" {
+		mom.SetCategory(&moment.Category{Name: category})
+	}
+
+	fmt.Printf("Inserting '%s' into category '%s'\n", name, category)
+	err := modify.PrependInFile(todoFile, []moment.Moment{mom})
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte("{\"message\": \"Inserted moment\"}"))
 }
 
 func getWeeklyReminders(w http.ResponseWriter, r *http.Request) {

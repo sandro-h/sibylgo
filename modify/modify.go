@@ -26,6 +26,35 @@ func Prepend(content string, toInsert []moment.Moment) (string, error) {
 	return insert(content, toInsert, true)
 }
 
+// PrependInFile inserts moments into the todo file. The moments are inserted at the start
+// of whichever category is set for them. The categories set for the moments must all exist in the todo file already,
+// new categories are not created. If no category is set, the moment will be prepended into the "none"
+// category at the start of the todo file.
+func PrependInFile(todoFile string, toInsert []moment.Moment) error {
+	return modifyInFile(todoFile, func(content string) (string, error) {
+		return Prepend(content, toInsert)
+	})
+}
+
+func modifyInFile(todoFile string, modifyFunc func(string) (string, error)) error {
+	content, err := util.ReadFile(todoFile)
+	if err != nil {
+		return err
+	}
+
+	updatedContent, err := modifyFunc(content)
+	if err != nil {
+		return err
+	}
+
+	err = util.WriteFile(todoFile, updatedContent)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func insert(content string, toInsert []moment.Moment, prepend bool) (string, error) {
 	byCategory, noCat := groupByCategory(toInsert)
 
