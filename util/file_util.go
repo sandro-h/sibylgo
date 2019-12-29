@@ -15,5 +15,8 @@ func ReadFile(filePath string) (string, error) {
 
 // WriteFile writes the passed string content to a textfile.
 func WriteFile(filePath string, str string) error {
-	return ioutil.WriteFile(filePath, []byte(str+"\n"), 0644)
+	if str[len(str)-1] != '\n' {
+		str += "\n"
+	}
+	return ioutil.WriteFile(filePath, []byte(str), 0644)
 }

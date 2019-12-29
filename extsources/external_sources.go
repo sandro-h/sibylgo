@@ -2,6 +2,7 @@ package extsources
 
 import (
 	"fmt"
+	"github.com/sandro-h/sibylgo/backup"
 	"github.com/sandro-h/sibylgo/modify"
 	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/parse"
@@ -11,6 +12,7 @@ import (
 )
 
 var externalSources = map[string]fetchFunc{
+	"dummies":       FetchDummyMomentsFromConfig,
 	"bitbucket_prs": FetchBitbucketPRsFromConfig,
 }
 
@@ -52,9 +54,12 @@ func (p *ExternalSourcesProcess) CheckOnce() {
 		fmt.Printf("%s\n", err.Error())
 	}
 
-	err = util.WriteFile(p.todoFilePath, updatedContent)
-	if err != nil {
-		fmt.Printf("[Ext sources] Failed to write todo file %s: %s\n", p.todoFilePath, err.Error())
+	if updatedContent != content {
+		backup.Save(p.todoFilePath, "Backup before applying external source changes")
+		err = util.WriteFile(p.todoFilePath, updatedContent)
+		if err != nil {
+			fmt.Printf("[Ext sources] Failed to write todo file %s: %s\n", p.todoFilePath, err.Error())
+		}
 	}
 }
 
