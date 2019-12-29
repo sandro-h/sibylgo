@@ -13,14 +13,14 @@ const sibylCommitAuthor = "sibylgo@example.com"
 // Save creates a new backup of the todo file
 func Save(todoFile string, message string) (*Backup, error) {
 	todoDir := filepath.Dir(todoFile)
-	if !IsRepoInitiated(todoDir) {
-		err := InitRepo(todoDir)
+	if !isRepoInitiated(todoDir) {
+		err := initRepo(todoDir)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	commit, err := Commit(todoDir, message, sibylCommitAuthor, todoFile)
+	commit, err := commit(todoDir, message, sibylCommitAuthor, todoFile)
 	if err != nil {
 		return nil, err
 	}
@@ -34,15 +34,12 @@ func Save(todoFile string, message string) (*Backup, error) {
 // a different state.
 func Restore(todoFile string, restoreTo *Backup) (*Backup, error) {
 	todoDir := filepath.Dir(todoFile)
-	if !IsRepoInitiated(todoDir) {
-		err := InitRepo(todoDir)
-		if err != nil {
-			return nil, err
-		}
+	if !isRepoInitiated(todoDir) {
+		return nil, fmt.Errorf("No backups set up for %s", todoFile)
 	}
 
 	restoreMessage := fmt.Sprintf("Restore backup %s '%s'", restoreTo.Identifier, restoreTo.Message)
-	revertCommit, err := RevertToCommit(todoDir, restoreTo.Identifier, restoreMessage, sibylCommitAuthor)
+	revertCommit, err := revertToCommit(todoDir, restoreTo.Identifier, restoreMessage, sibylCommitAuthor)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +51,7 @@ func Restore(todoFile string, restoreTo *Backup) (*Backup, error) {
 // ListBackups lists all backups saved for the todoFile. They are ordered from newest to oldest backup.
 func ListBackups(todoFile string) ([]*Backup, error) {
 	todoDir := filepath.Dir(todoFile)
-	commits, err := FindCommits(todoDir, func(c *CommitEntry) bool {
+	commits, err := findCommits(todoDir, func(c *commitEntry) bool {
 		return c.AuthorEmail == sibylCommitAuthor
 	})
 	if err != nil {
@@ -76,7 +73,7 @@ type Backup struct {
 	Message    string
 }
 
-func toBackup(c *CommitEntry) *Backup {
+func toBackup(c *commitEntry) *Backup {
 	return &Backup{
 		Identifier: c.Hash,
 		Timestamp:  c.Timestamp,

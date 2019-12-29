@@ -12,7 +12,7 @@ import (
 )
 
 // IsRepoInitiated returns true if the passed folder is a git repository.
-func IsRepoInitiated(repoPath string) bool {
+func isRepoInitiated(repoPath string) bool {
 	_, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return false
@@ -21,14 +21,14 @@ func IsRepoInitiated(repoPath string) bool {
 }
 
 // InitRepo initiates a new non-bare Git repo in the passed folder. Fails if there already is a git repository.
-func InitRepo(repoPath string) error {
+func initRepo(repoPath string) error {
 	_, err := git.PlainInit(repoPath, false)
 	return err
 }
 
 // Commit stages and commits the passed files in the passed folder.
 // Also commits if none of the passed files changed.
-func Commit(repoPath string, message string, authorEmail string, files ...string) (*CommitEntry, error) {
+func commit(repoPath string, message string, authorEmail string, files ...string) (*commitEntry, error) {
 	r, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return nil, err
@@ -62,11 +62,11 @@ func Commit(repoPath string, message string, authorEmail string, files ...string
 	if err != nil {
 		return nil, err
 	}
-	return toCommitEntry(c), nil
+	return tocommitEntry(c), nil
 }
 
 // RevertToCommit reverts all changes done since commitHash and creates a single new commit with these reversions.
-func RevertToCommit(repoPath string, commitHash string, newCommitMessage string, authorEmail string) (*CommitEntry, error) {
+func revertToCommit(repoPath string, commitHash string, newCommitMessage string, authorEmail string) (*commitEntry, error) {
 	// Note go-git doesn't support revert, so we have to use the cli tool (and assume it's installed)
 	cmd := exec.Command("git", "revert", "--no-commit", fmt.Sprintf("%s..HEAD", commitHash))
 	cmd.Dir = repoPath
@@ -104,26 +104,26 @@ func RevertToCommit(repoPath string, commitHash string, newCommitMessage string,
 	if err != nil {
 		return nil, err
 	}
-	return toCommitEntry(c), nil
+	return tocommitEntry(c), nil
 }
 
-var matchAny = func(c *CommitEntry) bool {
+var matchAny = func(c *commitEntry) bool {
 	return true
 }
 
 // ListCommits returns all commits in the passed folder, ordered from newest to oldest.
-func ListCommits(repoPath string) ([]*CommitEntry, error) {
-	return findCommits(repoPath, matchAny, false)
+func listCommits(repoPath string) ([]*commitEntry, error) {
+	return doFindCommits(repoPath, matchAny, false)
 }
 
 // FindCommits returns all commits in the passed folder that match the predicate, ordered from newest to oldest.
-func FindCommits(repoPath string, predicate func(*CommitEntry) bool) ([]*CommitEntry, error) {
-	return findCommits(repoPath, predicate, false)
+func findCommits(repoPath string, predicate func(*commitEntry) bool) ([]*commitEntry, error) {
+	return doFindCommits(repoPath, predicate, false)
 }
 
 // ListNewestCommit returns the newest commit in the passed folder. If there are no commits, nil is returned.
-func ListNewestCommit(repoPath string) (*CommitEntry, error) {
-	found, err := findCommits(repoPath, matchAny, true)
+func listNewestCommit(repoPath string) (*commitEntry, error) {
+	found, err := doFindCommits(repoPath, matchAny, true)
 	if err != nil {
 		return nil, err
 	}
@@ -134,8 +134,8 @@ func ListNewestCommit(repoPath string) (*CommitEntry, error) {
 }
 
 // FindNewestCommit returns the newest commit in the passed folder that matches the predicate, or nil.
-func FindNewestCommit(repoPath string, predicate func(*CommitEntry) bool) (*CommitEntry, error) {
-	found, err := findCommits(repoPath, predicate, true)
+func findNewestCommit(repoPath string, predicate func(*commitEntry) bool) (*commitEntry, error) {
+	found, err := doFindCommits(repoPath, predicate, true)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +145,7 @@ func FindNewestCommit(repoPath string, predicate func(*CommitEntry) bool) (*Comm
 	return found[0], nil
 }
 
-func findCommits(repoPath string, predicate func(*CommitEntry) bool, stopAtFirst bool) ([]*CommitEntry, error) {
+func doFindCommits(repoPath string, predicate func(*commitEntry) bool, stopAtFirst bool) ([]*commitEntry, error) {
 	r, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return nil, err
@@ -156,7 +156,7 @@ func findCommits(repoPath string, predicate func(*CommitEntry) bool, stopAtFirst
 		return nil, err
 	}
 
-	var found []*CommitEntry
+	var found []*commitEntry
 	for {
 		c, err := cIter.Next()
 		if err == io.EOF {
@@ -164,7 +164,7 @@ func findCommits(repoPath string, predicate func(*CommitEntry) bool, stopAtFirst
 		} else if err != nil {
 			return nil, err
 		}
-		ce := toCommitEntry(c)
+		ce := tocommitEntry(c)
 		if predicate(ce) {
 			found = append(found, ce)
 			if stopAtFirst {
@@ -175,8 +175,8 @@ func findCommits(repoPath string, predicate func(*CommitEntry) bool, stopAtFirst
 	return found, nil
 }
 
-// CommitEntry encapsulates a Git commit.
-type CommitEntry struct {
+// commitEntry encapsulates a Git commit.
+type commitEntry struct {
 	Hash        string
 	Timestamp   time.Time
 	Message     string
@@ -184,7 +184,7 @@ type CommitEntry struct {
 	Files       []string
 }
 
-func toCommitEntry(c *object.Commit) *CommitEntry {
+func tocommitEntry(c *object.Commit) *commitEntry {
 	fIter, _ := c.Files()
 	var files []string
 	for {
@@ -195,7 +195,7 @@ func toCommitEntry(c *object.Commit) *CommitEntry {
 		files = append(files, f.Name)
 	}
 
-	return &CommitEntry{
+	return &commitEntry{
 		Hash:        c.Hash.String(),
 		Timestamp:   c.Author.When,
 		Message:     c.Message,
