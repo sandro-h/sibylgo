@@ -1,6 +1,8 @@
 package testutil
 
 import (
+	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -35,4 +37,20 @@ func Tts(t time.Time) string {
 // Dtts formats a Time into a date and time string (02.01.2006 15:04)
 func Dtts(t time.Time) string {
 	return t.Format("02.01.2006 15:04:05")
+}
+
+// MakeTempDir creates a temporary directory with name dirName.
+// Don't forget to call defer DeleteTempDir to get rid of it at the end of the test.
+func MakeTempDir(dirName string) string {
+	dir := filepath.Join(os.TempDir(), dirName)
+	err := os.Mkdir(dir, 0755)
+	if err != nil {
+		panic(err)
+	}
+	return dir
+}
+
+// DeleteTempDir deteles the temporary directory and all its content.
+func DeleteTempDir(dir string) {
+	os.RemoveAll(dir)
 }

@@ -1,4 +1,4 @@
-VERSION=1.1.1
+VERSION=1.1.2
 
 deps-go:
 	${GOBIN}/dep ensure --vendor-only -v
