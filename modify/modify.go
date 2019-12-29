@@ -246,10 +246,14 @@ func groupByReplaceAndInsert(content string, toUpsert []moment.Moment) ([]replac
 	}
 
 	toInsert := make([]moment.Moment, len(toUpsertMap))
+	// Ensure the insert order is maintained.
 	i := 0
-	for _, m := range toUpsertMap {
-		toInsert[i] = m
-		i++
+	for _, m := range toUpsert {
+		id := m.GetID().Value
+		if _, exists := toUpsertMap[id]; exists {
+			toInsert[i] = m
+			i++
+		}
 	}
 
 	return toReplace, toInsert, nil
