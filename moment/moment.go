@@ -261,33 +261,3 @@ type DocCoords struct {
 	// Length is the length in runes of the object.
 	Length int
 }
-
-// Instance is an actual moment at a point or range in time based on the moment definition.
-// For example, a weekly recurring moment definition can yield multiple instances, one for every week
-// in the given time range.
-type Instance struct {
-	Name         string      `json:"name"`
-	Start        time.Time   `json:"start"`
-	End          time.Time   `json:"end"`
-	TimeOfDay    *time.Time  `json:"timeOfDay"`
-	Priority     int         `json:"priority"`
-	Category     *Category   `json:"-"`
-	Done         bool        `json:"done"`
-	EndsInRange  bool        `json:"endsInRange"`
-	SubInstances []*Instance `json:"subInstances"`
-}
-
-// CloneShallow creates a clone of the moment instances without its sub instances.
-func (m *Instance) CloneShallow() *Instance {
-	c := Instance{
-		Name:        m.Name,
-		Start:       m.Start,
-		Priority:    m.Priority,
-		Done:        m.Done,
-		EndsInRange: m.EndsInRange}
-	if m.TimeOfDay != nil {
-		cp := *m.TimeOfDay
-		c.TimeOfDay = &cp
-	}
-	return &c
-}

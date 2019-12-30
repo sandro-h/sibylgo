@@ -13,6 +13,7 @@ import (
 	"github.com/sandro-h/sibylgo/cleanup"
 	"github.com/sandro-h/sibylgo/extsources"
 	"github.com/sandro-h/sibylgo/format"
+	"github.com/sandro-h/sibylgo/instances"
 	"github.com/sandro-h/sibylgo/modify"
 	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/parse"
@@ -316,7 +317,7 @@ func getWeeklyReminders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	todays, weeks := reminder.CompileRemindersForTodayAndThisWeek(todos, date)
-	res := map[string][]*moment.Instance{
+	res := map[string][]*instances.Instance{
 		"today": todays,
 		"week":  weeks}
 	w.Header().Set("Content-Type", "application/json")

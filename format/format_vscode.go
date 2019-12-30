@@ -2,7 +2,7 @@ package format
 
 import (
 	"fmt"
-	"github.com/sandro-h/sibylgo/generate"
+	"github.com/sandro-h/sibylgo/instances"
 	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/util"
 	"time"
@@ -107,7 +107,7 @@ func formatDueSoon(momFmt *string, m moment.Moment) {
 	nDaysFromToday := today.AddDate(0, 0, n)
 	nRealHours := nDaysFromToday.Sub(today) / time.Hour
 
-	insts := generate.InstancesWithoutSubs(m, today, nDaysFromToday)
+	insts := instances.GenerateWithoutSubs(m, today, nDaysFromToday)
 	earliest := n
 	for _, inst := range insts {
 		// We need to compare hours here because of daylight saving time.

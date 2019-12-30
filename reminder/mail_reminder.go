@@ -3,8 +3,7 @@ package reminder
 import (
 	"bufio"
 	"fmt"
-	"github.com/sandro-h/sibylgo/generate"
-	"github.com/sandro-h/sibylgo/moment"
+	"github.com/sandro-h/sibylgo/instances"
 	"github.com/sandro-h/sibylgo/parse"
 	"github.com/sandro-h/sibylgo/util"
 	"gopkg.in/gomail.v2"
@@ -110,17 +109,17 @@ func (p *MailReminderProcess) saveLastDaySent(dt time.Time) {
 	}
 }
 
-func (p *MailReminderProcess) loadTodaysMoments(today time.Time) ([]*moment.Instance, error) {
+func (p *MailReminderProcess) loadTodaysMoments(today time.Time) ([]*instances.Instance, error) {
 	todos, err := parse.File(p.todoFilePath)
 	if err != nil {
 		return nil, err
 	}
-	insts := generate.InstancesFiltered(todos, today, util.SetToEndOfDay(today),
-		func(mom *moment.Instance) bool { return !mom.Done })
+	insts := instances.GenerateFiltered(todos, today, util.SetToEndOfDay(today),
+		func(mom *instances.Instance) bool { return !mom.Done })
 	return insts, nil
 }
 
-func (p *MailReminderProcess) checkDailyReminder(today time.Time, insts []*moment.Instance) {
+func (p *MailReminderProcess) checkDailyReminder(today time.Time, insts []*instances.Instance) {
 	lastDaySent := p.loadLastDaySent()
 	if today.After(lastDaySent) {
 		fmt.Printf("Sending daily reminder for %s\n", today)
@@ -134,7 +133,7 @@ func (p *MailReminderProcess) checkDailyReminder(today time.Time, insts []*momen
 	}
 }
 
-func (p *MailReminderProcess) sendDailyReminder(today time.Time, insts []*moment.Instance) error {
+func (p *MailReminderProcess) sendDailyReminder(today time.Time, insts []*instances.Instance) error {
 	subject := fmt.Sprintf("TODOs for %s", today.Format("Monday, 2 Jan 2006"))
 	content := ""
 	ending := FilterMomentsEndingInRange(insts)
@@ -142,7 +141,7 @@ func (p *MailReminderProcess) sendDailyReminder(today time.Time, insts []*moment
 	return p.sendMailFunc(subject, content)
 }
 
-func addMomentHTML(content *string, insts []*moment.Instance) {
+func addMomentHTML(content *string, insts []*instances.Instance) {
 	*content += "<ul>\n"
 	for _, m := range insts {
 		*content += "<li>"
@@ -164,7 +163,7 @@ func addMomentHTML(content *string, insts []*moment.Instance) {
 	*content += "</ul>\n"
 }
 
-func hasSubsEndingInRange(m *moment.Instance) bool {
+func hasSubsEndingInRange(m *instances.Instance) bool {
 	for _, s := range m.SubInstances {
 		if s.EndsInRange || hasSubsEndingInRange(s) {
 			return true
@@ -173,7 +172,7 @@ func hasSubsEndingInRange(m *moment.Instance) bool {
 	return false
 }
 
-func (p *MailReminderProcess) checkTimedReminders(now time.Time, insts []*moment.Instance) {
+func (p *MailReminderProcess) checkTimedReminders(now time.Time, insts []*instances.Instance) {
 	upcoming := p.findUpcomingTimedMoments(now, p.reminderTime, p.checkInterval, insts)
 	for _, m := range upcoming {
 		fmt.Print(m.Delta)
@@ -190,7 +189,7 @@ type upcoming struct {
 }
 
 func (p *MailReminderProcess) findUpcomingTimedMoments(now time.Time, dur time.Duration,
-	checkInterval time.Duration, insts []*moment.Instance) []upcoming {
+	checkInterval time.Duration, insts []*instances.Instance) []upcoming {
 	var res []upcoming
 	for _, i := range insts {
 		if i.TimeOfDay != nil {

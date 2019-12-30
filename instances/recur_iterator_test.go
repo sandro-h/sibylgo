@@ -1,4 +1,4 @@
-package generate
+package instances
 
 import (
 	"github.com/sandro-h/sibylgo/moment"

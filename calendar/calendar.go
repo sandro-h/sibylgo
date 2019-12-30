@@ -1,7 +1,7 @@
 package calendar
 
 import (
-	"github.com/sandro-h/sibylgo/generate"
+	"github.com/sandro-h/sibylgo/instances"
 	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/util"
 	"sort"
@@ -19,7 +19,7 @@ type Entry struct {
 }
 
 // NewEntry maps a moment instance to a new calendar entry.
-func NewEntry(inst *moment.Instance) Entry {
+func NewEntry(inst *instances.Instance) Entry {
 	entry := Entry{
 		Title: inst.Name,
 		Start: inst.Start.Format(dateFormat),
@@ -36,8 +36,8 @@ func CompileCalendarEntries(todos *moment.Todos, from time.Time, until time.Time
 	from = util.SetToStartOfDay(from)
 	until = util.SetToStartOfDay(until)
 
-	insts := generate.InstancesFilteredWithoutSubs(todos, from, until,
-		func(mom *moment.Instance) bool { return !mom.Done && mom.EndsInRange })
+	insts := instances.GenerateFilteredWithoutSubs(todos, from, until,
+		func(mom *instances.Instance) bool { return !mom.Done && mom.EndsInRange })
 	sort.Sort(byPriority(insts))
 
 	var entries []Entry
@@ -47,7 +47,7 @@ func CompileCalendarEntries(todos *moment.Todos, from time.Time, until time.Time
 	return entries
 }
 
-type byPriority []*moment.Instance
+type byPriority []*instances.Instance
 
 func (a byPriority) Len() int           { return len(a) }
 func (a byPriority) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
