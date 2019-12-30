@@ -37,6 +37,7 @@ var buildRevision = "-"
 var showVersion = flag.Bool("version", false, "Show version")
 var configFile = flag.String("config", "", "Path to config yml file. By default uses sibylgo.yml in same directory as this executable, if it exists.")
 var todoFile string
+var extSourcesProcess *extsources.ExternalSourcesProcess
 
 func main() {
 	flag.Parse()
@@ -115,8 +116,8 @@ func startMailReminders(cfg *util.Config) {
 }
 
 func startExternalSources(todoFile string, extSrcConfig *util.Config) {
-	p := extsources.NewExternalSourcesProcess(todoFile, extSrcConfig)
-	go p.CheckInfinitely()
+	extSourcesProcess = extsources.NewExternalSourcesProcess(todoFile, extSrcConfig)
+	go extSourcesProcess.CheckInfinitely()
 	fmt.Println("Started external sources")
 }
 
@@ -172,6 +173,8 @@ func handleUserCommands() {
 			clean()
 		case "trash":
 			trash()
+		case "extsrc":
+			runExtSources()
 		default:
 			fmt.Printf("Unknown command\n")
 		}
@@ -180,10 +183,11 @@ func handleUserCommands() {
 }
 
 func printCommands() {
-	fmt.Print("help  - show this\n")
-	fmt.Print("quit  - end app\n")
-	fmt.Print("clean - move done moments to end of todo file\n")
-	fmt.Print("trash - move done moments to trash file\n")
+	fmt.Print("help   - show this\n")
+	fmt.Print("quit   - end app\n")
+	fmt.Print("clean  - move done moments to end of todo file\n")
+	fmt.Print("trash  - move done moments to trash file\n")
+	fmt.Print("extsrc - manually run external source collection\n")
 }
 
 func clean() {
@@ -217,6 +221,14 @@ func trash() {
 		fmt.Printf("Trashed: %s\n", todoFile)
 		fmt.Printf("Moved done moments to: %s\n", trashFile)
 	}
+}
+
+func runExtSources() {
+	if extSourcesProcess == nil {
+		fmt.Println("External sources not initialized. Are they configured?")
+		return
+	}
+	extSourcesProcess.CheckOnce()
 }
 
 func removeExt(s string) string {

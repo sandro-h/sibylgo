@@ -78,7 +78,14 @@ func (cfg Config) GetIntOrFail(key string) int {
 func (cfg Config) GetBool(key string, defaultVal bool) bool {
 	v, found := cfg.cfg[key]
 	if found {
-		return v.(string) == "true"
+		switch vt := v.(type) {
+		case string:
+			return vt == "true"
+		case bool:
+			return vt
+		default:
+			fmt.Printf("Unknown bool type for config key %s\n", key)
+		}
 	}
 	return defaultVal
 }

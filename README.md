@@ -25,6 +25,10 @@ external_sources:
     bb_user: myuser
     bb_token: aba1234
     category: Today
+  dummies:
+    dummy_moments:
+      - id1:name1
+      - id2:name2
 ```
 
 # Development
