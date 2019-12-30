@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/sandro-h/sibylgo/backup"
 	"github.com/sandro-h/sibylgo/calendar"
 	"github.com/sandro-h/sibylgo/cleanup"
 	"github.com/sandro-h/sibylgo/extsources"
@@ -52,6 +53,7 @@ func main() {
 	todoFile = cfg.GetString("todoFile", "")
 	if todoFile != "" {
 		fmt.Printf("Using todo file %s\n", todoFile)
+		startDailyBackupProcess(todoFile)
 	}
 
 	if cfg.HasKey("mailTo") {
@@ -118,6 +120,17 @@ func startExternalSources(todoFile string, extSrcConfig *util.Config) {
 	fmt.Println("Started external sources")
 }
 
+func startDailyBackupProcess(todoFile string) {
+	dailyBackupFunc := func() {
+		for {
+			backup.CheckAndMakeDailyBackup(todoFile)
+			time.Sleep(5 * time.Minute)
+		}
+	}
+	go dailyBackupFunc()
+	fmt.Println("Started daily backup")
+}
+
 func startRestServer(cfg *util.Config) {
 	host := cfg.GetString("host", "localhost")
 	port := cfg.GetInt("port", 8082)
@@ -179,6 +192,7 @@ func clean() {
 		return
 	}
 
+	backup.Save(todoFile, "Backup before cleaning")
 	err := cleanup.MoveDoneToEndOfFile(todoFile, true)
 	if err != nil {
 		fmt.Printf("Error cleaning up: %s\n", err)
@@ -195,6 +209,7 @@ func trash() {
 
 	trashFile := removeExt(todoFile) + "-trash.txt"
 
+	backup.Save(todoFile, "Backup before trashing")
 	err := cleanup.MoveDoneToTrashFile(todoFile, trashFile, true)
 	if err != nil {
 		fmt.Printf("Error trashing: %s", err)
@@ -263,6 +278,7 @@ func insertMoment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Printf("Inserting '%s' into category '%s'\n", name, category)
+	backup.Save(todoFile, "Backup before programmatically inserting moment")
 	err := modify.PrependInFile(todoFile, []moment.Moment{mom})
 	if err != nil {
 		http.Error(w, err.Error(), 500)

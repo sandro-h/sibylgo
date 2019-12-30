@@ -51,7 +51,7 @@ func commit(repoPath string, message string, authorEmail string, files ...string
 		Author: &object.Signature{
 			Name:  authorEmail,
 			Email: authorEmail,
-			When:  time.Now(),
+			When:  getNow(),
 		},
 	})
 	if err != nil {
@@ -93,7 +93,7 @@ func revertToCommit(repoPath string, commitHash string, newCommitMessage string,
 		Author: &object.Signature{
 			Name:  authorEmail,
 			Email: authorEmail,
-			When:  time.Now(),
+			When:  getNow(),
 		},
 	})
 	if err != nil {
