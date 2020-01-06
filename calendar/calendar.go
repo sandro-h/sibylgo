@@ -1,6 +1,7 @@
 package calendar
 
 import (
+	"fmt"
 	"github.com/sandro-h/sibylgo/instances"
 	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/util"
@@ -20,8 +21,12 @@ type Entry struct {
 
 // NewEntry maps a moment instance to a new calendar entry.
 func NewEntry(inst *instances.Instance) Entry {
+	title := inst.Name
+	if inst.TimeOfDay != nil {
+		title = fmt.Sprintf("%s %s", title, inst.TimeOfDay.Format("15:04"))
+	}
 	entry := Entry{
-		Title: inst.Name,
+		Title: title,
 		Start: inst.Start.Format(dateFormat),
 		End:   inst.End.AddDate(0, 0, 1).Format(dateFormat)} // +1 because fullcalendar is non-inclusive
 	if inst.Category != nil {

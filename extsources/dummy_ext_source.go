@@ -1,7 +1,6 @@
 package extsources
 
 import (
-	"fmt"
 	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/util"
 	"strings"
@@ -12,7 +11,6 @@ import (
 func FetchDummyMomentsFromConfig(cfg *util.Config) ([]moment.Moment, error) {
 	category := cfg.GetString("category", "")
 	dummies := cfg.GetStringList("dummy_moments", nil)
-	fmt.Printf("%s\n", dummies)
 	var moments []moment.Moment
 	for _, d := range dummies {
 		parts := strings.Split(d, ":")
