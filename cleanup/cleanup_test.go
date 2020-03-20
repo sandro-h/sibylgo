@@ -58,7 +58,8 @@ func TestCleanupDoneAll(t *testing.T) {
 func TestMoveDoneToTrashFile(t *testing.T) {
 	var testfiles []string
 	writeTestFile(&testfiles, "todo.txt", testInput)
-	writeTestFile(&testfiles, "trash.txt", "")
+	writeTestFile(&testfiles, "trash.txt", `
+[] existing trash`)
 	defer deleteTestFiles(&testfiles)
 
 	testTime := "13.01.2019 12:02:42"
@@ -78,6 +79,7 @@ func TestMoveDoneToTrashFile(t *testing.T) {
 [] yo
 `, cleanedTodo)
 	assert.Equal(t, `
+[] existing trash
 ------------------
   Trash from 13.01.2019 12:02:42
 ------------------

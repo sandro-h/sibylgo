@@ -36,7 +36,7 @@ func MoveDoneToTrashFile(todoFilePath string, trashFilePath string, onlyTopLevel
 `, getNow().Format("02.01.2006 15:04:05"))
 
 	util.WriteFile(todoFilePath, kept)
-	util.WriteFile(trashFilePath, header+deleted)
+	util.AppendFile(trashFilePath, header+deleted)
 
 	return nil
 }
