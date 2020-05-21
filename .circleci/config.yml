@@ -17,36 +17,23 @@ jobs:
   build:
     working_directory: /go/src/github.com/sandro-h/sibylgo
     docker:
-      - image: circleci/golang:1.13.0-stretch
+      - image: circleci/golang:1.14-buster
 
     steps:
       - checkout
 
       ##############################
-      # Fetch dependencies
+      # Test and build sibylgo
       ##############################
       - restore_cache:
           name: Restore dependency cache
           keys:
-            - v1-deps-{{ checksum "Gopkg.lock" }}
-      - run:
-          name: Install go dep
-          command: curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-      - run: 
-          name: Get dependencies
-          command: GOBIN=/go/bin make deps-go
+            - v2-deps-{{ checksum "go.mod" }}
+
       - run:
           name: Install golint
           command: go get golang.org/x/lint/golint
-      - save_cache:
-          name: Save dependency cache
-          paths:
-            - vendor
-          key: v1-deps-{{ checksum "Gopkg.lock" }}
 
-      ##############################
-      # Test and build sibylgo
-      ##############################
       - run:
           name: Test
           command: make test-go
@@ -54,6 +41,12 @@ jobs:
       - run:
           name: Build
           command: BUILD_NUM=$CIRCLE_BUILD_NUM GIT_SHA=${CIRCLE_SHA1:0:7} make build-go
+
+      - save_cache:
+          name: Save dependency cache
+          paths:
+            - /go/pkg/mod
+          key: v2-deps-{{ checksum "go.mod" }}
 
       - run:
           # Print it here because the ghr image to publish to github is so minimal it can't run the executable.
