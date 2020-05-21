@@ -99,23 +99,24 @@ func fetchExternalSourceMoments(extSrcConfig *util.Config) ([]moment.Moment, map
 	var allMoments []moment.Moment
 	byID := make(map[string]moment.Moment)
 	for srcName, fetchFunc := range externalSources {
-		if extSrcConfig.HasKey(srcName) {
-			moments, err := fetchFunc(extSrcConfig.GetSubConfig(srcName))
-			if err != nil {
-				fmt.Printf("[Ext sources] Fetching %s failed: %s\n", srcName, err.Error())
-			} else {
-				for _, m := range moments {
-					if m.GetID() == nil {
-						fmt.Printf("[Ext sources] %s moment %s has no ID. Skipping it.\n", srcName, m.GetName())
-						continue
-					}
-
-					fullID := idPrefix + m.GetID().Value
-					m.GetID().Value = fullID
-					allMoments = append(allMoments, m)
-					byID[fullID] = m
-				}
+		if !extSrcConfig.HasKey(srcName) {
+			continue
+		}
+		moments, err := fetchFunc(extSrcConfig.GetSubConfig(srcName))
+		if err != nil {
+			fmt.Printf("[Ext sources] Fetching %s failed: %s\n", srcName, err.Error())
+			continue
+		}
+		for _, m := range moments {
+			if m.GetID() == nil {
+				fmt.Printf("[Ext sources] %s moment %s has no ID. Skipping it.\n", srcName, m.GetName())
+				continue
 			}
+
+			fullID := idPrefix + m.GetID().Value
+			m.GetID().Value = fullID
+			allMoments = append(allMoments, m)
+			byID[fullID] = m
 		}
 	}
 	return allMoments, byID

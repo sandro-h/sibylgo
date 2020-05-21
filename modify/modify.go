@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-// Append inserts moments into the todo file content. The moments are inserted at the end
+// Append inserts moments into the todo content. The moments are inserted at the end
 // of whichever category is set for them. The categories set for the moments must all exist in the content already,
 // new categories are not created. If no category is set, the moment will be appended into the "none"
 // category at the start of the content.
@@ -18,7 +18,7 @@ func Append(content string, toInsert []moment.Moment) (string, error) {
 	return insert(content, toInsert, false)
 }
 
-// Prepend inserts moments into the todo file content. The moments are inserted at the start
+// Prepend inserts moments into the todo content. The moments are inserted at the start
 // of whichever category is set for them. The categories set for the moments must all exist in the content already,
 // new categories are not created. If no category is set, the moment will be prepended into the "none"
 // category at the start of the content.
@@ -156,9 +156,9 @@ func findCategoryBoundaries(todos *moment.Todos) ([]categoryBoundary, categoryBo
 	return catBoundaries, noCatBoundary
 }
 
-func validateMissingInsertCategories(byCategory *map[string][]moment.Moment, catBoundaries *[]categoryBoundary) error {
+func validateMissingInsertCategories(momsByCategory *map[string][]moment.Moment, catBoundaries *[]categoryBoundary) error {
 	missingCats := make(map[string]bool)
-	for c := range *byCategory {
+	for c := range *momsByCategory {
 		missingCats[c] = true
 	}
 	for _, c := range *catBoundaries {
@@ -183,7 +183,7 @@ func (b categoryBoundary) getBound(prepend bool) int {
 	return b.bottom
 }
 
-// Upsert updates moment if they exist in the todo file content, otherwise
+// Upsert updates moment if they exist in the todo content, otherwise
 // appends or prepends them (depending on prepend flag).
 // To find existing moments, the moment ID must be set.
 func Upsert(content string, toUpsert []moment.Moment, prepend bool) (string, error) {
@@ -272,7 +272,7 @@ type replacement struct {
 	oldLineRange *lineRange
 }
 
-// Delete removes moments from the todo file content. It returns
+// Delete removes moments from the todo content. It returns
 // the content without the removed moments lines and all the removed moment
 // lines.
 func Delete(content string, toDel []moment.Moment) (string, string) {
