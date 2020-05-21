@@ -124,6 +124,38 @@ func TestAppendSeparateCategories(t *testing.T) {
 `, modified)
 }
 
+func TestAppendSecondCategory(t *testing.T) {
+	resetToInsert()
+	toInsert[0].SetCategory(&moment.Category{Name: "cat 2"})
+	toInsert[1].SetCategory(&moment.Category{Name: "cat 2"})
+
+	modified, err := Append(insertTestInput, toInsert)
+
+	fmt.Printf("%s\n", modified)
+	assert.Nil(t, err)
+	assert.Equal(t, `[] hello
+
+---------------
+ cat 1
+---------------
+[] foo
+[x] bar
+	some commet
+	[] bar1
+	[] bar2
+---------------
+ cat 2
+---------------
+
+[] zonk
+[] a new thing 1
+	my comment
+	haha
+[] a new thing 2
+	[x] a new sub thing 2.1
+`, modified)
+}
+
 func TestAppendIntoEmptyCategory(t *testing.T) {
 	insertTestInput := `---------------
  cat 1

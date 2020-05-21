@@ -56,7 +56,7 @@ func modifyInFile(todoFile string, modifyFunc func(string) (string, error)) erro
 }
 
 func insert(content string, toInsert []moment.Moment, prepend bool) (string, error) {
-	byCategory, noCat := groupByCategory(toInsert)
+	toInsertByCategory, noCat := groupByCategory(toInsert)
 
 	res := ""
 	todos, err := parse.String(content)
@@ -65,7 +65,7 @@ func insert(content string, toInsert []moment.Moment, prepend bool) (string, err
 	}
 	catBoundaries, noCatBoundary := findCategoryBoundaries(todos)
 
-	err = validateMissingInsertCategories(&byCategory, &catBoundaries)
+	err = validateMissingInsertCategories(&toInsertByCategory, &catBoundaries)
 	if err != nil {
 		return "", err
 	}
@@ -86,13 +86,15 @@ func insert(content string, toInsert []moment.Moment, prepend bool) (string, err
 			for _, m := range noCat {
 				res += stringify.Moment(m)
 			}
-		} else if ln == catBoundaries[k].getBound(prepend) {
-			list, ok := byCategory[catBoundaries[k].name]
+		} else if k < len(catBoundaries) && ln == catBoundaries[k].getBound(prepend) {
+
+			list, ok := toInsertByCategory[catBoundaries[k].name]
 			if ok {
 				for _, m := range list {
 					res += stringify.Moment(m)
 				}
 			}
+			k++
 		}
 
 		ln++
@@ -144,6 +146,11 @@ func findCategoryBoundaries(todos *moment.Todos) ([]categoryBoundary, categoryBo
 			lastCat = cat.Name
 		}
 		previousMomBottom = m.GetBottomLineNumber()
+	}
+	if len(catBoundaries) > 0 {
+		catBoundaries[len(catBoundaries)-1].bottom = previousMomBottom
+	} else {
+		noCatBoundary.bottom = previousMomBottom
 	}
 
 	return catBoundaries, noCatBoundary
