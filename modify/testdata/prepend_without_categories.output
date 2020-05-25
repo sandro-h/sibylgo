@@ -1,0 +1,20 @@
+[] a new thing 1
+	my comment
+	haha
+[] a new thing 2
+	[x] a new sub thing 2.1
+[] hello
+
+---------------
+ cat 1
+---------------
+[] foo
+[x] bar
+	some commet
+	[] bar1
+	[] bar2
+---------------
+ cat 2
+---------------
+
+[] zonk

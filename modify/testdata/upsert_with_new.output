@@ -1,0 +1,14 @@
+---------------
+ cat 1
+---------------
+[] a new thing 1 #foo
+	my comment
+	haha
+[] a new thing 2 #bar
+	[x] a new sub thing 2.1
+[] a new thing 3 #newid123
+---------------
+ cat 2
+---------------
+
+[] zonk #zonk

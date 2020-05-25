@@ -3,3 +3,4 @@ vscode_ext/sibyl.vsix
 sibylgo
 lint_report.txt
 sibylgo.yml
+*/testdata/*.tmp

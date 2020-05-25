@@ -45,6 +45,15 @@ make deps-vscode
 make build-vscode
 ```
 
+Testing:  
+Some tests rely on input/output testdata files. The output files for all tests can be updated to what
+the test is actually outputting with: `go test ./... -update-golden`
+
+For easier comparison between actual and expected output, the test output
+can also be written to a temporary file instead of the real golden file:
+`go test ./... -update-golden -dry-golden`
+
+
 ## See vscode extension errors
 
 When packaging, you won't see compile errors, so simply run `npm run compile` to see them.
