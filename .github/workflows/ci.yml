@@ -1,0 +1,123 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+
+  build-go:
+    name: Build Go
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.14
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Install additional build tools
+      run: go get golang.org/x/lint/golint
+
+    - name: Get dependencies
+      run: make deps
+
+    - name: Test
+      run: make test
+
+    - name: Lint
+      run: make lint
+
+    - name: Build
+      run: BUILD_NUM=$GITHUB_RUN_NUMBER GIT_SHA=${GITHUB_SHA:0:7} make build
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: go-artifacts
+        path: |
+          sibylgo
+          sibylgo.exe
+          sibylcal.html
+
+
+  build-vscode:
+    name: Build VSCode extension
+    runs-on: ubuntu-latest
+    defaults:
+
+      run:
+        working-directory: vscode_ext
+
+    steps:
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 10.x
+
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Get dependencies
+      run: make deps
+
+    - name: Build
+      run: make build
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: vscode-artifacts
+        path: vscode_ext/sibyl.vsix
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [build-go, build-vscode]
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+
+      - name: Download go artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: go-artifacts
+          path: sibylgo
+
+      - name: Download vscode artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: vscode-artifacts
+          path: sibylgo
+
+      - name: Zip artifacts
+        run: zip sibylgo sibylgo/*
+
+      - name: Print final version
+        id: print_version
+        run: chmod +x sibylgo/sibylgo && echo "::set-output name=version::$(sibylgo/sibylgo --version)"
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ steps.print_version.outputs.version }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: sibylgo.zip
+          asset_name: sibylgo-${{ steps.print_version.outputs.version }}.zip
+          asset_content_type: application/zip

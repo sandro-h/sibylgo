@@ -1,12 +1,13 @@
 # sibylgo
 
-[![CircleCI](https://circleci.com/gh/sandro-h/sibylgo.svg?style=svg&circle-token=9e65f022c014e5685c7fbd76148892f711d58bed)](https://circleci.com/gh/sandro-h/sibylgo)
+![CI](https://github.com/sandro-h/sibylgo/workflows/CI/badge.svg)
 
 Text-based TODO application
 
-# Configuration
+## Configuration
 
-**sibylgo.yml**
+### sibylgo.yml
+
 ```yaml
 todoFile: path/to/todo.txt
 host: localhost
@@ -31,21 +32,25 @@ external_sources:
       - id2:name2
 ```
 
-# Development
+## Development
 
 Main Go application:
-```
-make deps-go
-make build-go
+
+```shell
+make deps
+make build
 ```
 
 VSCode Extension:
-```
-make deps-vscode
-make build-vscode
+
+```shell
+cd vscode_ext
+make deps
+make build
 ```
 
-Testing:  
+### Testing
+
 Some tests rely on input/output testdata files. The output files for all tests can be updated to what
 the test is actually outputting with: `go test ./... -update-golden`
 
@@ -53,11 +58,14 @@ For easier comparison between actual and expected output, the test output
 can also be written to a temporary file instead of the real golden file:
 `go test ./... -update-golden -dry-golden`
 
+### Releasing
 
-## See vscode extension errors
+```shell
+make release
+```
+
+Pushes a release tag which triggers a CI build that includes a release job.
+
+### See vscode extension errors
 
 When packaging, you won't see compile errors, so simply run `npm run compile` to see them.
-
-# TODOS
-
-- add a space before/after insert

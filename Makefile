@@ -1,24 +1,22 @@
-VERSION=1.1.4
+VERSION=`cat version.txt`
 
-deps-go:
-	${GOBIN}/dep ensure --vendor-only -v
+deps:
+	go get -v -t -d ./...
 
-build-go: build-go-linux build-go-win
+build: build-linux build-win
 
-build-go-linux:
-	go build -v -ldflags="-X 'main.buildVersion=${VERSION}' -X 'main.buildNumber=${BUILD_NUM}' -X 'main.buildRevision=${GIT_SHA}'"
+build-linux:
+	go build -v -ldflags="-X 'main.buildVersion=$(VERSION)' -X 'main.buildNumber=${BUILD_NUM}' -X 'main.buildRevision=${GIT_SHA}'"
 
-build-go-win:
-	GOOS=windows GOARCH=amd64 go build -v -ldflags="-X 'main.buildVersion=${VERSION}' -X 'main.buildNumber=${BUILD_NUM}' -X 'main.buildRevision=${GIT_SHA}'"
+build-win:
+	GOOS=windows GOARCH=amd64 go build -v -ldflags="-X 'main.buildVersion=$(VERSION)' -X 'main.buildNumber=${BUILD_NUM}' -X 'main.buildRevision=${GIT_SHA}'"
 
-test-go:
+test:
 	go test -v -coverprofile="coverage.out" ./...
 
-deps-vscode:
-	cd vscode_ext && \
-	npm install --unsafe-perm
+lint:
+	golint -set_exit_status ./...
 
-build-vscode:
-	cd vscode_ext && \
-	npm version ${VERSION} --allow-same-version && \
-	npm run package
+release:
+	git tag v$(VERSION)
+	git push origin v$(VERSION)

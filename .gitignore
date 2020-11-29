@@ -1,6 +1,8 @@
 coverage.out
 vscode_ext/sibyl.vsix
 sibylgo
+sibylgo.exe
 lint_report.txt
 sibylgo.yml
 */testdata/*.tmp
+npm-debug.log
