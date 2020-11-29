@@ -79,8 +79,8 @@ function initFormats(context: vscode.ExtensionContext): Record<string, FormatDef
 		else if (i <= 11) styleIndex = 4;
 
 		if (styleIndex > -1) {
-			momUntilDecorationTypes['mom.until' + i] = vscode.window.createTextEditorDecorationType(dueStyles[styleIndex]);
-			momUntilDecorationTypes['mom.priority.until' + i] = vscode.window.createTextEditorDecorationType({
+			momUntilDecorationTypes[`mom.until${i}`] = vscode.window.createTextEditorDecorationType(dueStyles[styleIndex]);
+			momUntilDecorationTypes[`mom.until${i}.priority`] = vscode.window.createTextEditorDecorationType({
 				...dueStyles[styleIndex],
 				border: 'solid 1px red'
 			});
@@ -152,7 +152,6 @@ export function activate(context: vscode.ExtensionContext, cfg: SibylConfig) {
 
 	function isTodoEditor(editor: vscode.TextEditor) {
 		if (!editor || !editor.document) return false;
-		console.log(editor.document.fileName);
 		return editor.document.fileName.indexOf(cfg.todoFileName) === editor.document.fileName.length - cfg.todoFileName.length;
 	}
 
@@ -165,13 +164,20 @@ export function activate(context: vscode.ExtensionContext, cfg: SibylConfig) {
 
 		const text = activeEditor.document.getText();
 
-		const formatLines = await formatTodos(cfg.restUrl, text);
+		let formatLines: string[];
+		try {
+			formatLines = await formatTodos(cfg.restUrl, text);
+		}
+		catch (err) {
+			vscode.window.showErrorMessage(`Failed format todos: ${err}`);
+			return;
+		}
+		
 		const fmts = parseFormatting(formatLines, formats, activeEditor.document);
 		for (let key in fmts) {
 			const fmt = fmts[key];
-			if (fmt.list.length) {
-				activeEditor.setDecorations(fmt.dec, fmt.list);
-			}
+			// Note: it's important to also set if the list is empty, to disable old decorations on the line.
+			activeEditor.setDecorations(fmt.dec, fmt.list);
 		}
 	}
 }
