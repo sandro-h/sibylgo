@@ -49,11 +49,11 @@
     "watch": "tsc -watch -p ./"
   },
   "dependencies": {
-    "request": "^2.83.0"
+    "node-fetch": "^2.6.1"
   },
   "devDependencies": {
     "@types/node": "^10.14.17",
-    "@types/request": "^2.48.5",
+    "@types/node-fetch": "^2.5.7",
     "@types/vscode": "^1.34.0",
     "typescript": "^3.5.1",
     "vsce": "^1.71.0"
