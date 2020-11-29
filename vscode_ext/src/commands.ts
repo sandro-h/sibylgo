@@ -1,35 +1,28 @@
 import * as vscode from 'vscode';
-import * as util from './util';
-import * as request from 'request';
+import { SibylConfig } from './util';
+import { cleanTodos, trashTodos } from './client';
 
-function handleClean(cfg: util.SibylConfig) {
-	request.post(`${cfg.restUrl}/clean`,
-		(error, response) => {
-			if (error || response.statusCode !== 200) {
-				vscode.window.showErrorMessage(`Failed to clean done todos: ${response.statusCode} ${error}`);
-			}
-			else {
-				vscode.window.showInformationMessage('Cleaned done todos!');
-			}
-		}
-	);
+async function handleClean(cfg: SibylConfig) {
+	try {
+		await cleanTodos(cfg.restUrl);
+		vscode.window.showInformationMessage('Cleaned done todos!');
+	}
+	catch (err) {
+		vscode.window.showErrorMessage(`Failed to clean done todos: ${err}`);
+	}
 }
 
-function handleTrash(cfg: util.SibylConfig) {
-	request.post(`${cfg.restUrl}/trash`,
-		(error, response) => {
-			if (error || response.statusCode !== 200) {
-				vscode.window.showErrorMessage(`Failed to trash done todos: ${response.statusCode} ${error}`);
-			}
-			else {
-				vscode.window.showInformationMessage('Trashed done todos!');
-			}
-		}
-	);
+async function handleTrash(cfg: SibylConfig) {
+	try {
+		await trashTodos(cfg.restUrl);
+		vscode.window.showInformationMessage('Trashed done todos!');
+	}
+	catch (err) {
+		vscode.window.showErrorMessage(`Failed to trash done todos: ${err}`);
+	}
 }
 
-export function activate(context: vscode.ExtensionContext, cfg: util.SibylConfig) {
-
+export function activate(context: vscode.ExtensionContext, cfg: SibylConfig) {
 	context.subscriptions.push(vscode.commands.registerCommand('sibylgo.clean', () => handleClean(cfg)));
 	context.subscriptions.push(vscode.commands.registerCommand('sibylgo.trash', () => handleTrash(cfg)));
 }

@@ -1,4 +1,4 @@
-export class SibylConfig {
+export type SibylConfig = {
     todoFileName: string
     restUrl: string
 }

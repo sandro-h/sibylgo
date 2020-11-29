@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import * as util from './util';
-import * as request from 'request';
+import { SibylConfig } from './util';
+import { formatTodos } from './client';
 
 type FormatDefinition = {
 	dec: vscode.TextEditorDecorationType;
@@ -122,7 +122,7 @@ function parseFormatting(formattingLines: string[], formats: Record<string, Form
 	return res;
 }
 
-export function activate(context: vscode.ExtensionContext, cfg: util.SibylConfig) {
+export function activate(context: vscode.ExtensionContext, cfg: SibylConfig) {
 	const formats = initFormats(context);
 	let activeEditor: vscode.TextEditor|null = null;
 	let timeout = null;
@@ -160,28 +160,18 @@ export function activate(context: vscode.ExtensionContext, cfg: util.SibylConfig
 		activeEditor = isTodoEditor(editor) ? editor : null;
 	}
 
-	function updateDecorations() {
+	async function updateDecorations() {
 		if (!activeEditor) return;
 
 		const text = activeEditor.document.getText();
-		request.post(
-			{
-				headers: {'content-type' : 'text/plain'},
-				url:     `${cfg.restUrl}/format`,
-				body:    Buffer.from(text).toString('base64')
-		  	},
-		  	(error, _response, body: string) => {
-				if (error) return;
 
-				const lines = body.split(/\r?\n/);
-				const fmts = parseFormatting(lines, formats, activeEditor.document);
-				for (let key in fmts) {
-					const fmt = fmts[key];
-					if (fmt.list.length) {
-						activeEditor.setDecorations(fmt.dec, fmt.list);
-					}
-				}
+		const formatLines = await formatTodos(cfg.restUrl, text);
+		const fmts = parseFormatting(formatLines, formats, activeEditor.document);
+		for (let key in fmts) {
+			const fmt = fmts[key];
+			if (fmt.list.length) {
+				activeEditor.setDecorations(fmt.dec, fmt.list);
 			}
-		);
+		}
 	}
 }
