@@ -2,7 +2,49 @@
 
 ![CI](https://github.com/sandro-h/sibylgo/workflows/CI/badge.svg)
 
-Text-based TODO application
+Text-based TODO application.
+
+It lets you write TODO list as you want (within the bounds of the syntax).
+You can add arbitrary additional text and comments to the todos. The application will never reformat your TODO file, so you have full control of it.
+
+**Disclaimer:** This tool is for my own personal use. Feedback and requests are welcome, but not necessarily acted upon.
+
+## Components
+
+### Backend
+
+The backend does all the heavy lifting:
+
+* Parsing the text todo file
+* Providing formatting information for the VSCode extension
+* Providing folding information for the VSCode extension
+* Providing data for HTML calendar
+* Providing commands to clean and trash done todos
+* Sending mail reminders for upcoming todos
+* Creating backups of the todo file
+* Inserting todos from external sources (like open Bitbucket PRs)
+
+The backend is a `sibylgo.exe` (Windows) or `sibylgo` (Linux) console application that can be started in the background somewhere. All the other components interact with it via REST calls.
+
+### VSCode extension
+
+The VSCode extension is a thin client that interacts with the backend
+and formats the todo file if opened in VSCode.  
+Also handles folding of hierarchical todos and provides the clean and
+trash commands in the command palette and editor context menu.
+
+The extension is a `sibyl.vsix` file that can be installed manually with:
+
+```shell
+code --install-extension sibyl.vsix
+```
+
+Or via the "Install from VSIX..." option in the VSCode extension GUI.
+
+### Calendar
+
+The calendar is a simple `sibylcal.html` file that displays the
+current month/week/day, using data from the backend.
 
 ## Text syntax
 
@@ -106,7 +148,7 @@ host: localhost
 
 mailHost: smtp.example.com
 mailPort: 3025
-mailFrom: foo@example.com 
+mailFrom: foo@example.com
 mailTo: bar@example.com
 mailUser: foo
 mailPassword: lepass
@@ -136,7 +178,7 @@ make build
 VSCode Extension:
 
 ```shell
-cd vscode_ext
+cd VSCode_ext
 make deps
 make build
 ```
@@ -151,6 +193,8 @@ can also be written to a temporary file instead of the real golden file:
 `go test ./... -update-golden -dry-golden`
 
 ### Releasing
+
+Make sure to update and commit `version.txt`.
 
 ```shell
 make release
