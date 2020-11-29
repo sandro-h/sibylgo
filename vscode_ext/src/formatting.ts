@@ -1,45 +1,65 @@
 import * as vscode from 'vscode';
 import * as util from './util';
-const request = require('request');
+import * as request from 'request';
 
-export function activate(context: vscode.ExtensionContext, cfg: util.SibylConfig) {
-    const catDecorationType = vscode.window.createTextEditorDecorationType({
-		color: 'orange; font-weight: bold'
-	});
+type FormatDefinition = {
+	dec: vscode.TextEditorDecorationType;
+	hoverMessage?: string;
+}
 
-	const momDecorationType = vscode.window.createTextEditorDecorationType({
-		color: 'inherit; font-weight: bold',		
-	});
+type Format = FormatDefinition & {list: vscode.DecorationOptions[]};
 
-	const momPriorityDecorationType = vscode.window.createTextEditorDecorationType({
-		color: 'inherit; font-weight: bold',	
-		border: 'solid 1px red'	
-	});
-
-	const momDoneDecorationType = vscode.window.createTextEditorDecorationType({	
-		color: '#1e420f; font-weight: bold'
-	});
-	
-	const comDoneDecorationType = vscode.window.createTextEditorDecorationType({	
-		color: '#1e420f;'
-	});
-
-	const dateDecorationType = vscode.window.createTextEditorDecorationType({
-		after: {
-			contentIconPath: context.asAbsolutePath('cal.png')
-		}
-	});
-
-	const timeDecorationType = vscode.window.createTextEditorDecorationType({
-		after: {
-			contentIconPath: context.asAbsolutePath('time.png')
-		}
-	});
-
-	const idDecorationType = vscode.window.createTextEditorDecorationType({
-		color: '#3f679a',
-	});
-
+function initFormats(context: vscode.ExtensionContext): Record<string, FormatDefinition> {
+	const fmts: Record<string, FormatDefinition> = {
+		'cat': {
+			dec: vscode.window.createTextEditorDecorationType({
+				color: 'orange; font-weight: bold'
+			})
+		},
+		'mom': {
+			dec: vscode.window.createTextEditorDecorationType({
+				color: 'inherit; font-weight: bold',
+			})
+		},
+		'mom.priority': {
+			dec: vscode.window.createTextEditorDecorationType({
+				color: 'inherit; font-weight: bold',
+				border: 'solid 1px red'
+			})
+		},
+		'mom.done': {
+			dec: vscode.window.createTextEditorDecorationType({
+				color: '#1e420f; font-weight: bold'
+			})
+		},
+		'date': {
+			dec: vscode.window.createTextEditorDecorationType({
+				after: {
+					contentIconPath: context.asAbsolutePath('cal.png')
+				}
+			}),
+			hoverMessage: 'Date'
+		},
+		'time': {
+			dec: vscode.window.createTextEditorDecorationType({
+				after: {
+					contentIconPath: context.asAbsolutePath('time.png')
+				}
+			}),
+			hoverMessage: 'Time'
+		},
+		'id': {
+			dec: vscode.window.createTextEditorDecorationType({
+				color: '#3f679a',
+			}),
+			hoverMessage: 'ID'
+		},
+		'com.done': {
+			dec: vscode.window.createTextEditorDecorationType({
+				color: '#1e420f;'
+			}),
+		},
+	};
 
 	const dueStyles = [
 		{textDecoration: 'none; font-weight: bold', color: '#ff0000'},
@@ -48,16 +68,7 @@ export function activate(context: vscode.ExtensionContext, cfg: util.SibylConfig
 		{textDecoration: 'none; font-weight: bold', color: '#fea4a4'},
 		{textDecoration: 'none; font-weight: bold', color: '#fec7c7'}
 	];
-	function flatCloneStyle(st, additional) {
-		var cloned = {};
-		for (let key in st) {
-			cloned[key] = st[key];
-		}
-		for (let key in additional) {
-			cloned[key] = additional[key];
-		}
-		return cloned;
-	}
+
 	const momUntilDecorationTypes = {};
 	for (let i = 0; i <= 11; i += 1) {
 		let styleIndex = -1;
@@ -69,18 +80,58 @@ export function activate(context: vscode.ExtensionContext, cfg: util.SibylConfig
 
 		if (styleIndex > -1) {
 			momUntilDecorationTypes['mom.until' + i] = vscode.window.createTextEditorDecorationType(dueStyles[styleIndex]);
-			momUntilDecorationTypes['mom.priority.until' + i] = vscode.window.createTextEditorDecorationType(
-				flatCloneStyle(dueStyles[styleIndex], {border: 'solid 1px red'}));
+			momUntilDecorationTypes['mom.priority.until' + i] = vscode.window.createTextEditorDecorationType({
+				...dueStyles[styleIndex],
+				border: 'solid 1px red'
+			});
 		}
-    }
-    
-  let activeEditor = null;
+	}
+
+	for (let key in momUntilDecorationTypes) {
+		fmts[key] = { dec: momUntilDecorationTypes[key] };
+	}
+
+	return fmts;
+}
+
+function parseFormatting(formattingLines: string[], formats: Record<string, FormatDefinition>, document: vscode.TextDocument): Record<string, Format> {
+	const res: Record<string, Format> = {};
+	for (let key in formats) {
+		res[key] = {
+			...formats[key],
+			list: []
+		};
+	}
+
+	formattingLines.forEach(line => {
+		const parts = line.split(',');
+		if (parts.length !== 3) return;
+
+		const startPos = document.positionAt(parseInt(parts[0]));
+		const endPos = document.positionAt(parseInt(parts[1]));
+		const fmt = res[parts[2]];
+
+		if (fmt) {
+			fmt.list.push({
+				range: new vscode.Range(startPos, endPos),
+				hoverMessage: fmt.hoverMessage
+			});
+		}
+	});
+
+	return res;
+}
+
+export function activate(context: vscode.ExtensionContext, cfg: util.SibylConfig) {
+	const formats = initFormats(context);
+	let activeEditor: vscode.TextEditor|null = null;
+	let timeout = null;
+
 	setActiveEditor(vscode.window.activeTextEditor);
 	triggerUpdateDecorations();
 
 	vscode.window.onDidChangeActiveTextEditor(editor => {
 		setActiveEditor(editor);
-		// editor.document.fileName
 		triggerUpdateDecorations();
 	}, null, context.subscriptions);
 
@@ -90,7 +141,7 @@ export function activate(context: vscode.ExtensionContext, cfg: util.SibylConfig
 		}
 	}, null, context.subscriptions);
 
-	var timeout = null;
+
 	function triggerUpdateDecorations() {
 		if (!activeEditor) return;
 		if (timeout) {
@@ -99,13 +150,13 @@ export function activate(context: vscode.ExtensionContext, cfg: util.SibylConfig
 		timeout = setTimeout(updateDecorations, 250);
 	}
 
-	function isTodoEditor(editor) {
+	function isTodoEditor(editor: vscode.TextEditor) {
 		if (!editor || !editor.document) return false;
 		console.log(editor.document.fileName);
 		return editor.document.fileName.indexOf(cfg.todoFileName) === editor.document.fileName.length - cfg.todoFileName.length;
 	}
 
-	function setActiveEditor(editor) {
+	function setActiveEditor(editor: vscode.TextEditor) {
 		activeEditor = isTodoEditor(editor) ? editor : null;
 	}
 
@@ -113,43 +164,24 @@ export function activate(context: vscode.ExtensionContext, cfg: util.SibylConfig
 		if (!activeEditor) return;
 
 		const text = activeEditor.document.getText();
-		request.post({
-			headers: {'content-type' : 'text/plain'},
-			url:     `${cfg.restUrl}/format`,
-			body:    new Buffer(text).toString('base64')
-		  },
-		  function (error, response, body) {
-			  	if (error) return;
-				let lines = body.split(/\r?\n/);
-				const fmts = {
-					'cat': {dec: catDecorationType, list: []},
-					'mom': {dec: momDecorationType, list: []},
-					'mom.priority': {dec: momPriorityDecorationType, list: []},
-					'mom.done': {dec: momDoneDecorationType, list: []},
-					'date': {dec: dateDecorationType, list: [], hoverMessage: 'Date'},
-					'time': {dec: timeDecorationType, list: [], hoverMessage: 'Time'},
-					'id': {dec: idDecorationType, list: [], hoverMessage: 'ID'},
-					'com.done': {dec: comDoneDecorationType, list: []},
-				};
-				for (let key in momUntilDecorationTypes) {
-					fmts[key] = {dec: momUntilDecorationTypes[key], list: []};
-				}
-				for (let i = 0; i < lines.length; i+=1) {
-					
-					let parts = lines[i].split(',');
-					if (parts.length !== 3) continue;
-					let startPos = activeEditor.document.positionAt(parseInt(parts[0]));
-					let endPos = activeEditor.document.positionAt(parseInt(parts[1]));
-					let decoration = { range: new vscode.Range(startPos, endPos), hoverMessage: null };
-					let fmt = fmts[parts[2]];
-					if (fmt) {
-						if (fmt.hoverMessage) decoration.hoverMessage = fmt.hoverMessage;
-						fmt.list.push(decoration);
+		request.post(
+			{
+				headers: {'content-type' : 'text/plain'},
+				url:     `${cfg.restUrl}/format`,
+				body:    Buffer.from(text).toString('base64')
+		  	},
+		  	(error, _response, body: string) => {
+				if (error) return;
+
+				const lines = body.split(/\r?\n/);
+				const fmts = parseFormatting(lines, formats, activeEditor.document);
+				for (let key in fmts) {
+					const fmt = fmts[key];
+					if (fmt.list.length) {
+						activeEditor.setDecorations(fmt.dec, fmt.list);
 					}
 				}
-				for (let key in fmts) {
-					activeEditor.setDecorations(fmts[key].dec, fmts[key].list);
-				}
-			});
+			}
+		);
 	}
 }
