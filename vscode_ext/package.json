@@ -15,6 +15,32 @@
   "activationEvents": [
     "*"
   ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "sibylgo.clean",
+        "title": "Clean done todos"
+      },
+      {
+        "command": "sibylgo.trash",
+        "title": "Trash done todos"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "sibylgo.clean",
+          "when": "resourceFilename =~ /todo.txt$/",
+          "group": "sibylgo@1"
+        },
+        {
+          "command": "sibylgo.trash",
+          "when": "resourceFilename =~ /todo.txt$/",
+          "group": "sibylgo@1"
+        }
+      ]
+    }
+  },
   "main": "./out/extension",
   "scripts": {
     "vscode:prepublish": "npm run compile",

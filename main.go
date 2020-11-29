@@ -144,6 +144,8 @@ func startRestServer(cfg *util.Config) {
 	router := mux.NewRouter()
 	router.HandleFunc("/format", formatMoments).Methods("POST")
 	router.HandleFunc("/folding", foldMoments).Methods("POST")
+	router.HandleFunc("/clean", wrapForRequest(clean)).Methods("POST")
+	router.HandleFunc("/trash", wrapForRequest(trash)).Methods("POST")
 	router.HandleFunc("/moments", getCalendarEntries).Methods("GET")
 	router.HandleFunc("/moments", insertMoment).Methods("POST")
 	router.HandleFunc("/reminders/{date}/weekly", getWeeklyReminders).Methods("GET")
@@ -156,6 +158,12 @@ func startRestServer(cfg *util.Config) {
 	}
 	go srv.ListenAndServe()
 	fmt.Printf("Started REST server on %s:%d\n", host, port)
+}
+
+func wrapForRequest(fn func()) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fn()
+	}
 }
 
 func handleUserCommands() {

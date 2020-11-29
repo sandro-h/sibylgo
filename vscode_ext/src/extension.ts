@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as formatting from './formatting';
 import * as folding from './folding';
+import * as commands from './commands';
 import * as util from './util';
 const request = require('request');
 
@@ -13,4 +14,5 @@ export function activate(context: vscode.ExtensionContext) {
 
 	formatting.activate(context, cfg);
 	folding.activate(context, cfg);
+	commands.activate(context, cfg);
 }
