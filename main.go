@@ -265,12 +265,12 @@ func foldMoments(w http.ResponseWriter, r *http.Request) {
 }
 
 func getCalendarEntries(w http.ResponseWriter, r *http.Request) {
-	start, err := time.ParseInLocation("2006-01-02", r.FormValue("start"), time.Local)
+	start, err := parseDate(r.FormValue("start"))
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	end, err := time.ParseInLocation("2006-01-02", r.FormValue("end"), time.Local)
+	end, err := parseDate(r.FormValue("end"))
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 		return
@@ -282,7 +282,7 @@ func getCalendarEntries(w http.ResponseWriter, r *http.Request) {
 	}
 
 	entries := calendar.CompileCalendarEntries(todos, start, end)
-	w.Header().Set("Content-Type", "application/json")
+	setJSONContentType(w)
 	json.NewEncoder(w).Encode(entries)
 }
 
@@ -307,13 +307,13 @@ func insertMoment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	w.Header().Set("Content-Type", "application/json")
+	setJSONContentType(w)
 	w.Write([]byte("{\"message\": \"Inserted moment\"}"))
 }
 
 func getWeeklyReminders(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	date, err := time.ParseInLocation("2006-01-02", vars["date"], time.Local)
+	date, err := parseDate(vars["date"])
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 		return
@@ -328,6 +328,14 @@ func getWeeklyReminders(w http.ResponseWriter, r *http.Request) {
 	res := map[string][]*instances.Instance{
 		"today": todays,
 		"week":  weeks}
-	w.Header().Set("Content-Type", "application/json")
+	setJSONContentType(w)
 	json.NewEncoder(w).Encode(res)
+}
+
+func setJSONContentType(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+}
+
+func parseDate(s string) (time.Time, error) {
+	return time.ParseInLocation("2006-01-02", s, time.Local)
 }

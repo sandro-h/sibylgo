@@ -47,7 +47,7 @@ func stringifyMoment(m moment.Moment, parentDone bool, indent string) string {
 	prioritySuffix := ""
 	if m.GetPriority() > 0 {
 		// TODO
-		panic("priority stringify not implemented")
+		panicNotImplemented()
 	}
 
 	res := fmt.Sprintf("%s[%s] %s%s%s%s\n", indent, doneMarker, m.GetName(), prioritySuffix, dateSuffix, idSuffix)
@@ -66,21 +66,25 @@ func stringifyDate(m moment.Moment) string {
 	case *moment.SingleMoment:
 		if v.Start != nil {
 			// TODO
-			panic("date stringify not implemented")
+			panicNotImplemented()
 		}
 		if v.End != nil && (v.Start == nil || v.End.DocCoords != v.Start.DocCoords) {
 			// TODO
-			panic("date stringify not implemented")
+			panicNotImplemented()
 		}
 	case *moment.RecurMoment:
 		// TODO
-		panic("date stringify not implemented")
+		panicNotImplemented()
 	}
 
 	if m.GetTimeOfDay() != nil {
 		// TODO
-		panic("date stringify not implemented")
+		panicNotImplemented()
 	}
 
 	return ""
+}
+
+func panicNotImplemented() {
+	panic("not implemented")
 }
