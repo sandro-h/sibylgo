@@ -1,6 +1,6 @@
 # sibylgo
 
-![CI](https://github.com/sandro-h/sibylgo/workflows/CI/badge.svg)
+![CI](https://github.com/sandro-h/sibylgo/workflows/CI/badge.svg) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=sandro-h_sibylgo&metric=alert_status)](https://sonarcloud.io/dashboard?id=sandro-h_sibylgo)
 
 Text-based TODO application.
 
