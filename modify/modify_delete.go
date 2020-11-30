@@ -14,30 +14,17 @@ func Delete(content string, toDel []moment.Moment) (string, string) {
 	deleted := ""
 
 	scanner := bufio.NewScanner(strings.NewReader(content))
-	ln := 0
-	k := 0
-	var curRange *lineRange
+	lineNum := 0
+	curDelRangeIndex := 0
+	var curDelRange *lineRange
 	prevLineWasDeleted := false
 	if len(toDel) > 0 {
-		curRange = getFullLineRange(toDel[0])
+		curDelRange = getFullLineRange(toDel[0])
 	}
 	for scanner.Scan() {
 		line := scanner.Text()
 		delete := false
-		// Check if line is part of current to-delete range.
-		if curRange != nil {
-			if curRange.contains(ln) {
-				delete = true
-			}
-			if ln == curRange.endLine {
-				if k < len(toDel)-1 {
-					k++
-					curRange = getFullLineRange(toDel[k])
-				} else {
-					curRange = nil
-				}
-			}
-		}
+		delete, curDelRange, curDelRangeIndex = updateDeleteState(lineNum, curDelRange, curDelRangeIndex, toDel)
 		// Check if line is empty right after a deleted line -> trim superfluous empty lines.
 		if prevLineWasDeleted && strings.TrimSpace(line) == "" {
 			delete = true
@@ -51,10 +38,30 @@ func Delete(content string, toDel []moment.Moment) (string, string) {
 			addLine(&kept, line)
 		}
 
-		ln++
+		lineNum++
 	}
 
 	return kept, deleted
+}
+
+func updateDeleteState(lineNum int, curDelRange *lineRange, curDelRangeIndex int, toDel []moment.Moment) (bool, *lineRange, int) {
+	delete := false
+	if curDelRange != nil {
+		if curDelRange.contains(lineNum) {
+			delete = true
+		}
+		if lineNum == curDelRange.endLine {
+			// Switch to next delete range
+			if curDelRangeIndex < len(toDel)-1 {
+				curDelRangeIndex++
+				curDelRange = getFullLineRange(toDel[curDelRangeIndex])
+			} else {
+				curDelRange = nil
+			}
+		}
+	}
+
+	return delete, curDelRange, curDelRangeIndex
 }
 
 func addLine(s *string, l string) {
