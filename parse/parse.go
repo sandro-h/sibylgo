@@ -79,6 +79,9 @@ func (p *parserState) handleLine(line *Line) error {
 
 func (p *parserState) handleCategoryLine(line *Line) error {
 	ok, catLine := p.scanner.ScanAndLine()
+	if !ok {
+		return newParseError(catLine, "Expected a category name after category delimiter")
+	}
 
 	p.curCategory = parseCategory(catLine)
 	p.todos.Categories = append(p.todos.Categories, p.curCategory)

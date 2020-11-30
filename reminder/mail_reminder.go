@@ -128,7 +128,6 @@ func (p *MailReminderProcess) checkDailyReminder(today time.Time, insts []*insta
 			fmt.Printf("Could not send reminder: %s\n", err.Error())
 			return
 		}
-		lastDaySent = today
 		p.saveLastDaySent(today)
 	}
 }
