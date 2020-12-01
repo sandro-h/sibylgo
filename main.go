@@ -16,6 +16,7 @@ import (
 	"github.com/sandro-h/sibylgo/instances"
 	"github.com/sandro-h/sibylgo/modify"
 	"github.com/sandro-h/sibylgo/moment"
+	"github.com/sandro-h/sibylgo/outlook"
 	"github.com/sandro-h/sibylgo/parse"
 	"github.com/sandro-h/sibylgo/reminder"
 	"github.com/sandro-h/sibylgo/util"
@@ -70,6 +71,14 @@ func main() {
 		startExternalSources(todoFile, extSrcConfig)
 	}
 
+	if cfg.HasKey("outlook_events") {
+		outlookConfig := cfg.GetSubConfig("outlook_events")
+		if todoFile == "" {
+			panic("Cannot run outlook events without todoFile set")
+		}
+		startOutlookEvents(todoFile, outlookConfig)
+	}
+
 	startRestServer(cfg)
 
 	handleUserCommands()
@@ -120,6 +129,13 @@ func startExternalSources(todoFile string, extSrcConfig *util.Config) {
 	extSourcesProcess = extsources.NewExternalSourcesProcess(todoFile, extSrcConfig)
 	go extSourcesProcess.CheckInfinitely()
 	fmt.Println("Started external sources")
+}
+
+func startOutlookEvents(todoFile string, outlookConfig *util.Config) {
+	if outlookConfig.GetBool("enabled", false) {
+		go outlook.CheckInfinitely(todoFile, 5*time.Second)
+		fmt.Println("Started outlook syncing")
+	}
 }
 
 func startDailyBackupProcess(todoFile string) {

@@ -164,6 +164,9 @@ external_sources:
     dummy_moments:
       - id1:name1
       - id2:name2
+
+outlook_events:
+  enabled: true
 ```
 
 ## Development
