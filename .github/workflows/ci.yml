@@ -109,6 +109,10 @@ jobs:
 
     steps:
 
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
       - name: Download go artifacts
         uses: actions/download-artifact@v2
         with:
@@ -121,8 +125,11 @@ jobs:
           name: vscode-artifacts
           path: sibylgo
 
+      - name: Copy outlook_cli
+        run: mkdir -p sibylgo/outlook_cli && cp outlook_cli/bin/Release/* sibylgo/outlook_cli/
+
       - name: Zip artifacts
-        run: zip sibylgo sibylgo/*
+        run: zip -r sibylgo sibylgo/*
 
       - name: Print final version
         id: print_version
