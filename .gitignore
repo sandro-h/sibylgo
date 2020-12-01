@@ -6,3 +6,7 @@ lint_report.txt
 sibylgo.yml
 */testdata/*.tmp
 npm-debug.log
+outlook_cli/obj
+outlook_cli/packages
+outlook_cli/bin/Debug
+outlook_cli/.vs
