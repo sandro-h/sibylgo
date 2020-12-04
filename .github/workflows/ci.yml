@@ -47,7 +47,6 @@ jobs:
         path: |
           sibylgo
           sibylgo.exe
-          sibylcal.html
 
 
   build-vscode:
@@ -117,23 +116,17 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: go-artifacts
-          path: sibylgo
+          path: .
 
       - name: Download vscode artifacts
         uses: actions/download-artifact@v2
         with:
           name: vscode-artifacts
-          path: sibylgo
+          path: vscode_ext/
 
-      - name: Copy outlook_cli
-        run: mkdir -p sibylgo/outlook_cli && cp outlook_cli/bin/Release/* sibylgo/outlook_cli/
-
-      - name: Zip artifacts
-        run: zip -r sibylgo sibylgo/*
-
-      - name: Print final version
-        id: print_version
-        run: chmod +x sibylgo/sibylgo && echo "::set-output name=version::$(sibylgo/sibylgo --version)"
+      - name: Package artifacts
+        id: package
+        run: make package
 
       - name: Create Release
         id: create_release
@@ -142,7 +135,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: ${{ steps.print_version.outputs.version }}
+          release_name: ${{ steps.package.outputs.version }}
           draft: false
           prerelease: false
 
@@ -153,5 +146,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: sibylgo.zip
-          asset_name: sibylgo-${{ steps.print_version.outputs.version }}.zip
+          asset_name: sibylgo-${{ steps.package.outputs.version }}.zip
           asset_content_type: application/zip

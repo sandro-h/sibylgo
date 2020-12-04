@@ -10,3 +10,5 @@ outlook_cli/obj
 outlook_cli/packages
 outlook_cli/bin/Debug
 outlook_cli/.vs
+dist_pkg/
+sibylgo.zip
