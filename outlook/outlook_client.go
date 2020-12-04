@@ -13,7 +13,7 @@ import (
 const outlookCliExe = "outlook_cli/outlook_cli.exe"
 
 func createEvent(mom *moment.SingleMoment) error {
-	if mom.Start == nil || mom.End == nil || util.SetToStartOfDay(mom.Start.Time) != util.SetToStartOfDay(mom.End.Time) {
+	if !moment.IsSingleDayMoment(mom) {
 		return errors.New("Only single, non-range moments are supported at the moment")
 	}
 

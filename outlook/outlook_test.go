@@ -3,6 +3,7 @@ package outlook
 import (
 	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/parse"
+	tu "github.com/sandro-h/sibylgo/testutil"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -23,10 +24,11 @@ func TestComputeDiff(t *testing.T) {
 [] bla (4.12.20)
 [] foo (4.12.20 8:00)
 [x] done moment (4.12.20)
-[] ranged moment (-4.12.20)
+[] due moment (-4.12.20)
+[] ranged moment (2.12.20-4.12.20)
 [] recurring moment (every day)`,
 			outlook: "",
-			added:   []string{"bla", "foo"},
+			added:   []string{"bla", "foo", "due moment"},
 			updated: []string(nil),
 			removed: []string(nil),
 		},
@@ -71,6 +73,30 @@ func TestComputeDiff(t *testing.T) {
 		assert.Equal(t, tc.removed, names(removed))
 	}
 
+}
+
+func TestDueMoment_ConvertsToSingleDay(t *testing.T) {
+	todos, _ := parse.String("[] due moment (-4.12.20 8:00)")
+
+	currentMoms := filterEligibleForOutlook(todos.Moments)
+
+	assert.True(t, moment.IsSingleDayMoment(currentMoms[0]))
+	assert.Equal(t, "04.12.2020", tu.Dts(currentMoms[0].Start.Time))
+	assert.Equal(t, "04.12.2020", tu.Dts(currentMoms[0].End.Time))
+	assert.Equal(t, "08:00:00", tu.Tts(currentMoms[0].TimeOfDay.Time))
+}
+
+func TestDueMoment_EqualsSingleDayFromOutlook(t *testing.T) {
+	todos, _ := parse.String("[] due moment (-4.12.20 8:00)")
+	outlookTodos, _ := parse.String("[] due moment (4.12.20 8:00)")
+
+	currentMoms := filterEligibleForOutlook(todos.Moments)
+	outlookMoms := filterEligibleForOutlook(outlookTodos.Moments)
+
+	added, updated, removed := computeDiff(currentMoms, outlookMoms)
+	assert.Equal(t, []string(nil), names(added))
+	assert.Equal(t, []string(nil), names(updated))
+	assert.Equal(t, []string(nil), names(removed))
 }
 
 func names(moms []*moment.SingleMoment) []string {

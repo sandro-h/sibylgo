@@ -1,6 +1,7 @@
 package moment
 
 import (
+	"github.com/sandro-h/sibylgo/util"
 	"time"
 )
 
@@ -206,6 +207,20 @@ func NewSingleMoment(name string, subMoments ...Moment) *SingleMoment {
 		m.AddSubMoment(s)
 	}
 	return &m
+}
+
+// IsSingleDayMoment returns true if the moment is dated to one day, not a range.
+// E.g. [] foo (4.12.20)
+func IsSingleDayMoment(mom *SingleMoment) bool {
+	return mom.Start != nil &&
+		mom.End != nil &&
+		util.SetToStartOfDay(mom.Start.Time) == util.SetToStartOfDay(mom.End.Time)
+}
+
+// IsDueMoment returns true if the moment has no start date but an end date.
+// E.g. [] foo (-4.12.20)
+func IsDueMoment(mom *SingleMoment) bool {
+	return mom.Start == nil && mom.End != nil
 }
 
 // RecurMoment is a moment that re-occurs once or more.

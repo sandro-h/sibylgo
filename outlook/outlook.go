@@ -80,12 +80,18 @@ func filterEligibleForOutlook(moments []moment.Moment) []*moment.SingleMoment {
 	for _, m := range moments {
 		// Only single, non-range moments
 		singMom, ok := m.(*moment.SingleMoment)
-		if ok &&
-			!singMom.IsDone() &&
-			singMom.Start != nil &&
-			singMom.End != nil &&
-			util.SetToStartOfDay(singMom.Start.Time) == util.SetToStartOfDay(singMom.End.Time) {
-			res = append(res, singMom)
+		if ok && !singMom.IsDone() {
+
+			if moment.IsSingleDayMoment(singMom) {
+				res = append(res, singMom)
+			} else if moment.IsDueMoment(singMom) {
+				// Due moment must be converted to single day moment, since we don't encode "due" in outlook.
+				// (we don't want long ranged outlook events)
+				clone := *singMom
+				clone.Start = &moment.Date{Time: util.SetToStartOfDay(singMom.End.Time)}
+				clone.End = &moment.Date{Time: util.SetToEndOfDay(singMom.End.Time)}
+				res = append(res, &clone)
+			}
 		}
 	}
 	return res
