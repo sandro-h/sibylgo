@@ -6,6 +6,7 @@ import (
 	"github.com/sandro-h/sibylgo/instances"
 	"github.com/sandro-h/sibylgo/parse"
 	"github.com/sandro-h/sibylgo/util"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/gomail.v2"
 	"os"
 	"path/filepath"
@@ -67,7 +68,7 @@ func (p *MailReminderProcess) CheckOnce() {
 
 	insts, err := p.loadTodaysMoments(today)
 	if err != nil {
-		fmt.Printf("Could not load moments for reminders: %s\n", err.Error())
+		log.Errorf("Could not load moments for reminders: %s\n", err.Error())
 		return
 	}
 
@@ -80,7 +81,7 @@ func (p *MailReminderProcess) loadLastDaySent() time.Time {
 	path := p.LastSentFile
 	file, err := os.Open(path)
 	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+		log.Errorf("%s\n", err.Error())
 		return errDt
 	}
 	defer file.Close()
@@ -90,7 +91,7 @@ func (p *MailReminderProcess) loadLastDaySent() time.Time {
 	}
 	dt, err := time.ParseInLocation("2006-01-02", sc.Text(), time.Local)
 	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+		log.Errorf("%s\n", err.Error())
 		return errDt
 	}
 	return dt
@@ -100,12 +101,12 @@ func (p *MailReminderProcess) saveLastDaySent(dt time.Time) {
 	path := p.LastSentFile
 	file, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+		log.Errorf("%s\n", err.Error())
 	}
 	defer file.Close()
 	_, err = fmt.Fprintf(file, "%s\n", dt.Format("2006-01-02"))
 	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+		log.Errorf("%s\n", err.Error())
 	}
 }
 
@@ -122,10 +123,10 @@ func (p *MailReminderProcess) loadTodaysMoments(today time.Time) ([]*instances.I
 func (p *MailReminderProcess) checkDailyReminder(today time.Time, insts []*instances.Instance) {
 	lastDaySent := p.loadLastDaySent()
 	if today.After(lastDaySent) {
-		fmt.Printf("Sending daily reminder for %s\n", today)
+		log.Infof("Sending daily reminder for %s\n", today)
 		err := p.sendDailyReminder(today, insts)
 		if err != nil {
-			fmt.Printf("Could not send reminder: %s\n", err.Error())
+			log.Errorf("Could not send reminder: %s\n", err.Error())
 			return
 		}
 		p.saveLastDaySent(today)
@@ -174,7 +175,6 @@ func hasSubsEndingInRange(m *instances.Instance) bool {
 func (p *MailReminderProcess) checkTimedReminders(now time.Time, insts []*instances.Instance) {
 	upcoming := p.findUpcomingTimedMoments(now, p.reminderTime, p.checkInterval, insts)
 	for _, m := range upcoming {
-		fmt.Print(m.Delta)
 		subject := fmt.Sprintf("Reminder for %s in %.0fmin", m.Name, m.Delta.Minutes())
 		content := fmt.Sprintf("%s starts at %s", m.Name, m.TimeOfDay.Format("15:04"))
 		p.sendMailFunc(subject, content)

@@ -143,6 +143,7 @@ Important (!):
 ### sibylgo.yml
 
 ```yaml
+log_level: info
 todoFile: path/to/todo.txt
 host: localhost
 

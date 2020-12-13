@@ -20,9 +20,11 @@ import (
 	"github.com/sandro-h/sibylgo/parse"
 	"github.com/sandro-h/sibylgo/reminder"
 	"github.com/sandro-h/sibylgo/util"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -44,18 +46,21 @@ var extSourcesProcess *extsources.ExternalSourcesProcess
 func main() {
 	flag.Parse()
 
+	log.SetFormatter(&SimpleFormatter{})
+
 	if *showVersion {
-		fmt.Printf("%s.%s\n", buildVersion, buildNumber)
+		log.Infof("%s.%s\n", buildVersion, buildNumber)
 		return
 	}
 
 	fmt.Printf("%s\n", ascii)
-	fmt.Printf("Version %s.%s (%s)\n", buildVersion, buildNumber, buildRevision)
+	log.Infof("Version %s.%s (%s)\n", buildVersion, buildNumber, buildRevision)
 
 	cfg := loadConfig()
+	log.SetLevel(getConfigLogLevel(cfg))
 	todoFile = cfg.GetString("todoFile", "")
 	if todoFile != "" {
-		fmt.Printf("Using todo file %s\n", todoFile)
+		log.Infof("Using todo file %s\n", todoFile)
 		startDailyBackupProcess(todoFile)
 	}
 
@@ -99,7 +104,7 @@ func loadConfig() *util.Config {
 	}
 
 	cfg := &util.Config{}
-	fmt.Printf("%s\n", absoluteCfgFile)
+	log.Infof("%s\n", absoluteCfgFile)
 	if _, err := os.Stat(absoluteCfgFile); !os.IsNotExist(err) {
 		cfg, err = util.LoadConfig(absoluteCfgFile)
 		if err != nil {
@@ -108,6 +113,21 @@ func loadConfig() *util.Config {
 	}
 
 	return cfg
+}
+
+func getConfigLogLevel(cfg *util.Config) log.Level {
+	switch strings.ToLower(cfg.GetString("log_level", "info")) {
+	case "debug":
+		return log.DebugLevel
+	case "error":
+		return log.ErrorLevel
+	case "fatal":
+		return log.FatalLevel
+	case "panic":
+		return log.PanicLevel
+	default:
+		return log.InfoLevel
+	}
 }
 
 func startMailReminders(cfg *util.Config) {
@@ -122,19 +142,19 @@ func startMailReminders(cfg *util.Config) {
 	host := reminder.MailHostProperties{Host: mailHost, Port: mailPort, User: mailUser, Password: mailPassword}
 	p := reminder.NewMailReminderProcessForSMTP(todoFile, host, mailFrom, mailTo)
 	go p.CheckInfinitely()
-	fmt.Println("Started mail reminders")
+	log.Info("Started mail reminders\n")
 }
 
 func startExternalSources(todoFile string, extSrcConfig *util.Config) {
 	extSourcesProcess = extsources.NewExternalSourcesProcess(todoFile, extSrcConfig)
 	go extSourcesProcess.CheckInfinitely()
-	fmt.Println("Started external sources")
+	log.Info("Started external sources\n")
 }
 
 func startOutlookEvents(todoFile string, outlookConfig *util.Config) {
 	if outlookConfig.GetBool("enabled", false) {
 		go outlook.CheckInfinitely(todoFile, 5*time.Second)
-		fmt.Println("Started outlook syncing")
+		log.Info("Started outlook syncing\n")
 	}
 }
 
@@ -146,7 +166,7 @@ func startDailyBackupProcess(todoFile string) {
 		}
 	}
 	go dailyBackupFunc()
-	fmt.Println("Started daily backup")
+	log.Info("Started daily backup\n")
 }
 
 func startRestServer(cfg *util.Config) {
@@ -173,7 +193,7 @@ func startRestServer(cfg *util.Config) {
 		ReadTimeout:  15 * time.Second,
 	}
 	go srv.ListenAndServe()
-	fmt.Printf("Started REST server on %s:%d\n", host, port)
+	log.Infof("Started REST server on %s:%d\n", host, port)
 }
 
 func wrapForRequest(fn func()) func(http.ResponseWriter, *http.Request) {
@@ -183,7 +203,7 @@ func wrapForRequest(fn func()) func(http.ResponseWriter, *http.Request) {
 }
 
 func handleUserCommands() {
-	fmt.Println()
+	log.Info()
 	printCommands()
 	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Print("Command> ")
@@ -201,7 +221,7 @@ func handleUserCommands() {
 		case "extsrc":
 			runExtSources()
 		default:
-			fmt.Printf("Unknown command\n")
+			log.Infof("Unknown command\n")
 		}
 		fmt.Print("Command> ")
 	}
@@ -217,22 +237,22 @@ func printCommands() {
 
 func clean() {
 	if todoFile == "" {
-		fmt.Println("Cannot clean without todoFile set")
+		log.Errorf("Cannot clean without todoFile set\n")
 		return
 	}
 
 	backup.Save(todoFile, "Backup before cleaning")
 	err := cleanup.MoveDoneToEndOfFile(todoFile, true)
 	if err != nil {
-		fmt.Printf("Error cleaning up: %s\n", err)
+		log.Infof("Error cleaning up: %s\n", err)
 	} else {
-		fmt.Printf("Moved done to end of: %s\n", todoFile)
+		log.Infof("Moved done to end of: %s\n", todoFile)
 	}
 }
 
 func trash() {
 	if todoFile == "" {
-		fmt.Println("Cannot clean without todoFile set")
+		log.Error("Cannot clean without todoFile set\n")
 		return
 	}
 
@@ -241,16 +261,16 @@ func trash() {
 	backup.Save(todoFile, "Backup before trashing")
 	err := cleanup.MoveDoneToTrashFile(todoFile, trashFile, true)
 	if err != nil {
-		fmt.Printf("Error trashing: %s", err)
+		log.Errorf("Error trashing: %s", err)
 	} else {
-		fmt.Printf("Trashed: %s\n", todoFile)
-		fmt.Printf("Moved done moments to: %s\n", trashFile)
+		log.Infof("Trashed: %s\n", todoFile)
+		log.Infof("Moved done moments to: %s\n", trashFile)
 	}
 }
 
 func runExtSources() {
 	if extSourcesProcess == nil {
-		fmt.Println("External sources not initialized. Are they configured?")
+		log.Info("External sources not initialized. Are they configured?")
 		return
 	}
 	extSourcesProcess.CheckOnce()
@@ -314,7 +334,7 @@ func insertMoment(w http.ResponseWriter, r *http.Request) {
 		mom.SetCategory(&moment.Category{Name: category})
 	}
 
-	fmt.Printf("Inserting '%s' into category '%s'\n", name, category)
+	log.Infof("Inserting '%s' into category '%s'\n", name, category)
 	backup.Save(todoFile, "Backup before programmatically inserting moment")
 	err := modify.PrependInFile(todoFile, []moment.Moment{mom})
 	if err != nil {

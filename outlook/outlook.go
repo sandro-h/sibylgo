@@ -6,6 +6,7 @@ import (
 	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/parse"
 	"github.com/sandro-h/sibylgo/util"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"time"
 )
@@ -25,7 +26,7 @@ func CheckInfinitely(todoFile string, interval time.Duration) {
 func CheckOnce(todoFile string, lastMod *time.Time) {
 	file, err := os.Stat(todoFile)
 	if err != nil {
-		fmt.Printf("Could not stat %s: %s\n", todoFile, err)
+		log.Errorf("Could not stat %s: %s\n", todoFile, err)
 		return
 	}
 
@@ -37,13 +38,13 @@ func CheckOnce(todoFile string, lastMod *time.Time) {
 	*lastMod = newLastMod
 	todos, err := parse.File(todoFile)
 	if err != nil {
-		fmt.Printf("Could not read todo file %s: %s\n", todoFile, err)
+		log.Errorf("Could not read todo file %s: %s\n", todoFile, err)
 		return
 	}
 
 	err = UpdateOutlookEvents(todos.Moments)
 	if err != nil {
-		fmt.Printf("Had one or more errors updating outlook events: %s\n", err)
+		log.Errorf("Had one or more errors updating outlook events: %s\n", err)
 	}
 }
 

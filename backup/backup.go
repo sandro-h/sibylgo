@@ -3,6 +3,7 @@ package backup
 import (
 	"fmt"
 	"github.com/sandro-h/sibylgo/util"
+	log "github.com/sirupsen/logrus"
 	"path/filepath"
 	"strings"
 	"time"
@@ -66,7 +67,7 @@ func CheckAndMakeDailyBackup(todoFile string) (*Backup, error) {
 		return nil, nil
 	}
 
-	fmt.Printf("Creating daily backup for %s\n", today.Format("02.01.2006"))
+	log.Infof("Creating daily backup for %s\n", today.Format("02.01.2006"))
 	return Save(todoFile, fmt.Sprintf("%s%s", dailyBackupPrefix, today.Format("02.01.2006")))
 }
 

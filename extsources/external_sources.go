@@ -7,6 +7,7 @@ import (
 	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/parse"
 	"github.com/sandro-h/sibylgo/util"
+	log "github.com/sirupsen/logrus"
 	"strings"
 	"time"
 )
@@ -46,19 +47,19 @@ func (p *ExternalSourcesProcess) CheckInfinitely() {
 func (p *ExternalSourcesProcess) CheckOnce() {
 	content, err := util.ReadFile(p.todoFilePath)
 	if err != nil {
-		fmt.Printf("[Ext sources] Failed to read todo file %s: %s\n", p.todoFilePath, err.Error())
+		log.Errorf("[Ext sources] Failed to read todo file %s: %s\n", p.todoFilePath, err.Error())
 	}
 
 	updatedContent, err := FetchAndApplyExternalSourceMoments(content, p.extSrcConfig)
 	if err != nil {
-		fmt.Printf("%s\n", err.Error())
+		log.Errorf("%s\n", err.Error())
 	}
 
 	if updatedContent != content {
 		backup.Save(p.todoFilePath, "Backup before applying external source changes")
 		err = util.WriteFile(p.todoFilePath, updatedContent)
 		if err != nil {
-			fmt.Printf("[Ext sources] Failed to write todo file %s: %s\n", p.todoFilePath, err.Error())
+			log.Errorf("[Ext sources] Failed to write todo file %s: %s\n", p.todoFilePath, err.Error())
 		}
 	}
 }
@@ -104,12 +105,12 @@ func fetchExternalSourceMoments(extSrcConfig *util.Config) ([]moment.Moment, map
 		}
 		moments, err := fetchFunc(extSrcConfig.GetSubConfig(srcName))
 		if err != nil {
-			fmt.Printf("[Ext sources] Fetching %s failed: %s\n", srcName, err.Error())
+			log.Errorf("[Ext sources] Fetching %s failed: %s\n", srcName, err.Error())
 			continue
 		}
 		for _, m := range moments {
 			if m.GetID() == nil {
-				fmt.Printf("[Ext sources] %s moment %s has no ID. Skipping it.\n", srcName, m.GetName())
+				log.Errorf("[Ext sources] %s moment %s has no ID. Skipping it.\n", srcName, m.GetName())
 				continue
 			}
 
