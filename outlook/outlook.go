@@ -56,7 +56,13 @@ func UpdateOutlookEvents(moments []moment.Moment) error {
 		return fmt.Errorf("Could not list outlook events: %s", err)
 	}
 
+	debugMomentList("Current moments", currentMoms)
+	debugMomentList("Outlook moments", outlookMoms)
+
 	addedMoments, updatedMoments, removedMoments := computeDiff(currentMoms, outlookMoms)
+	debugMomentList("Added moments", addedMoments)
+	debugMomentList("Updated moments", updatedMoments)
+	debugMomentList("Removed moments", removedMoments)
 
 	allErrors := ""
 	err = removeEvents(removedMoments, updatedMoments)
@@ -157,6 +163,24 @@ func momEqual(a *moment.SingleMoment, b *moment.SingleMoment) bool {
 	}
 
 	return true
+}
+
+func debugMomentList(header string, list []*moment.SingleMoment) {
+	if log.IsLevelEnabled(log.DebugLevel) {
+		log.Debugf("%s:\n", header)
+		for _, m := range list {
+			log.Debugf("  %s\n", momentToDebugString(m))
+		}
+	}
+}
+
+func momentToDebugString(a *moment.SingleMoment) string {
+	aToD := "-"
+	if a.TimeOfDay != nil {
+		aToD = a.TimeOfDay.Time.String()
+	}
+
+	return fmt.Sprintf("name=%-32s start=%-32s timeOfDay=%-32s", a.GetName(), a.Start.Time, aToD)
 }
 
 func removeEvents(listOfLists ...[]*moment.SingleMoment) error {
