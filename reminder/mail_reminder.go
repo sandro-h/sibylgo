@@ -163,15 +163,6 @@ func addMomentHTML(content *string, insts []*instances.Instance) {
 	*content += "</ul>\n"
 }
 
-func hasSubsEndingInRange(m *instances.Instance) bool {
-	for _, s := range m.SubInstances {
-		if s.EndsInRange || hasSubsEndingInRange(s) {
-			return true
-		}
-	}
-	return false
-}
-
 func (p *MailReminderProcess) checkTimedReminders(now time.Time, insts []*instances.Instance) {
 	upcoming := p.findUpcomingTimedMoments(now, p.reminderTime, p.checkInterval, insts)
 	for _, m := range upcoming {

@@ -121,18 +121,6 @@ func findCommits(repoPath string, predicate func(*commitEntry) bool) ([]*commitE
 	return doFindCommits(repoPath, predicate, false)
 }
 
-// ListNewestCommit returns the newest commit in the passed folder. If there are no commits, nil is returned.
-func listNewestCommit(repoPath string) (*commitEntry, error) {
-	found, err := doFindCommits(repoPath, matchAny, true)
-	if err != nil {
-		return nil, err
-	}
-	if len(found) == 0 {
-		return nil, nil
-	}
-	return found[0], nil
-}
-
 // FindNewestCommit returns the newest commit in the passed folder that matches the predicate, or nil.
 func findNewestCommit(repoPath string, predicate func(*commitEntry) bool) (*commitEntry, error) {
 	found, err := doFindCommits(repoPath, predicate, true)

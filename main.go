@@ -140,11 +140,3 @@ func startDailyBackupProcess(todoFile string) {
 	go dailyBackupFunc()
 	log.Info("Started daily backup\n")
 }
-
-func runExtSources() {
-	if extSourcesProcess == nil {
-		log.Info("External sources not initialized. Are they configured?")
-		return
-	}
-	extSourcesProcess.CheckOnce()
-}

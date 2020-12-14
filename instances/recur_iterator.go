@@ -88,13 +88,6 @@ func getNextNWeekly(after time.Time, ref time.Time, n int) time.Time {
 	return dt
 }
 
-func abs(i int) int {
-	if i < 0 {
-		return -i
-	}
-	return i
-}
-
 func getNextMonthly(after time.Time, ref time.Time) time.Time {
 	y, m, _ := after.Date()
 	dt := time.Date(y, m, ref.Day(), 0, 0, 0, 0, time.Local)

@@ -77,13 +77,6 @@ func SeparateDoneFromString(content string, onlyTopLevel bool) (string, string, 
 	return kept, deleted, nil
 }
 
-func addLine(s *string, l string) {
-	if *s != "" {
-		*s += "\n"
-	}
-	*s += l
-}
-
 func computeDoneLinesFromContent(content string, onlyTopLevel bool) ([]moment.Moment, error) {
 	todos, err := parse.String(content)
 	if err != nil {

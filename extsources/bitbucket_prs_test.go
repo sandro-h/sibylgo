@@ -1,11 +1,8 @@
 package extsources
 
 import (
-	"fmt"
 	tu "github.com/sandro-h/sibylgo/testutil"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 
@@ -28,11 +25,4 @@ func TestFetchBitbucketPRs_NoPRs(t *testing.T) {
 	moms, err := FetchBitbucketPRs(ts.URL, "myuser", "1234", "Today")
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(moms))
-}
-
-func mockCountResponse(count int) *httptest.Server {
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintln(w, fmt.Sprintf(`{"count": %d}`, count))
-	}))
 }
