@@ -150,7 +150,7 @@ func writeTodoFile(todos string) string {
 	path := filepath.Join(os.TempDir(), "mail_reminder_test_todo.txt")
 	file, _ := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	defer file.Close()
-	fmt.Fprintf(file, todos)
+	fmt.Fprint(file, todos)
 	return path
 }
 

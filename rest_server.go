@@ -55,7 +55,7 @@ func formatMoments(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 400)
 	}
 	res := format.ForVSCode(todos)
-	fmt.Fprintf(w, res)
+	fmt.Fprint(w, res)
 }
 
 func foldMoments(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +65,7 @@ func foldMoments(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 400)
 	}
 	res := format.FoldForVSCode(todos)
-	fmt.Fprintf(w, res)
+	fmt.Fprint(w, res)
 }
 
 func getCalendarEntries(w http.ResponseWriter, r *http.Request) {
