@@ -14,10 +14,7 @@ import (
 // IsRepoInitiated returns true if the passed folder is a git repository.
 func isRepoInitiated(repoPath string) bool {
 	_, err := git.PlainOpen(repoPath)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 // InitRepo initiates a new non-bare Git repo in the passed folder. Fails if there already is a git repository.

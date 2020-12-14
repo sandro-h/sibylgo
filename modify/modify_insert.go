@@ -103,7 +103,7 @@ func groupByCategory(moms []moment.Moment) map[string][]moment.Moment {
 			catName = cat.Name
 		}
 
-		list, _ := byCategory[catName]
+		list := byCategory[catName]
 		list = append(list, m)
 		byCategory[catName] = list
 	}

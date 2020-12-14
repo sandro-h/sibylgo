@@ -33,7 +33,7 @@ func parseID(line *Line, lineVal string) (*moment.Identifier, string) {
 	}
 
 	untrimmedPos := LastRuneIndex(line.Content(), " #") + 1
-	idStr := strings.TrimSpace(lineVal[idPos+2 : len(lineVal)])
+	idStr := strings.TrimSpace(lineVal[idPos+2:])
 	id := moment.Identifier{Value: idStr,
 		DocCoords: moment.DocCoords{LineNumber: line.LineNumber(), Offset: line.Offset() + untrimmedPos, Length: len(idStr) + 1}}
 	return &id, strings.TrimSpace(lineVal[:idPos])

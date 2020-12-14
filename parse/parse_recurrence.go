@@ -13,11 +13,11 @@ var getNow = func() time.Time {
 	return time.Now()
 }
 
-var dailyPattern, _ = regexp.Compile("(?i)(every day|today)")
-var weeklyPattern, _ = regexp.Compile("(?i)every (monday|tuesday|wednesday|thursday|friday|saturday|sunday)")
-var nWeeklyPattern, _ = regexp.Compile("(?i)every (2nd|3rd|4th) (monday|tuesday|wednesday|thursday|friday|saturday|sunday)")
-var monthlyPattern, _ = regexp.Compile("(?i)every (\\d{1,2})\\.?$")
-var yearlyPattern, _ = regexp.Compile("(?i)every (\\d{1,2})\\.(\\d{1,2})\\.?$")
+var dailyPattern, _ = regexp.Compile(`(?i)(every day|today)`)
+var weeklyPattern, _ = regexp.Compile(`(?i)every (monday|tuesday|wednesday|thursday|friday|saturday|sunday)`)
+var nWeeklyPattern, _ = regexp.Compile(`(?i)every (2nd|3rd|4th) (monday|tuesday|wednesday|thursday|friday|saturday|sunday)`)
+var monthlyPattern, _ = regexp.Compile(`(?i)every (\d{1,2})\.?$`)
+var yearlyPattern, _ = regexp.Compile(`(?i)every (\d{1,2})\.(\d{1,2})\.?$`)
 
 // expected lineVal: .*(\s+<recur>\s+)
 func parseRecurrence(line *Line, lineVal string) (*moment.Recurrence, *moment.Date, string) {
