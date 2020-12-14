@@ -97,14 +97,14 @@ func TestExternalSources_UpdatedMoment(t *testing.T) {
 
 	cfg, _ := util.LoadConfigString(fmt.Sprintf(testConfig, ts.URL))
 
-	updatedTodo, err := FetchAndApplyExternalSourceMoments(originalTodos, cfg)
+	updatedTodo, _ := FetchAndApplyExternalSourceMoments(originalTodos, cfg)
 	assert.Equal(t, todosWithPR, updatedTodo)
 
 	ts.Close()
 	ts = tu.MockSimpleJSONResponse(`{"count": 10}`)
 	defer ts.Close()
 	cfg, _ = util.LoadConfigString(fmt.Sprintf(testConfig, ts.URL))
-	updatedTodo, err = FetchAndApplyExternalSourceMoments(updatedTodo, cfg)
+	updatedTodo, err := FetchAndApplyExternalSourceMoments(updatedTodo, cfg)
 
 	assert.Nil(t, err)
 	assert.Equal(t, todosWithUpdatedPR, updatedTodo)
@@ -115,14 +115,14 @@ func TestExternalSources_DroppedMoment(t *testing.T) {
 
 	cfg, _ := util.LoadConfigString(fmt.Sprintf(testConfig, ts.URL))
 
-	updatedTodo, err := FetchAndApplyExternalSourceMoments(originalTodos, cfg)
+	updatedTodo, _ := FetchAndApplyExternalSourceMoments(originalTodos, cfg)
 	assert.Equal(t, todosWithPR, updatedTodo)
 
 	ts.Close()
 	ts = tu.MockSimpleJSONResponse(`{"count": 0}`)
 	defer ts.Close()
 	cfg, _ = util.LoadConfigString(fmt.Sprintf(testConfig, ts.URL))
-	updatedTodo, err = FetchAndApplyExternalSourceMoments(updatedTodo, cfg)
+	updatedTodo, err := FetchAndApplyExternalSourceMoments(updatedTodo, cfg)
 
 	assert.Nil(t, err)
 	assert.Equal(t, originalTodos, updatedTodo+"\n")

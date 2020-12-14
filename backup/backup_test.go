@@ -35,7 +35,7 @@ func TestSave_Multiple(t *testing.T) {
 	todoFile := filepath.Join(todoDir, "todo.txt")
 	util.WriteFile(todoFile, "my todo content 1")
 
-	backup1, err := Save(todoFile, "save 1")
+	backup1, _ := Save(todoFile, "save 1")
 	util.WriteFile(todoFile, "my todo content 2")
 	backup2, err := Save(todoFile, "save 2")
 
@@ -57,7 +57,7 @@ func TestRestore(t *testing.T) {
 	todoFile := filepath.Join(todoDir, "todo.txt")
 	util.WriteFile(todoFile, "my todo content 1")
 
-	backup1, err := Save(todoFile, "save 1")
+	backup1, _ := Save(todoFile, "save 1")
 	util.WriteFile(todoFile, "my todo content 2")
 	Save(todoFile, "save 2")
 	util.WriteFile(todoFile, "my todo content 3")
@@ -128,7 +128,7 @@ func TestDailyBackup_OldDailyBackups(t *testing.T) {
 	util.WriteFile(todoFile, "my todo content 1")
 
 	setFakeTime("12.01.2019 12:02:42")
-	oldBackup, err := CheckAndMakeDailyBackup(todoFile)
+	oldBackup, _ := CheckAndMakeDailyBackup(todoFile)
 	setFakeTime("13.01.2019 12:02:42")
 	defer resetOriginalTime()
 
@@ -155,7 +155,7 @@ func TestDailyBackup_AlreadyGotDailyBackup(t *testing.T) {
 
 	setFakeTime("13.01.2019 12:02:42")
 	defer resetOriginalTime()
-	oldBackup, err := CheckAndMakeDailyBackup(todoFile)
+	oldBackup, _ := CheckAndMakeDailyBackup(todoFile)
 
 	// When
 	backup, err := CheckAndMakeDailyBackup(todoFile)
