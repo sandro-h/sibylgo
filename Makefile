@@ -17,6 +17,9 @@ test:
 lint:
 	golint -set_exit_status ./...
 
+staticcheck:
+	staticcheck ./...
+
 prepare-package:
 	rm -rf dist_pkg
 	mkdir -p dist_pkg/sibylgo
