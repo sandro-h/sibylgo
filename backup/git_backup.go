@@ -74,7 +74,7 @@ func revertToCommit(repoPath string, commitHash string, newCommitMessage string,
 	cmd.Stderr = &stderr
 	err := cmd.Run()
 	if err != nil {
-		return nil, fmt.Errorf("Error running git command, %s, stderr: %s", err.Error(), stderr.String())
+		return nil, fmt.Errorf("error running git command, %s, stderr: %s", err.Error(), stderr.String())
 	}
 
 	// The revert command didn't auto-commit but staged all the necessary changes

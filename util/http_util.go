@@ -22,7 +22,7 @@ func FetchJSONAsModel(client *http.Client, url string, user string, password str
 		return err
 	}
 	if r.StatusCode < 200 || r.StatusCode >= 300 {
-		return fmt.Errorf("Request returned HTTP %d", r.StatusCode)
+		return fmt.Errorf("request returned HTTP %d", r.StatusCode)
 	}
 
 	defer r.Body.Close()

@@ -153,7 +153,7 @@ func validateMissingInsertCategories(momsByCategory *map[string][]moment.Moment,
 		delete(missingCats, c.name)
 	}
 	if len(missingCats) > 0 {
-		return fmt.Errorf("Content is missing necessary categories to insert moments: %s", util.Keys(missingCats))
+		return fmt.Errorf("content is missing necessary categories to insert moments: %s", util.Keys(missingCats))
 	}
 	return nil
 }

@@ -54,7 +54,7 @@ func TestMissingCategory(t *testing.T) {
 	_, err := Append(input, toInsert)
 
 	assert.NotNil(t, err)
-	assert.Equal(t, "Content is missing necessary categories to insert moments: [nonexistent cat]", err.Error())
+	assert.Equal(t, "content is missing necessary categories to insert moments: [nonexistent cat]", err.Error())
 }
 
 func TestUpsertWithoutID(t *testing.T) {
@@ -66,7 +66,7 @@ func TestUpsertWithoutID(t *testing.T) {
 	_, err := Upsert(input, toUpsert, false)
 
 	assert.NotNil(t, err)
-	assert.Equal(t, "Moment 'a new thing 1' doesn't have an ID", err.Error())
+	assert.Equal(t, "moment 'a new thing 1' doesn't have an ID", err.Error())
 }
 
 func TestUpsertWithDuplicateID(t *testing.T) {
@@ -78,7 +78,7 @@ func TestUpsertWithDuplicateID(t *testing.T) {
 	_, err := Upsert(input, toUpsert, false)
 
 	assert.NotNil(t, err)
-	assert.Equal(t, "Duplicate moment ID 'bar'", err.Error())
+	assert.Equal(t, "duplicate moment ID 'bar'", err.Error())
 }
 
 func parseTestdata(t *testing.T, testName string, path string) []moment.Moment {

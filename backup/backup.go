@@ -41,7 +41,7 @@ func Save(todoFile string, message string) (*Backup, error) {
 func Restore(todoFile string, restoreTo *Backup) (*Backup, error) {
 	todoDir := filepath.Dir(todoFile)
 	if !isRepoInitiated(todoDir) {
-		return nil, fmt.Errorf("No backups set up for %s", todoFile)
+		return nil, fmt.Errorf("no backups set up for %s", todoFile)
 	}
 
 	restoreMessage := fmt.Sprintf("Restore backup %s '%s'", restoreTo.Identifier, restoreTo.Message)

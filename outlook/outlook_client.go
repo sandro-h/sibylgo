@@ -14,7 +14,7 @@ const outlookCliExe = "outlook_cli/outlook_cli.exe"
 
 func createEvent(mom *moment.SingleMoment) error {
 	if !moment.IsSingleDayMoment(mom) {
-		return errors.New("Only single, non-range moments are supported at the moment")
+		return errors.New("only single, non-range moments are supported at the moment")
 	}
 
 	cmdAndArgs := getCreateEventCommand(mom)

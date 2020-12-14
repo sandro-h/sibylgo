@@ -53,7 +53,7 @@ func UpdateOutlookEvents(moments []moment.Moment) error {
 	currentMoms := filterEligibleForOutlook(moments)
 	outlookMoms, err := listEvents()
 	if err != nil {
-		return fmt.Errorf("Could not list outlook events: %s", err)
+		return fmt.Errorf("could not list outlook events: %s", err)
 	}
 
 	debugMomentList("Current moments", currentMoms)

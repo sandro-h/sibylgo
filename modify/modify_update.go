@@ -51,11 +51,11 @@ func partitionByReplaceAndInsert(content string, toUpsert []moment.Moment) ([]re
 	toUpsertMap := make(map[string]moment.Moment)
 	for _, m := range toUpsert {
 		if m.GetID() == nil {
-			return nil, nil, fmt.Errorf("Moment '%s' doesn't have an ID", m.GetName())
+			return nil, nil, fmt.Errorf("moment '%s' doesn't have an ID", m.GetName())
 		}
 		id := m.GetID().Value
 		if _, exists := toUpsertMap[id]; exists {
-			return nil, nil, fmt.Errorf("Duplicate moment ID '%s'", id)
+			return nil, nil, fmt.Errorf("duplicate moment ID '%s'", id)
 		}
 		toUpsertMap[id] = m
 	}
