@@ -82,3 +82,8 @@ func SetTime(dt time.Time, tm time.Time) time.Time {
 func EpochWeek(dt time.Time) int {
 	return int(dt.UTC().Unix() / 604800)
 }
+
+// ParseISODate parses a string of format 2006-01-02.
+func ParseISODate(s string) (time.Time, error) {
+	return time.ParseInLocation("2006-01-02", s, time.Local)
+}

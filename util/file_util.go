@@ -3,6 +3,7 @@ package util
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
 )
 
 // ReadFile reads a textfile's entire content into a string and returns it.
@@ -33,4 +34,10 @@ func AppendFile(filePath string, str string) error {
 	}
 	_, err = file.WriteString(str)
 	return err
+}
+
+// RemoveExtension returns the filename without extension
+// E.g. todo.txt -> todo
+func RemoveExtension(s string) string {
+	return s[:len(s)-len(filepath.Ext(s))]
 }
