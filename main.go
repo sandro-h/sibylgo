@@ -35,7 +35,8 @@ func main() {
 	log.SetFormatter(&SimpleFormatter{})
 
 	if *showVersion {
-		log.Infof("%s.%s\n", buildVersion, buildNumber)
+		// Do not use log here, so GH Actions can consume it properly.
+		fmt.Printf("%s.%s\n", buildVersion, buildNumber)
 		return
 	}
 
