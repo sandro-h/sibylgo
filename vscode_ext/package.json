@@ -26,9 +26,9 @@
         "title": "Trash done todos"
       },
       {
-        "command": "catCoding.start",
-        "title": "Start cat coding session",
-        "category": "Cat Coding"
+        "command": "sibylgo.showPreview",
+        "title": "Show sibylgo preview",
+        "icon": "$(open-preview)"
       }
     ],
     "menus": {
@@ -42,6 +42,13 @@
           "command": "sibylgo.trash",
           "when": "resourceFilename =~ /todo.txt$/",
           "group": "sibylgo@1"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "sibylgo.showPreview",
+          "when": "resourceFilename =~ /todo.txt$/",
+          "group": "navigation"
         }
       ]
     }
