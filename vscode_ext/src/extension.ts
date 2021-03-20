@@ -15,5 +15,5 @@ export function activate(context: vscode.ExtensionContext) {
 	formatting.activate(context, cfg);
 	folding.activate(context, cfg);
 	commands.activate(context, cfg);
-	preview.activate(context);
+	preview.activate(context, cfg);
 }

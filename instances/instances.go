@@ -26,6 +26,7 @@ func (m *Instance) CloneShallow() *Instance {
 	c := Instance{
 		Name:        m.Name,
 		Start:       m.Start,
+		End:         m.End,
 		Priority:    m.Priority,
 		Done:        m.Done,
 		EndsInRange: m.EndsInRange}

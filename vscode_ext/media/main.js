@@ -4,12 +4,16 @@
 (function () {
 	const vscode = acquireVsCodeApi();
 
-	const oldState = vscode.getState();
+	// const oldState = vscode.getState();
 
-	const counter = document.getElementById('lines-of-code-counter');
-	console.log(oldState);
-	let currentCount = (oldState && oldState.count) || 0;
-	counter.textContent = currentCount;
+	// const counter = document.getElementById('lines-of-code-counter');
+	// console.log(oldState);
+	// let currentCount = (oldState && oldState.count) || 0;
+	// counter.textContent = currentCount;
+
+	const todayList = document.getElementById('due-today');
+	const weekList = document.getElementById('due-week');
+	const overviewList = document.getElementById('overview');
 
 	// setInterval(() => {
 	// 	counter.textContent = currentCount++;
@@ -32,8 +36,54 @@
 		const message = event.data; // The json data that the extension sent
 		switch (message.command) {
 			case 'update':
-				counter.textContent = message.text.length;
+				updateInstanceList(todayList, message.preview.today, 'due-today');
+				updateInstanceList(weekList, message.preview.week, 'due-week', true);
+				updateOverviewList(overviewList, message.preview.overview);
 				break;
 		}
 	});
+
+	function updateInstanceList(list, moments, listEleClassName, showEndDate) {
+		list.innerHTML = '';
+		moments.forEach(mom => {
+			var text = mom.name;
+			if (showEndDate) {
+				text += ' (' + formatDate(mom.end) + ')';
+			}
+			addListEle(list, text, listEleClassName)
+		});
+	}
+
+	function updateOverviewList(parent, overview) {
+		parent.innerHTML = '';
+		overview.categories.forEach(cat => {
+			var catDiv = document.createElement("DIV");
+			catDiv.appendChild(createEleWithText("H2", cat.name));
+
+			var momList = document.createElement("UL"); 
+			cat.moments.forEach(mom => addListEle(momList, mom.name, 'moment'));
+			catDiv.appendChild(momList);
+
+			parent.appendChild(catDiv);
+		});
+	}
+
+	function addListEle(list, eleString, className) {
+		var node = createEleWithText("LI", eleString);
+		if (className) {
+			node.className = className;
+		}
+		list.appendChild(node);
+	}
+
+	function createEleWithText(tag, text) {
+		var ele = document.createElement(tag);
+		var textnode = document.createTextNode(text);
+		ele.appendChild(textnode);
+		return ele;
+	}
+
+	function formatDate(dtString) {
+		return new Date(dtString).toLocaleDateString();
+	}
 }());

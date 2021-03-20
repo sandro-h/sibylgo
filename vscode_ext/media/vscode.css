@@ -89,3 +89,22 @@ input::placeholder,
 textarea::placeholder {
 	color: var(--vscode-input-placeholderForeground);
 }
+
+.due-today {
+	color: rgb(226, 65, 65);
+	font-weight: bold;
+}
+
+.due-week {
+	color: rgb(226, 143, 65);
+	font-weight: bold;
+}
+
+.moment {
+	font-weight: bold;
+}
+
+.preview-cell {
+	vertical-align: top;
+	max-width: 50%;
+}

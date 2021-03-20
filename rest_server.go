@@ -37,6 +37,7 @@ func startRestServer(cfg *util.Config) {
 	router.HandleFunc("/moments", getCalendarEntries).Methods("GET")
 	router.HandleFunc("/moments", insertMoment).Methods("POST")
 	router.HandleFunc("/reminders/{date}/weekly", getWeeklyReminders).Methods("GET")
+	router.HandleFunc("/preview", getPreview).Methods("POST")
 
 	srv := &http.Server{
 		Handler:      handlers.CORS(originsOk, headersOk, methodsOk)(router),
@@ -166,6 +167,62 @@ func trash(w http.ResponseWriter, r *http.Request) {
 	} else {
 		log.Infof("Trashed: %s\n", todoFile)
 		log.Infof("Moved done moments to: %s\n", trashFile)
+	}
+}
+
+func getPreview(w http.ResponseWriter, r *http.Request) {
+	reader := base64.NewDecoder(base64.StdEncoding, r.Body)
+	todos, err := parse.Reader(reader)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+	}
+
+	var overview jsonTodos
+	var curCat *jsonCategory
+	for _, m := range todos.Moments {
+		if !m.IsDone() {
+			catName := "_none"
+			if m.GetCategory() != nil {
+				catName = m.GetCategory().Name
+			}
+			if curCat == nil || catName != curCat.Name {
+				curCat = &jsonCategory{Name: catName}
+				overview.Categories = append(overview.Categories, curCat)
+			}
+			curCat.Moments = append(curCat.Moments, toJSONMoment(m))
+		}
+	}
+	todays, weeks := reminder.CompileRemindersForTodayAndThisWeek(todos, time.Now())
+	res := preview{
+		Today:    todays,
+		Week:     weeks,
+		Overview: overview}
+	setJSONContentType(w)
+	json.NewEncoder(w).Encode(res)
+}
+
+type preview struct {
+	Today    []*instances.Instance `json:"today"`
+	Week     []*instances.Instance `json:"week"`
+	Overview jsonTodos             `json:"overview"`
+}
+
+type jsonTodos struct {
+	Categories []*jsonCategory `json:"categories"`
+}
+
+type jsonCategory struct {
+	Name    string       `json:"name"`
+	Moments []jsonMoment `json:"moments"`
+}
+
+type jsonMoment struct {
+	Name string `json:"name"`
+}
+
+func toJSONMoment(mom moment.Moment) jsonMoment {
+	return jsonMoment{
+		Name: mom.GetName(),
 	}
 }
 

@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
-import { debounce } from './util';
+import { preview } from './client';
+import { debounce, SibylConfig } from './util';
 
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext, cfg: SibylConfig) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('sibylgo.showPreview', () => {
-			SibylPreviewPanel.createOrShow(context.extensionUri, vscode.window.activeTextEditor.document);
+			SibylPreviewPanel.createOrShow(context.extensionUri, vscode.window.activeTextEditor.document, cfg);
 		})
 	);
 
@@ -13,7 +14,7 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.registerWebviewPanelSerializer(SibylPreviewPanel.viewType, {
 			async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
 				console.log(`Got state: ${state}`);
-				SibylPreviewPanel.revive(webviewPanel, context.extensionUri, vscode.window.activeTextEditor.document);
+				SibylPreviewPanel.revive(webviewPanel, context.extensionUri, vscode.window.activeTextEditor.document, cfg);
 			}
 		});
 	}
@@ -33,9 +34,10 @@ class SibylPreviewPanel {
 	private readonly _panel: vscode.WebviewPanel;
 	private readonly _extensionUri: vscode.Uri;
 	private readonly _textDocument: vscode.TextDocument;
+	private readonly _cfg: SibylConfig;
 	private _disposables: vscode.Disposable[] = [];
 
-	public static createOrShow(extensionUri: vscode.Uri, textDocument: vscode.TextDocument) {
+	public static createOrShow(extensionUri: vscode.Uri, textDocument: vscode.TextDocument, cfg: SibylConfig) {
 		const column = vscode.ViewColumn.Two;
 
 		// If we already have a panel, show it.
@@ -58,17 +60,18 @@ class SibylPreviewPanel {
 			}
 		);
 
-		SibylPreviewPanel.currentPanel = new SibylPreviewPanel(panel, extensionUri, textDocument);
+		SibylPreviewPanel.currentPanel = new SibylPreviewPanel(panel, extensionUri, textDocument, cfg);
 	}
 
-	public static revive(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, textDocument: vscode.TextDocument) {
-		SibylPreviewPanel.currentPanel = new SibylPreviewPanel(panel, extensionUri, textDocument);
+	public static revive(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, textDocument: vscode.TextDocument, cfg: SibylConfig) {
+		SibylPreviewPanel.currentPanel = new SibylPreviewPanel(panel, extensionUri, textDocument, cfg);
 	}
 
-	private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, textDocument: vscode.TextDocument) {
+	private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, textDocument: vscode.TextDocument, cfg: SibylConfig) {
 		this._panel = panel;
 		this._extensionUri = extensionUri;
 		this._textDocument = textDocument;
+		this._cfg = cfg;
 
 		// Set the webview's initial html content
 		this._updateWebview(this._panel.webview);
@@ -101,18 +104,26 @@ class SibylPreviewPanel {
 			this._disposables
 		);
 
-		const debouncedUpdateDocument = debounce(() => this.doUpdateDocument(), 250);
+		const debouncedUpdatePreview = debounce(() => this.updatePreview(), 250);
 		vscode.workspace.onDidChangeTextDocument((e: vscode.TextDocumentChangeEvent) => {
 			if (e.document === this._textDocument) {
-				debouncedUpdateDocument();
+				debouncedUpdatePreview();
 			}
 		},
 		null,
 		this._disposables);
 	}
 
-	public doUpdateDocument() {
-		this._panel.webview.postMessage({ command: 'update', text: this._textDocument.getText() });
+	public async updatePreview() {
+		try {
+			const previewResp = await preview(this._cfg.restUrl, this._textDocument.getText());
+			console.log('previewResp', previewResp);
+			this._panel.webview.postMessage({ command: 'update', preview: previewResp });
+		}
+		catch (err) {
+			vscode.window.showErrorMessage(`Failed preview todos: ${err}`);
+			return;
+		}
 	}
 
 	public dispose() {
@@ -132,7 +143,7 @@ class SibylPreviewPanel {
 	private _updateWebview(webview: vscode.Webview) {
 		this._panel.title = 'Sibyl Preview';
 		this._panel.webview.html = this._getHtmlForWebview(webview);
-		this.doUpdateDocument();
+		this.updatePreview();
 	}
 
 	private _getHtmlForWebview(webview: vscode.Webview) {
@@ -172,7 +183,23 @@ class SibylPreviewPanel {
 				<title>Sibyl Preview</title>
 			</head>
 			<body>
-				<h1 id="lines-of-code-counter">0</h1>
+				<table>
+					<tr>
+						<td class="preview-cell">
+							<h1>Due today</h1>
+							<ul id="due-today">
+							</ul>
+							<br />
+							<h1>Due this week</h1>
+							<ul id="due-week">
+							</ul>
+						</td>
+						<td class="preview-cell">
+							<div id="overview">
+							</div>
+						</td>
+					</tr>
+				</table>
 
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>

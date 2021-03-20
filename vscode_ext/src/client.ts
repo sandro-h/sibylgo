@@ -26,6 +26,19 @@ export async function foldTodos(restUrl: string, text: string): Promise<string[]
     return body.split(/\r?\n/);
 }
 
+export async function preview(restUrl: string, text: string): Promise<string[]> {
+    const res = await fetch(
+        `${restUrl}/preview`,
+        {
+            method: 'POST',
+            headers: {'content-type' : 'text/plain'},
+            body: Buffer.from(text).toString('base64')
+        }
+    );
+    const data = await res.json();
+    return data;
+}
+
 export async function cleanTodos(restUrl: string): Promise<void> {
     await fetch(`${restUrl}/clean`, { method: 'POST' });
 }
