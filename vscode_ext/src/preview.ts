@@ -147,19 +147,16 @@ class SibylPreviewPanel {
 	}
 
 	private _getHtmlForWebview(webview: vscode.Webview) {
-		// Local path to main script run in the webview
-		const scriptPathOnDisk = vscode.Uri.joinPath(this._extensionUri, 'media', 'main.js');
-
 		// And the uri we use to load this script in the webview
-		const scriptUri = webview.asWebviewUri(scriptPathOnDisk);
-
-		// Local path to css styles
-		const styleResetPath = vscode.Uri.joinPath(this._extensionUri, 'media', 'reset.css');
-		const stylesPathMainPath = vscode.Uri.joinPath(this._extensionUri, 'media', 'vscode.css');
+		const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'main.js'));
+		const jqueryUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'lib', 'jquery.min.js'));
+		const momentUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'lib', 'moment.min.js'));
+		const fullCalendarUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'lib', 'fullcalendar.min.js'));
 
 		// Uri to load styles into webview
-		const stylesResetUri = webview.asWebviewUri(styleResetPath);
-		const stylesMainUri = webview.asWebviewUri(stylesPathMainPath);
+		const stylesResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'reset.css'));
+		const stylesMainUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'vscode.css'));
+		const stylesCalendarUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'lib', 'fullcalendar.css'));
 
 		// Use a nonce to only allow specific scripts to be run
 		const nonce = getNonce();
@@ -179,11 +176,22 @@ class SibylPreviewPanel {
 
 				<link href="${stylesResetUri}" rel="stylesheet">
 				<link href="${stylesMainUri}" rel="stylesheet">
+				<link href="${stylesCalendarUri}" rel="stylesheet">
+				<style type="text/css">
+					.fc-today {
+						background-color: yellow !important;
+					}
+				</style>
 
 				<title>Sibyl Preview</title>
 			</head>
 			<body>
-				<table>
+				<table class="preview-table">
+					<tr>
+						<td colspan="2">
+							<div id="calendar"></div>
+						</td>
+					</tr>
 					<tr>
 						<td class="preview-cell">
 							<h1>Due today</h1>
@@ -200,7 +208,10 @@ class SibylPreviewPanel {
 						</td>
 					</tr>
 				</table>
-
+				
+				<script nonce="${nonce}" src="${jqueryUri}"></script>
+				<script nonce="${nonce}" src="${momentUri}"></script>
+				<script nonce="${nonce}" src="${fullCalendarUri}"></script>
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
 			</html>`;

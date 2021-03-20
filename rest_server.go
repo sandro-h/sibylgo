@@ -192,11 +192,18 @@ func getPreview(w http.ResponseWriter, r *http.Request) {
 			curCat.Moments = append(curCat.Moments, toJSONMoment(m))
 		}
 	}
-	todays, weeks := reminder.CompileRemindersForTodayAndThisWeek(todos, time.Now())
+
+	now := time.Now()
+
+	todays, weeks := reminder.CompileRemindersForTodayAndThisWeek(todos, now)
+
+	entries := calendar.CompileCalendarEntries(todos, util.SetToStartOfWeek(now), util.SetToEndOfWeek(now).AddDate(0, 0, 1))
+
 	res := preview{
 		Today:    todays,
 		Week:     weeks,
-		Overview: overview}
+		Overview: overview,
+		Calendar: entries}
 	setJSONContentType(w)
 	json.NewEncoder(w).Encode(res)
 }
@@ -205,6 +212,7 @@ type preview struct {
 	Today    []*instances.Instance `json:"today"`
 	Week     []*instances.Instance `json:"week"`
 	Overview jsonTodos             `json:"overview"`
+	Calendar []calendar.Entry      `json:"calendar"`
 }
 
 type jsonTodos struct {

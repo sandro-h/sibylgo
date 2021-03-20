@@ -15,6 +15,23 @@
 	const weekList = document.getElementById('due-week');
 	const overviewList = document.getElementById('overview');
 
+	let calEvents = [];
+	function calendarEvents(start, end, timezone, callback) {
+		callback(calEvents);
+	}
+
+	$('#calendar').fullCalendar({
+		header: {
+			left: '',
+			center: '',
+			right: ''
+		},
+		defaultView: 'basicWeek',
+		events: calendarEvents,
+		firstDay: 1,
+		height: 150
+	});
+
 	// setInterval(() => {
 	// 	counter.textContent = currentCount++;
 
@@ -31,6 +48,8 @@
 	// 	}
 	// }, 100);
 
+
+
 	// Handle messages sent from the extension to the webview
 	window.addEventListener('message', event => {
 		const message = event.data; // The json data that the extension sent
@@ -39,6 +58,8 @@
 				updateInstanceList(todayList, message.preview.today, 'due-today');
 				updateInstanceList(weekList, message.preview.week, 'due-week', true);
 				updateOverviewList(overviewList, message.preview.overview);
+				calEvents = message.preview.calendar;
+				$('#calendar').fullCalendar('refetchEvents');
 				break;
 		}
 	});
