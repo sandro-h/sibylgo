@@ -35,8 +35,7 @@ export async function preview(restUrl: string, text: string): Promise<string[]> 
             body: Buffer.from(text).toString('base64')
         }
     );
-    const data = await res.json();
-    return data;
+    return res.json();
 }
 
 export async function cleanTodos(restUrl: string): Promise<void> {

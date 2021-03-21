@@ -18,4 +18,4 @@ export function debounce(func: Function, wait: number, immediate?: boolean): Fun
 		timeout = setTimeout(later, wait);
 		if (callNow) func.apply(context, args);
 	};
-};
+}

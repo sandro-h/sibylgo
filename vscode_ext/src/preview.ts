@@ -117,7 +117,6 @@ class SibylPreviewPanel {
 	public async updatePreview() {
 		try {
 			const previewResp = await preview(this._cfg.restUrl, this._textDocument.getText());
-			console.log('previewResp', previewResp);
 			this._panel.webview.postMessage({ command: 'update', preview: previewResp });
 		}
 		catch (err) {
