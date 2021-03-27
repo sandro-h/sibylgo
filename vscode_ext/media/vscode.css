@@ -90,25 +90,71 @@ textarea::placeholder {
 	color: var(--vscode-input-placeholderForeground);
 }
 
-.due-today {
-	color: rgb(226, 65, 65);
-	font-weight: bold;
+.due-table {
+	width: 100%;
+	border-collapse: collapse;
+	table-layout: fixed;
 }
 
-.due-week {
-	color: rgb(226, 143, 65);
-	font-weight: bold;
-}
-
-.moment {
-	font-weight: bold;
-}
-
-.preview-cell {
+.due-table tr {
 	vertical-align: top;
-	max-width: 50%;
+}
+
+.due-table td {
+	width: 33%;
+}
+
+.moment-cell.due-today {
+	background-color: rgb(226, 65, 65);
+}
+
+.moment-cell.due-week {
+	background-color: rgb(226, 143, 65);
 }
 
 .fc-today {
 	background-color: rgba(0, 255, 34, 0.1) !important;
+}
+
+.kanban-lane {
+	margin-bottom: 20px;
+}
+
+.kanban-table {
+	width: 100%;
+	border-collapse: collapse;
+	table-layout: fixed;
+}
+
+.kanban-table th {
+	border-bottom: solid 1px gray;
+}
+
+.kanban-table th, .kanban-table td {
+	width: 33%;
+	max-width: 33%;
+	border-right: solid 1px gray;
+}
+
+.kanban-table th:last-child, .kanban-table td:last-child {
+	border-right: none;
+}
+
+.kanban-table td {
+	padding: 4px;
+	vertical-align: top;
+}
+
+.moment-cell {
+	width: 100%;
+	padding: 4px;
+	margin-bottom: 2px;
+	color: white;
+	background-color: rgb(58, 135, 173);
+	border: solid 1px black;
+	border-radius: 4px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	cursor: default;
 }

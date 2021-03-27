@@ -1,0 +1,75 @@
+<html>
+    <head>
+        <link href="../media/reset.css" rel="stylesheet">
+        <link href="../media/vscode.css" rel="stylesheet">
+        <link href="../media/lib/fullcalendar.css" rel="stylesheet">
+
+        <script src="../media/lib/jquery.min.js"></script>
+        <script src="../media/lib/moment.min.js"></script>
+        <script src="../media/lib/fullcalendar.min.js"></script>
+        <script type="text/javascript">
+            $(function() {
+                window.postMessage({
+                    command: 'update',
+                    preview: {
+                        today: [],
+                        week: [],
+                        overview: {
+                            "categories": [
+                                {
+                                "name": "_none",
+                                "moments": [
+                                    {
+                                    "name": "foobar foobar foobar foobar foobar foobar foobar foobar foobar foobar foobar foobar foobar foobar foobar foobar foobar foobar foobar foobar ",
+                                    "workState": "new"
+                                    }
+                                ]
+                                },
+                                {
+                                "name": "LeCat",
+                                "moments": [
+                                    {
+                                    "name": "bar",
+                                    "workState": "inProgress"
+                                    }
+                                ]
+                                },
+                                {
+                                "name": "LeDog",
+                                "moments": [
+                                    {
+                                    "name": "uffas",
+                                    "workState": "waiting"
+                                    }
+                                ]
+                                }
+                            ]
+                        }
+                    }
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <div id="calendar"></div>
+
+        <table class="due-table">
+            <tr>
+                <td>
+                    <h3>Due today</h3>
+                    <div id="due-today" />
+                </td>
+                <td>
+                    <h3>Due this week</h3>
+                    <div id="due-week" />
+                </td>
+                <td>
+                </td>
+            </tr>
+        </table>
+
+        <div id="overview" />
+
+        <script src="../media/main.js"></script>
+    </body>
+</html>

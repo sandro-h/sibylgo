@@ -185,26 +185,24 @@ class SibylPreviewPanel {
 				<title>Sibyl Preview</title>
 			</head>
 			<body>
-				<table class="preview-table">
+				<div id="calendar"></div>
+			
+				<table class="due-table">
 					<tr>
-						<td colspan="2">
-							<div id="calendar"></div>
-						</td>
-					</tr>
-					<tr>
-						<td class="preview-cell">
-							<h1>Due today</h1>
+						<td>
+							<h3>Due today</h3>
 							<div id="due-today" />
-							<br />
-							<h1>Due this week</h1>
-							<div id="due-week" />
-							</ul>
 						</td>
-						<td class="preview-cell">
-							<div id="overview" />
+						<td>
+							<h3>Due this week</h3>
+							<div id="due-week" />
+						</td>
+						<td>
 						</td>
 					</tr>
 				</table>
+		
+				<div id="overview" />
 				
 				<script nonce="${nonce}" src="${jqueryUri}"></script>
 				<script nonce="${nonce}" src="${momentUri}"></script>

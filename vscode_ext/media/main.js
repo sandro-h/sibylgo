@@ -26,7 +26,7 @@
 			case 'update':
 				$('#due-today').empty().append(createInstanceList(message.preview.today, 'due-today'));
 				$('#due-week').empty().append(createInstanceList(message.preview.week, 'due-week', true));
-				$('#overview').empty().append(createOverviewList(message.preview.overview));
+				$('#overview').empty().append(createOverviewBoard(message.preview.overview));
 				calEvents = message.preview.calendar;
 				$('#calendar').fullCalendar('refetchEvents');
 				break;
@@ -34,37 +34,51 @@
 	});
 
 	function createInstanceList(moments, listEleClassName, showEndDate) {
-		const eles = moments.map(mom => {
-			let text = mom.name;
+		return moments.map(m => {
+			let text = m.name;
 			if (showEndDate) {
-				text += ` (${formatDate(mom.end)})`;
+				text += ` (${formatDate(m.end)})`;
 			}
-			return createListEle(text, listEleClassName);
+			return $(`<div class="moment-cell ${listEleClassName}" title="${text}">${text}</div>`);
 		});
-
-		return $('<ul/>').append(eles);
 	}
 
-	function createOverviewList(overview) {
-		const eles = overview.categories.map(cat => $('<div/>')
-			.append($(`<h2>${cat.name === '_none' ? 'No category' : cat.name}</h2>`))
-			.append(createMomentList(cat.moments)));
-
-		return $('<ul/>').append(eles);
+	function createOverviewBoard(overview) {
+		return overview.categories.map(createOverviewLane);
 	}
 
-	function createMomentList(moments) {
-		const eles = moments.map(mom => createListEle(mom.name, 'moment'));
-		return $('<ul/>').append(eles);
-	}
-
-	function createListEle(text, className) {
-		var ele = $('<li/>');
-		ele.text(text);
-		if (className) {
-			ele.addClass(className);
+	function createOverviewLane(cat) {
+		const div = $('<div class="kanban-lane" />');
+		if (cat.name !== '_none') {
+			div.append($(`<h3>${cat.name}</h3>`));
 		}
-		return ele;
+		const cols = {
+			'new': {
+				title: 'New',
+				ele: $('<td/>')
+			},
+			'waiting': {
+				title: 'Waiting',
+				ele: $('<td/>')
+			},
+			'inProgress': {
+				title: 'In Progress',
+				ele: $('<td/>')
+			}
+		};
+
+		const header = $('<tr/>').append($.map(cols, c => $(`<th>${c.title}</th>`)));
+
+		cat.moments.forEach(m => {
+			const col = cols[m.workState];
+			col.ele.append(`<div class="moment-cell" title="${m.name}">${m.name}</div>`);
+		});
+		const body = $('<tr/>').append($.map(cols, c => c.ele));
+
+		const table = $('<table class="kanban-table"></table>')
+			.append(header)
+			.append(body);
+		return div.append(table);
 	}
 
 	function formatDate(dtString) {

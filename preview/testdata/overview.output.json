@@ -4,7 +4,8 @@
       "name": "_none",
       "moments": [
         {
-          "name": "foo"
+          "name": "foo",
+          "workState": "new"
         }
       ]
     },
@@ -12,7 +13,8 @@
       "name": "LeCat",
       "moments": [
         {
-          "name": "bar"
+          "name": "bar",
+          "workState": "inProgress"
         }
       ]
     },
@@ -20,7 +22,8 @@
       "name": "LeDog",
       "moments": [
         {
-          "name": "uffas"
+          "name": "uffas",
+          "workState": "waiting"
         }
       ]
     }
