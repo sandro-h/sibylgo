@@ -39,7 +39,7 @@
 			if (showEndDate) {
 				text += ` (${formatDate(m.end)})`;
 			}
-			return $(`<div class="moment-cell ${listEleClassName}" title="${text}">${text}</div>`);
+			return createMomentCell(text).addClass(listEleClassName);
 		});
 	}
 
@@ -50,7 +50,7 @@
 	function createOverviewLane(cat) {
 		const div = $('<div class="kanban-lane" />');
 		if (cat.name !== '_none') {
-			div.append($(`<h3>${cat.name}</h3>`));
+			div.append($('<h3/>').text(cat.name));
 		}
 		const cols = {
 			'new': {
@@ -67,11 +67,11 @@
 			}
 		};
 
-		const header = $('<tr/>').append($.map(cols, c => $(`<th>${c.title}</th>`)));
+		const header = $('<tr/>').append($.map(cols, c => $('<th>').text(c.title)));
 
 		cat.moments.forEach(m => {
 			const col = cols[m.workState];
-			col.ele.append(`<div class="moment-cell" title="${m.name}">${m.name}</div>`);
+			col.ele.append(createMomentCell(m.name));
 		});
 		const body = $('<tr/>').append($.map(cols, c => c.ele));
 
@@ -79,6 +79,12 @@
 			.append(header)
 			.append(body);
 		return div.append(table);
+	}
+
+	function createMomentCell(text) {
+		return $('<div class="moment-cell"/>')
+			.prop('title', text)
+			.text(text);
 	}
 
 	function formatDate(dtString) {
