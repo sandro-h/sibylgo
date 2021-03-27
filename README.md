@@ -84,6 +84,15 @@ Hierarchical todos:
         [] more stuff
 ```
 
+Work states:
+
+```text
+[] my open todo
+[p] my in progress todo
+[w] my waiting todo
+[x] my done todo
+```
+
 Comments:
 
 ```text

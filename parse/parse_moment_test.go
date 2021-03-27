@@ -1,9 +1,10 @@
 package parse
 
 import (
+	"testing"
+
 	"github.com/sandro-h/sibylgo/moment"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestDone(t *testing.T) {
@@ -11,9 +12,6 @@ func TestDone(t *testing.T) {
 	assert.False(t, mom.IsDone())
 
 	mom, _ = parseMom("[x] blabla")
-	assert.True(t, mom.IsDone())
-
-	mom, _ = parseMom("[X] blabla")
 	assert.True(t, mom.IsDone())
 
 	mom, _ = parseMom("[ x   ] blabla")
@@ -26,7 +24,21 @@ func TestDone(t *testing.T) {
 func TestBadDoneBrackets(t *testing.T) {
 	_, err := parseMom("[x blabla")
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "Expected closing x for moment line [x blabla")
+	assert.Contains(t, err.Error(), "Expected closing ] for moment line [x blabla")
+}
+
+func TestWorkState(t *testing.T) {
+	mom, _ := parseMom("[] blabla")
+	assert.Equal(t, moment.NewState, mom.GetWorkState())
+
+	mom, _ = parseMom("[x] blabla")
+	assert.Equal(t, moment.DoneState, mom.GetWorkState())
+
+	mom, _ = parseMom("[w] blabla")
+	assert.Equal(t, moment.WaitingState, mom.GetWorkState())
+
+	mom, _ = parseMom("[p] blabla")
+	assert.Equal(t, moment.InProgressState, mom.GetWorkState())
 }
 
 func TestPriority(t *testing.T) {

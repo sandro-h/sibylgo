@@ -1,8 +1,9 @@
 package moment
 
 import (
-	"github.com/sandro-h/sibylgo/util"
 	"time"
+
+	"github.com/sandro-h/sibylgo/util"
 )
 
 // Moment defines an interface for a generic moment in time with some significance (a todo, a event, etc).
@@ -10,7 +11,7 @@ type Moment interface {
 	SetName(name string)
 	SetID(id *Identifier)
 	SetCategory(cat *Category)
-	SetDone(done bool)
+	SetWorkState(state WorkState)
 	SetPriority(prio int)
 	AddSubMoment(sub Moment)
 	AddComment(com *CommentLine)
@@ -21,6 +22,7 @@ type Moment interface {
 	GetPriority() int
 	GetCategory() *Category
 	IsDone() bool
+	GetWorkState() WorkState
 	GetComments() []*CommentLine
 	GetComment(index int) *CommentLine
 	GetSubMoments() []Moment
@@ -57,7 +59,7 @@ type Todos struct {
 type BaseMoment struct {
 	name       string
 	id         *Identifier
-	done       bool
+	workState  WorkState
 	priority   int
 	category   *Category
 	comments   []*CommentLine
@@ -81,9 +83,9 @@ func (m *BaseMoment) SetID(id *Identifier) {
 	m.id = id
 }
 
-// SetDone sets the done state of the moment.
-func (m *BaseMoment) SetDone(done bool) {
-	m.done = done
+// SetWorkState sets the work state of the moment.
+func (m *BaseMoment) SetWorkState(state WorkState) {
+	m.workState = state
 }
 
 // SetPriority sets the priority of the moment. The higher the value, the higher the priority.
@@ -128,7 +130,12 @@ func (m *BaseMoment) GetCategory() *Category {
 
 // IsDone returns true of the moment is done.
 func (m *BaseMoment) IsDone() bool {
-	return m.done
+	return m.workState == DoneState
+}
+
+// GetWorkState returns the state of the moment.
+func (m *BaseMoment) GetWorkState() WorkState {
+	return m.workState
 }
 
 // GetComments returns all comments of the moment.
@@ -266,6 +273,20 @@ type CommentLine struct {
 	Content string
 	DocCoords
 }
+
+// WorkState defines the working state a moment (task) is in. For example "in progress", "waiting", "done".
+type WorkState string
+
+const (
+	// NewState is the work state of a moment that has not been worked on yet
+	NewState WorkState = "new"
+	// WaitingState is the work state of a moment where we're waiting for some external factor before continuing work.
+	WaitingState WorkState = "waiting"
+	// InProgressState is the work state of a moment that is currently being worked on
+	InProgressState WorkState = "inProgress"
+	// DoneState is the work state of a moment that has been completed
+	DoneState WorkState = "Done"
+)
 
 // DocCoords defines the exact location of some object (moment, date, category, etc) in the text file.
 type DocCoords struct {

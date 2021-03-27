@@ -2,6 +2,8 @@ package stringify
 
 import (
 	"fmt"
+
+	"github.com/sandro-h/sibylgo/constants"
 	"github.com/sandro-h/sibylgo/moment"
 )
 
@@ -32,9 +34,16 @@ func stringifyCategory(c *moment.Category) string {
 }
 
 func stringifyMoment(m moment.Moment, parentDone bool, indent string) string {
-	doneMarker := ""
+	stateMarker := ""
 	if m.IsDone() {
-		doneMarker = "x"
+		stateMarker = string(constants.DoneMark)
+	} else {
+		switch m.GetWorkState() {
+		case moment.InProgressState:
+			stateMarker = string(constants.InProgressMark)
+		case moment.WaitingState:
+			stateMarker = string(constants.WaitingMark)
+		}
 	}
 
 	idSuffix := ""
@@ -50,7 +59,7 @@ func stringifyMoment(m moment.Moment, parentDone bool, indent string) string {
 		panicNotImplemented()
 	}
 
-	res := fmt.Sprintf("%s[%s] %s%s%s%s\n", indent, doneMarker, m.GetName(), prioritySuffix, dateSuffix, idSuffix)
+	res := fmt.Sprintf("%s[%s] %s%s%s%s\n", indent, stateMarker, m.GetName(), prioritySuffix, dateSuffix, idSuffix)
 	for _, c := range m.GetComments() {
 		res += fmt.Sprintf("%s%s\n", indent+"\t", c.Content)
 	}

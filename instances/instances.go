@@ -1,9 +1,10 @@
 package instances
 
 import (
+	"time"
+
 	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/util"
-	"time"
 )
 
 // Instance is an actual moment at a point or range in time based on the moment definition.
@@ -17,6 +18,7 @@ type Instance struct {
 	Priority     int              `json:"priority"`
 	Category     *moment.Category `json:"-"`
 	Done         bool             `json:"done"`
+	WorkState    moment.WorkState `json:"workState"`
 	EndsInRange  bool             `json:"endsInRange"`
 	SubInstances []*Instance      `json:"subInstances"`
 }
@@ -29,6 +31,7 @@ func (m *Instance) CloneShallow() *Instance {
 		End:         m.End,
 		Priority:    m.Priority,
 		Done:        m.Done,
+		WorkState:   m.WorkState,
 		EndsInRange: m.EndsInRange}
 	if m.TimeOfDay != nil {
 		cp := *m.TimeOfDay
@@ -130,6 +133,7 @@ func createSingleInstances(mom *moment.SingleMoment, from time.Time, to time.Tim
 	inst.Priority = mom.GetPriority()
 	inst.Category = mom.GetCategory()
 	inst.Done = mom.IsDone()
+	inst.WorkState = mom.GetWorkState()
 	inst.EndsInRange = mom.End != nil && !mom.End.Time.After(end)
 	if mom.TimeOfDay != nil {
 		tm := util.SetTime(start, mom.TimeOfDay.Time)
@@ -146,6 +150,7 @@ func createRecurInstances(mom *moment.RecurMoment, from time.Time, to time.Time)
 		inst.Priority = mom.GetPriority()
 		inst.Category = mom.GetCategory()
 		inst.Done = mom.IsDone()
+		inst.WorkState = mom.GetWorkState()
 		inst.EndsInRange = true
 		if mom.TimeOfDay != nil {
 			tm := util.SetTime(start, mom.TimeOfDay.Time)

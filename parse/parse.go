@@ -1,18 +1,17 @@
 package parse
 
 import (
-	"github.com/sandro-h/sibylgo/moment"
 	"io"
 	"os"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/sandro-h/sibylgo/moment"
 )
 
 const categoryDelim = "------"
 const doneLBracket = "["
 const doneRBracket = ']'
-const doneMark = 'x'
-const doneMarkUpper = 'X'
 const priorityMark = '!'
 const indentChar = "\t"
 

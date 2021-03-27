@@ -1,8 +1,10 @@
 package parse
 
 import (
-	"github.com/sandro-h/sibylgo/moment"
 	"strings"
+
+	"github.com/sandro-h/sibylgo/constants"
+	"github.com/sandro-h/sibylgo/moment"
 )
 
 // parseMoment parses a moment from the line. It only parses the moment of this current line
@@ -12,11 +14,11 @@ func parseMoment(line *Line, lineVal string) (moment.Moment, error) {
 	mom, lineVal := parseBaseMoment(line, lineVal)
 	mom.SetID(id)
 
-	done, lineVal, err := parseDoneMark(line, lineVal)
+	state, lineVal, err := parseStateMark(line, lineVal)
 	if err != nil {
 		return nil, err
 	}
-	mom.SetDone(done)
+	mom.SetWorkState(state)
 
 	prio, lineVal := parsePriority(lineVal)
 	mom.SetPriority(prio)
@@ -74,20 +76,25 @@ func parseSingleMoment(line *Line, lineVal string) (*moment.SingleMoment, string
 	return mom, lineVal
 }
 
-func parseDoneMark(line *Line, lineVal string) (bool, string, error) {
+func parseStateMark(line *Line, lineVal string) (moment.WorkState, string, error) {
 	rBracketPos := 0
-	done := false
+	state := moment.NewState
 	for i, c := range lineVal {
 		if c == doneRBracket {
 			rBracketPos = i
 			break
 		}
-		if c == doneMark || c == doneMarkUpper {
-			done = true
+		switch c {
+		case constants.DoneMark:
+			state = moment.DoneState
+		case constants.InProgressMark:
+			state = moment.InProgressState
+		case constants.WaitingMark:
+			state = moment.WaitingState
 		}
 	}
 	if rBracketPos == 0 {
-		return false, "", newParseError(line, "Expected closing %c for moment line %s", doneMark, line.Content())
+		return moment.NewState, "", newParseError(line, "Expected closing %c for moment line %s", doneRBracket, line.Content())
 	}
-	return done, strings.TrimSpace(lineVal[rBracketPos+1:]), nil
+	return state, strings.TrimSpace(lineVal[rBracketPos+1:]), nil
 }
