@@ -194,16 +194,14 @@ class SibylPreviewPanel {
 					<tr>
 						<td class="preview-cell">
 							<h1>Due today</h1>
-							<ul id="due-today">
-							</ul>
+							<div id="due-today" />
 							<br />
 							<h1>Due this week</h1>
-							<ul id="due-week">
+							<div id="due-week" />
 							</ul>
 						</td>
 						<td class="preview-cell">
-							<div id="overview">
-							</div>
+							<div id="overview" />
 						</td>
 					</tr>
 				</table>

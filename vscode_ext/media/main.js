@@ -2,10 +2,6 @@
 // This script will be run within the webview itself
 // It cannot access the main VS Code APIs directly.
 (function () {
-	const todayList = document.getElementById('due-today');
-	const weekList = document.getElementById('due-week');
-	const overviewList = document.getElementById('overview');
-
 	let calEvents = [];
 	function calendarEvents(start, end, timezone, callback) {
 		callback(calEvents);
@@ -28,52 +24,46 @@
 		const message = event.data; // The json data that the extension sent
 		switch (message.command) {
 			case 'update':
-				updateInstanceList(todayList, message.preview.today, 'due-today');
-				updateInstanceList(weekList, message.preview.week, 'due-week', true);
-				updateOverviewList(overviewList, message.preview.overview);
+				$('#due-today').empty().append(createInstanceList(message.preview.today, 'due-today'));
+				$('#due-week').empty().append(createInstanceList(message.preview.week, 'due-week', true));
+				$('#overview').empty().append(createOverviewList(message.preview.overview));
 				calEvents = message.preview.calendar;
 				$('#calendar').fullCalendar('refetchEvents');
 				break;
 		}
 	});
 
-	function updateInstanceList(list, moments, listEleClassName, showEndDate) {
-		list.innerHTML = '';
-		moments.forEach(mom => {
-			var text = mom.name;
+	function createInstanceList(moments, listEleClassName, showEndDate) {
+		const eles = moments.map(mom => {
+			let text = mom.name;
 			if (showEndDate) {
-				text += ' (' + formatDate(mom.end) + ')';
+				text += ` (${formatDate(mom.end)})`;
 			}
-			addListEle(list, text, listEleClassName)
+			return createListEle(text, listEleClassName);
 		});
+
+		return $('<ul/>').append(eles);
 	}
 
-	function updateOverviewList(parent, overview) {
-		parent.innerHTML = '';
-		overview.categories.forEach(cat => {
-			var catDiv = document.createElement("DIV");
-			catDiv.appendChild(createEleWithText("H2", cat.name));
+	function createOverviewList(overview) {
+		const eles = overview.categories.map(cat => $('<div/>')
+			.append($(`<h2>${cat.name}</h2>`))
+			.append(createMomentList(cat.moments)));
 
-			var momList = document.createElement("UL"); 
-			cat.moments.forEach(mom => addListEle(momList, mom.name, 'moment'));
-			catDiv.appendChild(momList);
-
-			parent.appendChild(catDiv);
-		});
+		return $('<ul/>').append(eles);
 	}
 
-	function addListEle(list, eleString, className) {
-		var node = createEleWithText("LI", eleString);
+	function createMomentList(moments) {
+		const eles = moments.map(mom => createListEle(mom.name, 'moment'));
+		return $('<ul/>').append(eles);
+	}
+
+	function createListEle(text, className) {
+		var ele = $('<li/>');
+		ele.text(text);
 		if (className) {
-			node.className = className;
+			ele.addClass(className);
 		}
-		list.appendChild(node);
-	}
-
-	function createEleWithText(tag, text) {
-		var ele = document.createElement(tag);
-		var textnode = document.createTextNode(text);
-		ele.appendChild(textnode);
 		return ele;
 	}
 
