@@ -14,6 +14,7 @@ import (
 	"github.com/sandro-h/sibylgo/modify"
 	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/parse"
+	"github.com/sandro-h/sibylgo/preview"
 	"github.com/sandro-h/sibylgo/reminder"
 	"github.com/sandro-h/sibylgo/util"
 	log "github.com/sirupsen/logrus"
@@ -177,61 +178,9 @@ func getPreview(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 400)
 	}
 
-	var overview jsonTodos
-	var curCat *jsonCategory
-	for _, m := range todos.Moments {
-		if !m.IsDone() {
-			catName := "_none"
-			if m.GetCategory() != nil {
-				catName = m.GetCategory().Name
-			}
-			if curCat == nil || catName != curCat.Name {
-				curCat = &jsonCategory{Name: catName}
-				overview.Categories = append(overview.Categories, curCat)
-			}
-			curCat.Moments = append(curCat.Moments, toJSONMoment(m))
-		}
-	}
-
-	now := time.Now()
-
-	todays, weeks := reminder.CompileRemindersForTodayAndThisWeek(todos, now)
-
-	entries := calendar.CompileCalendarEntries(todos, util.SetToStartOfWeek(now), util.SetToEndOfWeek(now).AddDate(0, 0, 1))
-
-	res := preview{
-		Today:    todays,
-		Week:     weeks,
-		Overview: overview,
-		Calendar: entries}
+	previewResp := preview.Create(todos)
 	setJSONContentType(w)
-	json.NewEncoder(w).Encode(res)
-}
-
-type preview struct {
-	Today    []*instances.Instance `json:"today"`
-	Week     []*instances.Instance `json:"week"`
-	Overview jsonTodos             `json:"overview"`
-	Calendar []calendar.Entry      `json:"calendar"`
-}
-
-type jsonTodos struct {
-	Categories []*jsonCategory `json:"categories"`
-}
-
-type jsonCategory struct {
-	Name    string       `json:"name"`
-	Moments []jsonMoment `json:"moments"`
-}
-
-type jsonMoment struct {
-	Name string `json:"name"`
-}
-
-func toJSONMoment(mom moment.Moment) jsonMoment {
-	return jsonMoment{
-		Name: mom.GetName(),
-	}
+	json.NewEncoder(w).Encode(previewResp)
 }
 
 func setJSONContentType(w http.ResponseWriter) {

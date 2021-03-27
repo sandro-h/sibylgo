@@ -2,11 +2,12 @@ package testutil
 
 import (
 	"flag"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var updateGolden = flag.Bool("update-golden", false, "Update golden test files")
@@ -29,7 +30,7 @@ func AssertGoldenOutput(t *testing.T, testName string, goldenFile string, output
 
 // ReadTestdata reads a file from the current package's testdata/ folder.
 func ReadTestdata(t *testing.T, testName string, path string) string {
-	data, err := readFile(filepath.Join("testdata", path))
+	data, err := readFile(FullTestdataPath(path))
 	if err != nil {
 		assert.Failf(t, "Could not load testdata", "Testcase: %s, file: %s, error: %s", testName, path, err)
 	}
@@ -38,10 +39,16 @@ func ReadTestdata(t *testing.T, testName string, path string) string {
 
 // WriteTestdata wrotes a file to the current package's testdata/ folder.
 func WriteTestdata(t *testing.T, testName string, path string, data string) {
-	err := writeFile(filepath.Join("testdata", path), data)
+	err := writeFile(FullTestdataPath(path), data)
 	if err != nil {
 		assert.Failf(t, "Could not write testdata", "Testcase: %s, file: %s, error: %s", testName, path, err)
 	}
+}
+
+// FullTestdataPath returns the full path of a testdata file, given a partial path (usually just the filename).
+// E.g.: GetTestdataFile('my_testdata.txt') -> testdata/my_testdata.txt
+func FullTestdataPath(filenameOrPartialPath string) string {
+	return filepath.Join("testdata", filenameOrPartialPath)
 }
 
 func readFile(filePath string) (string, error) {

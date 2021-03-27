@@ -1,0 +1,28 @@
+{
+  "categories": [
+    {
+      "name": "_none",
+      "moments": [
+        {
+          "name": "foo"
+        }
+      ]
+    },
+    {
+      "name": "LeCat",
+      "moments": [
+        {
+          "name": "bar"
+        }
+      ]
+    },
+    {
+      "name": "LeDog",
+      "moments": [
+        {
+          "name": "uffas"
+        }
+      ]
+    }
+  ]
+}

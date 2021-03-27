@@ -47,7 +47,7 @@
 
 	function createOverviewList(overview) {
 		const eles = overview.categories.map(cat => $('<div/>')
-			.append($(`<h2>${cat.name}</h2>`))
+			.append($(`<h2>${cat.name === '_none' ? 'No category' : cat.name}</h2>`))
 			.append(createMomentList(cat.moments)));
 
 		return $('<ul/>').append(eles);

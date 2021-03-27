@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"time"
@@ -53,4 +54,13 @@ func MakeTempDir(dirName string) string {
 // DeleteTempDir deteles the temporary directory and all its content.
 func DeleteTempDir(dir string) {
 	os.RemoveAll(dir)
+}
+
+// ToJSON pretty prints the passed object as JSON.
+func ToJSON(any interface{}) string {
+	bytes, err := json.MarshalIndent(any, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	return string(bytes)
 }
