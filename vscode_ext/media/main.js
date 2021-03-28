@@ -3,7 +3,7 @@
 // It cannot access the main VS Code APIs directly.
 (function () {
 	// @ts-ignore
-	const vscode = typeof acquireVsCodeApi !== 'undefined' && acquireVsCodeApi();
+	const vscode = acquireVsCodeApi();
 
 	let calEvents = [];
 	function calendarEvents(start, end, timezone, callback) {
@@ -96,6 +96,6 @@
 	}
 
 	function jumpToLine(line) {
-		vscode && vscode.postMessage({ command: 'jumpToLine', line: line });
+		vscode.postMessage({ command: 'jumpToLine', line: line });
 	}
 }());

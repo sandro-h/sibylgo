@@ -8,6 +8,15 @@
         <script src="../media/lib/moment.min.js"></script>
         <script src="../media/lib/fullcalendar.min.js"></script>
         <script type="text/javascript">
+            function acquireVsCodeApi() {
+                // vscode object
+                return {
+                    postMessage: function(...args) {
+                        console.log('vscode.postMessage', ...args);
+                    }
+                }
+            }
+
             $(function() {
                 window.postMessage({
                     command: 'update',
