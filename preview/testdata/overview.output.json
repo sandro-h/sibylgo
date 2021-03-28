@@ -5,7 +5,12 @@
       "moments": [
         {
           "name": "foo",
-          "workState": "new"
+          "workState": "new",
+          "docCoords": {
+            "lineNumber": 0,
+            "offset": 0,
+            "length": 6
+          }
         }
       ]
     },
@@ -14,7 +19,12 @@
       "moments": [
         {
           "name": "bar",
-          "workState": "inProgress"
+          "workState": "inProgress",
+          "docCoords": {
+            "lineNumber": 8,
+            "offset": 64,
+            "length": 7
+          }
         }
       ]
     },
@@ -23,7 +33,12 @@
       "moments": [
         {
           "name": "uffas",
-          "workState": "waiting"
+          "workState": "waiting",
+          "docCoords": {
+            "lineNumber": 15,
+            "offset": 127,
+            "length": 9
+          }
         }
       ]
     }

@@ -11,28 +11,31 @@ import (
 // For example, a weekly recurring moment definition can yield multiple instances, one for every week
 // in the given time range.
 type Instance struct {
-	Name         string           `json:"name"`
-	Start        time.Time        `json:"start"`
-	End          time.Time        `json:"end"`
-	TimeOfDay    *time.Time       `json:"timeOfDay"`
-	Priority     int              `json:"priority"`
-	Category     *moment.Category `json:"-"`
-	Done         bool             `json:"done"`
-	WorkState    moment.WorkState `json:"workState"`
-	EndsInRange  bool             `json:"endsInRange"`
-	SubInstances []*Instance      `json:"subInstances"`
+	Name            string           `json:"name"`
+	Start           time.Time        `json:"start"`
+	End             time.Time        `json:"end"`
+	TimeOfDay       *time.Time       `json:"timeOfDay"`
+	Priority        int              `json:"priority"`
+	Category        *moment.Category `json:"-"`
+	Done            bool             `json:"done"`
+	WorkState       moment.WorkState `json:"workState"`
+	EndsInRange     bool             `json:"endsInRange"`
+	SubInstances    []*Instance      `json:"subInstances"`
+	OriginDocCoords moment.DocCoords `json:"originDocCoords"`
 }
 
 // CloneShallow creates a clone of the moment instances without its sub instances.
 func (m *Instance) CloneShallow() *Instance {
 	c := Instance{
-		Name:        m.Name,
-		Start:       m.Start,
-		End:         m.End,
-		Priority:    m.Priority,
-		Done:        m.Done,
-		WorkState:   m.WorkState,
-		EndsInRange: m.EndsInRange}
+		Name:            m.Name,
+		Start:           m.Start,
+		End:             m.End,
+		Priority:        m.Priority,
+		Done:            m.Done,
+		WorkState:       m.WorkState,
+		EndsInRange:     m.EndsInRange,
+		OriginDocCoords: m.OriginDocCoords,
+	}
 	if m.TimeOfDay != nil {
 		cp := *m.TimeOfDay
 		c.TimeOfDay = &cp
@@ -129,7 +132,12 @@ func createSingleInstances(mom *moment.SingleMoment, from time.Time, to time.Tim
 		return nil
 	}
 
-	inst := Instance{Name: mom.GetName(), Start: start, End: end}
+	inst := Instance{
+		Name:            mom.GetName(),
+		Start:           start,
+		End:             end,
+		OriginDocCoords: mom.DocCoords,
+	}
 	inst.Priority = mom.GetPriority()
 	inst.Category = mom.GetCategory()
 	inst.Done = mom.IsDone()
@@ -146,7 +154,12 @@ func createRecurInstances(mom *moment.RecurMoment, from time.Time, to time.Time)
 	var insts []*Instance
 	for it := NewRecurIterator(mom.Recurrence, from, to); it.HasNext(); {
 		start := it.Next()
-		inst := Instance{Name: mom.GetName(), Start: start, End: util.SetToEndOfDay(start)}
+		inst := Instance{
+			Name:            mom.GetName(),
+			Start:           start,
+			End:             util.SetToEndOfDay(start),
+			OriginDocCoords: mom.DocCoords,
+		}
 		inst.Priority = mom.GetPriority()
 		inst.Category = mom.GetCategory()
 		inst.Done = mom.IsDone()

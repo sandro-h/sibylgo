@@ -2,6 +2,9 @@
 // This script will be run within the webview itself
 // It cannot access the main VS Code APIs directly.
 (function () {
+	// @ts-ignore
+	const vscode = typeof acquireVsCodeApi !== 'undefined' && acquireVsCodeApi();
+
 	let calEvents = [];
 	function calendarEvents(start, end, timezone, callback) {
 		callback(calEvents);
@@ -33,13 +36,13 @@
 		}
 	});
 
-	function createInstanceList(moments, listEleClassName, showEndDate) {
-		return moments.map(m => {
+	function createInstanceList(instances, listEleClassName, showEndDate) {
+		return instances.map(m => {
 			let text = m.name;
 			if (showEndDate) {
 				text += ` (${formatDate(m.end)})`;
 			}
-			return createMomentCell(text).addClass(listEleClassName);
+			return createMomentCell(text, m.originDocCoords.lineNumber).addClass(listEleClassName);
 		});
 	}
 
@@ -71,7 +74,7 @@
 
 		cat.moments.forEach(m => {
 			const col = cols[m.workState];
-			col.ele.append(createMomentCell(m.name));
+			col.ele.append(createMomentCell(m.name, m.docCoords.lineNumber));
 		});
 		const body = $('<tr/>').append($.map(cols, c => c.ele));
 
@@ -81,13 +84,18 @@
 		return div.append(table);
 	}
 
-	function createMomentCell(text) {
+	function createMomentCell(text, line) {
 		return $('<div class="moment-cell"/>')
 			.prop('title', text)
-			.text(text);
+			.text(text)
+			.click(() => jumpToLine(line));
 	}
 
 	function formatDate(dtString) {
 		return new Date(dtString).toLocaleDateString();
+	}
+
+	function jumpToLine(line) {
+		vscode && vscode.postMessage({ command: 'jumpToLine', line: line });
 	}
 }());

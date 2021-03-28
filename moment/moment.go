@@ -285,15 +285,15 @@ const (
 	// InProgressState is the work state of a moment that is currently being worked on
 	InProgressState WorkState = "inProgress"
 	// DoneState is the work state of a moment that has been completed
-	DoneState WorkState = "Done"
+	DoneState WorkState = "done"
 )
 
 // DocCoords defines the exact location of some object (moment, date, category, etc) in the text file.
 type DocCoords struct {
 	// LineNumber is the line number on which this object starts. The first line of a document has line number 0.
-	LineNumber int
+	LineNumber int `json:"lineNumber"`
 	// Offset is the total rune offset relative to the start of the document at which this object starts.
-	Offset int
+	Offset int `json:"offset"`
 	// Length is the length in runes of the object.
-	Length int
+	Length int `json:"length"`
 }

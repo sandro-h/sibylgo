@@ -72,11 +72,13 @@ type jsonCategory struct {
 type jsonMoment struct {
 	Name      string           `json:"name"`
 	WorkState moment.WorkState `json:"workState"`
+	DocCoords moment.DocCoords `json:"docCoords"`
 }
 
 func toJSONMoment(mom moment.Moment) jsonMoment {
 	return jsonMoment{
 		Name:      mom.GetName(),
 		WorkState: mom.GetWorkState(),
+		DocCoords: mom.GetDocCoords(),
 	}
 }
