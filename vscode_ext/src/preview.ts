@@ -57,7 +57,10 @@ class SibylPreviewPanel {
 				enableScripts: true,
 
 				// And restrict the webview to only loading content from our extension's `media` directory.
-				localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'media')]
+				localResourceRoots: [
+					vscode.Uri.joinPath(extensionUri, 'media'),
+					vscode.Uri.joinPath(extensionUri, 'node_modules')
+				]
 			}
 		);
 
@@ -151,14 +154,14 @@ class SibylPreviewPanel {
 	private _getHtmlForWebview(webview: vscode.Webview) {
 		// And the uri we use to load this script in the webview
 		const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'main.js'));
-		const jqueryUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'lib', 'jquery.min.js'));
-		const momentUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'lib', 'moment.min.js'));
-		const fullCalendarUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'lib', 'fullcalendar.min.js'));
+		const jqueryUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'node_modules', 'jquery', 'dist', 'jquery.min.js'));
+		const momentUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'node_modules', 'moment', 'min', 'moment.min.js'));
+		const fullCalendarUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'node_modules', 'fullcalendar', 'dist', 'fullcalendar.min.js'));
 
 		// Uri to load styles into webview
 		const stylesResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'reset.css'));
 		const stylesMainUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'vscode.css'));
-		const stylesCalendarUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'lib', 'fullcalendar.css'));
+		const stylesCalendarUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'node_modules', 'fullcalendar', 'dist', 'fullcalendar.min.css'));
 
 		// Use a nonce to only allow specific scripts to be run
 		const nonce = getNonce();

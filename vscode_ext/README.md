@@ -12,3 +12,9 @@ When packaging, you won't see compile errors, so simply run `npm run compile` to
     //Write to output.
     orange.appendLine("I am a banana.");
 ```
+
+## Add new npm dependency to consume in extension
+
+* npm install --save dep
+* reference in extension
+* exclude just the node_modules files you need in .vscodeignore, so it's actually added in package. E.g.: !node_modules/jquery/dist/jquery.min.js
