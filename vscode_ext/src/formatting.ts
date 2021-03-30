@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { SibylConfig } from './util';
+import { SibylConfig } from './config';
 import { formatTodos } from './client';
 
 type FormatDefinition = {
@@ -152,7 +152,7 @@ export function activate(context: vscode.ExtensionContext, cfg: SibylConfig) {
 
 	function isTodoEditor(editor: vscode.TextEditor) {
 		if (!editor || !editor.document) return false;
-		return editor.document.fileName.indexOf(cfg.todoFileName) === editor.document.fileName.length - cfg.todoFileName.length;
+		return editor.document.fileName.indexOf(cfg.getTodoFileName()) === editor.document.fileName.length - cfg.getTodoFileName().length;
 	}
 
 	function setActiveEditor(editor: vscode.TextEditor) {
@@ -166,7 +166,7 @@ export function activate(context: vscode.ExtensionContext, cfg: SibylConfig) {
 
 		let formatLines: string[];
 		try {
-			formatLines = await formatTodos(cfg.restUrl, text);
+			formatLines = await formatTodos(cfg.getRestUrl(), text);
 		}
 		catch (err) {
 			vscode.window.showErrorMessage(`Failed format todos: ${err}`);

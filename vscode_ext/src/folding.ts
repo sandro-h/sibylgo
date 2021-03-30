@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
-import { SibylConfig } from './util';
+import { SibylConfig } from './config';
 import { foldTodos } from './client';
 
-export function activate(context: vscode.ExtensionContext, cfg: SibylConfig) {
+export function activate(cfg: SibylConfig) {
 	vscode.languages.registerFoldingRangeProvider(
-		{pattern: `**/${cfg.todoFileName}`},
-		new SibylFoldingRangeProvider(cfg.restUrl)
+		{pattern: `**/${cfg.getTodoFileName()}`},
+		new SibylFoldingRangeProvider(cfg.getRestUrl())
 	);
 }
 

@@ -1,9 +1,3 @@
-export type SibylConfig = {
-    todoFileName: string
-    restUrl: string
-}
-
-
 // via https://davidwalsh.name/javascript-debounce-function
 export function debounce(func: Function, wait: number, immediate?: boolean): Function {
 	var timeout;

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { preview } from './client';
-import { debounce, SibylConfig } from './util';
+import { SibylConfig } from './config';
+import { debounce } from './util';
 
 export function activate(context: vscode.ExtensionContext, cfg: SibylConfig) {
 	context.subscriptions.push(
@@ -118,7 +119,7 @@ class SibylPreviewPanel {
 
 	public async updatePreview() {
 		try {
-			const previewResp = await preview(this._cfg.restUrl, this._editor.document.getText());
+			const previewResp = await preview(this._cfg.getRestUrl(), this._editor.document.getText());
 			this._panel.webview.postMessage({ command: 'update', preview: previewResp });
 		}
 		catch (err) {

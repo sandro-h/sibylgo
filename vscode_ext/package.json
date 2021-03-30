@@ -51,6 +51,21 @@
           "group": "navigation"
         }
       ]
+    },
+    "configuration": {
+      "title": "Sibyl",
+      "properties": {
+        "sibyl.todoFileName": {
+          "type": "string",
+          "default": "todo.txt",
+          "description": "Filename recognized as a todo file by Sibyl."
+        },
+        "sibyl.restUrl": {
+          "type": "string",
+          "default": "http://localhost:8082",
+          "description": "REST url of the Sibyl backend"
+        }
+      }
     }
   },
   "main": "./out/extension",

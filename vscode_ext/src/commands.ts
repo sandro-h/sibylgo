@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import { SibylConfig } from './util';
+import { SibylConfig } from './config';
 import { cleanTodos, trashTodos } from './client';
 
 async function handleClean(cfg: SibylConfig) {
 	try {
-		await cleanTodos(cfg.restUrl);
+		await cleanTodos(cfg.getRestUrl());
 		vscode.window.showInformationMessage('Cleaned done todos!');
 	}
 	catch (err) {
@@ -14,7 +14,7 @@ async function handleClean(cfg: SibylConfig) {
 
 async function handleTrash(cfg: SibylConfig) {
 	try {
-		await trashTodos(cfg.restUrl);
+		await trashTodos(cfg.getRestUrl());
 		vscode.window.showInformationMessage('Trashed done todos!');
 	}
 	catch (err) {
