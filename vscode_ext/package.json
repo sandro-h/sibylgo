@@ -64,6 +64,16 @@
           "type": "string",
           "default": "http://localhost:8082",
           "description": "REST url of the Sibyl backend"
+        },
+        "sibyl.ticketPattern": {
+          "type": "string",
+          "default": "",
+          "description": "Regex pattern of tickets keys (e.g. JIRA). Sibyl will tell VSCode to treat them as links."
+        },
+        "sibyl.ticketUrl": {
+          "type": "string",
+          "default": "",
+          "description": "URL to use for the tickets identified by sibyl.ticketPattern. The string $1 will be replaced by the ticket key."
         }
       }
     }
