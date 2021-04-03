@@ -2,7 +2,7 @@ package testutil
 
 import (
 	"flag"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -52,7 +52,7 @@ func FullTestdataPath(filenameOrPartialPath string) string {
 }
 
 func readFile(filePath string) (string, error) {
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return "", err
 	}
@@ -63,5 +63,5 @@ func writeFile(filePath string, str string) error {
 	if str[len(str)-1] != '\n' {
 		str += "\n"
 	}
-	return ioutil.WriteFile(filePath, []byte(str), 0644)
+	return os.WriteFile(filePath, []byte(str), 0644)
 }

@@ -1,12 +1,12 @@
 package cleanup
 
 import (
-	"github.com/stretchr/testify/assert"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var testInput = `
@@ -150,7 +150,7 @@ func TestTrimEmptyLinesAfterCleanup(t *testing.T) {
 func writeTestFile(testfiles *[]string, filename string, content string) {
 	p := getTestFilePath(filename)
 	os.Mkdir(filepath.Dir(p), 0755)
-	ioutil.WriteFile(p, []byte(content), 0644)
+	os.WriteFile(p, []byte(content), 0644)
 	*testfiles = append(*testfiles, p)
 }
 
@@ -161,7 +161,7 @@ func deleteTestFiles(testfiles *[]string) {
 }
 
 func readFile(path string) string {
-	b, _ := ioutil.ReadFile(path)
+	b, _ := os.ReadFile(path)
 	return string(b)
 }
 

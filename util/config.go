@@ -2,10 +2,10 @@ package util
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v2"
-	"io/ioutil"
 	"os"
 	"strings"
+
+	"gopkg.in/yaml.v2"
 )
 
 // Config holds configuration values and has convenience methods to access these.
@@ -150,7 +150,7 @@ func getByPath(cur map[interface{}]interface{}, curPathIndex int, path []string)
 // LoadConfig loads a Config object from a YAML file.
 func LoadConfig(cfgFile string) (*Config, error) {
 	if _, err := os.Stat(cfgFile); !os.IsNotExist(err) {
-		data, err := ioutil.ReadFile(cfgFile)
+		data, err := os.ReadFile(cfgFile)
 		if err != nil {
 			return nil, err
 		}
@@ -179,7 +179,7 @@ func SaveConfig(cfg *Config, cfgFile string) error {
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(cfgFile, data, 0644)
+	err = os.WriteFile(cfgFile, data, 0644)
 	return err
 }
 

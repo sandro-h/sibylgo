@@ -1,14 +1,13 @@
 package util
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
 
 // ReadFile reads a textfile's entire content into a string and returns it.
 func ReadFile(filePath string) (string, error) {
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return "", err
 	}
@@ -20,7 +19,7 @@ func WriteFile(filePath string, str string) error {
 	if str[len(str)-1] != '\n' {
 		str += "\n"
 	}
-	return ioutil.WriteFile(filePath, []byte(str), 0644)
+	return os.WriteFile(filePath, []byte(str), 0644)
 }
 
 // AppendFile writes the passed string content at the end of the textfile.

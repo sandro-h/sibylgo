@@ -2,14 +2,15 @@ package backup
 
 import (
 	"fmt"
-	tu "github.com/sandro-h/sibylgo/testutil"
-	"github.com/sandro-h/sibylgo/util"
-	"github.com/stretchr/testify/assert"
-	"io/ioutil"
+
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	tu "github.com/sandro-h/sibylgo/testutil"
+	"github.com/sandro-h/sibylgo/util"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIsRepoInitiated_ProperRepo(t *testing.T) {
@@ -49,9 +50,9 @@ func TestCommit(t *testing.T) {
 	assert.NoError(t, err)
 
 	file1 := filepath.Join(repoPath, "file1.txt")
-	ioutil.WriteFile(file1, []byte("hello world!"), 0644)
+	os.WriteFile(file1, []byte("hello world!"), 0644)
 	file2 := filepath.Join(repoPath, "file2.txt")
-	ioutil.WriteFile(file2, []byte("zomk!"), 0644)
+	os.WriteFile(file2, []byte("zomk!"), 0644)
 
 	// When
 	commit, err := commit(repoPath, "A test commit", "test@example.com", file1, file2)
@@ -82,9 +83,9 @@ func TestCommit_NoChanges(t *testing.T) {
 	assert.NoError(t, err)
 
 	file1 := filepath.Join(repoPath, "file1.txt")
-	ioutil.WriteFile(file1, []byte("hello world!"), 0644)
+	os.WriteFile(file1, []byte("hello world!"), 0644)
 	file2 := filepath.Join(repoPath, "file2.txt")
-	ioutil.WriteFile(file2, []byte("zomk!"), 0644)
+	os.WriteFile(file2, []byte("zomk!"), 0644)
 
 	_, err = commit(repoPath, "A test commit", "test@example.com", file1, file2)
 	assert.NoError(t, err)
@@ -115,7 +116,7 @@ func TestRevert(t *testing.T) {
 
 	file1 := filepath.Join(repoPath, "file1.txt")
 	for i := 0; i < 5; i++ {
-		ioutil.WriteFile(file1, []byte(fmt.Sprintf("Content %d", i)), 0644)
+		os.WriteFile(file1, []byte(fmt.Sprintf("Content %d", i)), 0644)
 		commit(repoPath, fmt.Sprintf("Commit %d", i), "test@example.com", file1)
 	}
 	commits, _ := listCommits(repoPath)
