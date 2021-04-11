@@ -3,15 +3,17 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/sandro-h/sibylgo/backup"
-	"github.com/sandro-h/sibylgo/extsources"
-	"github.com/sandro-h/sibylgo/outlook"
-	"github.com/sandro-h/sibylgo/reminder"
-	"github.com/sandro-h/sibylgo/util"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/sandro-h/sibylgo/backup"
+	"github.com/sandro-h/sibylgo/extsources"
+	"github.com/sandro-h/sibylgo/outlook"
+	"github.com/sandro-h/sibylgo/parse"
+	"github.com/sandro-h/sibylgo/reminder"
+	"github.com/sandro-h/sibylgo/util"
+	log "github.com/sirupsen/logrus"
 )
 
 var ascii = `.▄▄ · ▪  ▄▄▄▄·  ▄· ▄▌▄▄▌  
@@ -44,7 +46,11 @@ func main() {
 	log.Infof("Version %s.%s (%s)\n", buildVersion, buildNumber, buildRevision)
 
 	cfg := loadConfig()
+
 	log.SetLevel(getConfigLogLevel(cfg))
+
+	parse.ParseConfig.BackingCfg = cfg.GetSubConfig("parse")
+
 	todoFile = cfg.GetString("todoFile", "")
 	if todoFile != "" {
 		log.Infof("Using todo file %s\n", todoFile)

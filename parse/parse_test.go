@@ -1,10 +1,11 @@
 package parse
 
 import (
-	"github.com/sandro-h/sibylgo/moment"
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
+
+	"github.com/sandro-h/sibylgo/moment"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSubMoments(t *testing.T) {
@@ -166,6 +167,23 @@ func TestBadCategory(t *testing.T) {
 	assert.Contains(t, err.Error(), "Expected a delimiter after category a cat")
 }
 
+func TestCategoryWithDifferentConfig(t *testing.T) {
+	defer ResetConfig()
+	ParseConfig.SetCategoryDelim("=====")
+
+	todos, _ := String(`
+[] 1
+==================
+ a cat
+==================
+[] 2
+	`)
+
+	assert.Nil(t, momentByPath(todos, "1").GetCategory())
+	assert.Equal(t, 1, len(todos.Categories))
+	assert.Equal(t, "a cat", todos.Categories[0].Name)
+}
+
 func TestUnicodeMoments(t *testing.T) {
 	// Non-unicode version for range references
 	// 	todos, _ := String(`
@@ -203,6 +221,24 @@ func TestMomentsByID(t *testing.T) {
 	assert.Equal(t, "1", todos.MomentsByID["id1"].GetName())
 	assert.Equal(t, "2", todos.MomentsByID["id2"].GetName())
 	assert.Nil(t, todos.MomentsByID["not-existing-id"])
+}
+
+func TestDifferentIndent(t *testing.T) {
+	defer ResetConfig()
+	ParseConfig.SetIndent("  ")
+
+	todos, _ := String(`
+[] 1
+  some comment
+  [] 1.1
+    sub comment
+    other sub comment
+	`)
+
+	assertComments(t, todos, "1", "some comment")
+	assertComments(t, todos, "1/1.1", "sub comment", "other sub comment")
+	assertDocCoords(t, 4, 34, 11, momentByPath(todos, "1/1.1").GetComment(0).DocCoords)
+	assertDocCoords(t, 5, 50, 17, momentByPath(todos, "1/1.1").GetComment(1).DocCoords)
 }
 
 func assertMomentExists(t *testing.T, todos *moment.Todos, path string) moment.Moment {

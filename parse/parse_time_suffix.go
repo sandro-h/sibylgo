@@ -1,10 +1,11 @@
 package parse
 
 import (
-	"github.com/sandro-h/sibylgo/moment"
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"github.com/sandro-h/sibylgo/moment"
 )
 
 // expected lineVal: .*<timeval>\s*
@@ -30,7 +31,7 @@ func parseTimeSuffix(line *Line, lineVal string) (*moment.Date, string) {
 
 func parseTime(str string) (bool, time.Time) {
 	str = strings.TrimSpace(str)
-	tm, err := time.ParseInLocation("15:04", str, time.Local)
+	tm, err := time.ParseInLocation(ParseConfig.GetTimeFormat(), str, time.Local)
 	if err != nil {
 		return false, time.Unix(0, 0)
 

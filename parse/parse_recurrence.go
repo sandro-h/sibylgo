@@ -1,23 +1,17 @@
 package parse
 
 import (
-	"github.com/sandro-h/sibylgo/moment"
-	"github.com/sandro-h/sibylgo/util"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/sandro-h/sibylgo/moment"
+	"github.com/sandro-h/sibylgo/util"
 )
 
 var getNow = func() time.Time {
 	return time.Now()
 }
-
-var dailyPattern, _ = regexp.Compile(`(?i)(every day|today)`)
-var weeklyPattern, _ = regexp.Compile(`(?i)every (monday|tuesday|wednesday|thursday|friday|saturday|sunday)`)
-var nWeeklyPattern, _ = regexp.Compile(`(?i)every (2nd|3rd|4th) (monday|tuesday|wednesday|thursday|friday|saturday|sunday)`)
-var monthlyPattern, _ = regexp.Compile(`(?i)every (\d{1,2})\.?$`)
-var yearlyPattern, _ = regexp.Compile(`(?i)every (\d{1,2})\.(\d{1,2})\.?$`)
 
 // expected lineVal: .*(\s+<recur>\s+)
 func parseRecurrence(line *Line, lineVal string) (*moment.Recurrence, *moment.Date, string) {
@@ -56,7 +50,7 @@ func parseRecurrence(line *Line, lineVal string) (*moment.Recurrence, *moment.Da
 }
 
 func tryParseDaily(reStr string) *moment.Recurrence {
-	if dailyPattern.MatchString(reStr) {
+	if ParseConfig.GetDailyPattern().MatchString(reStr) {
 		return &moment.Recurrence{
 			Recurrence: moment.RecurDaily,
 			RefDate:    &moment.Date{Time: getNow()}}
@@ -65,7 +59,7 @@ func tryParseDaily(reStr string) *moment.Recurrence {
 }
 
 func tryParseWeekly(reStr string) *moment.Recurrence {
-	matches := weeklyPattern.FindStringSubmatch(reStr)
+	matches := ParseConfig.GetWeeklyPattern().FindStringSubmatch(reStr)
 	if matches != nil {
 		wd := parseWeekday(matches[1])
 		dt := util.SetWeekday(getNow(), wd)
@@ -77,7 +71,7 @@ func tryParseWeekly(reStr string) *moment.Recurrence {
 }
 
 func tryParseNWeekly(reStr string) *moment.Recurrence {
-	matches := nWeeklyPattern.FindStringSubmatch(reStr)
+	matches := ParseConfig.GetNthWeeklyPattern().FindStringSubmatch(reStr)
 	if matches != nil {
 		n, re := parseNth(matches[1])
 		if n < 0 {
@@ -96,39 +90,24 @@ func tryParseNWeekly(reStr string) *moment.Recurrence {
 }
 
 func parseWeekday(str string) time.Weekday {
-	switch strings.ToLower(str) {
-	case "sunday":
-		return time.Sunday
-	case "monday":
-		return time.Monday
-	case "tuesday":
-		return time.Tuesday
-	case "wednesday":
-		return time.Wednesday
-	case "thursday":
-		return time.Thursday
-	case "friday":
-		return time.Friday
-	case "saturday":
-		return time.Saturday
+	day, ok := ParseConfig.GetWeekDays()[strings.ToLower(str)]
+	if !ok {
+		return -1
 	}
-	return -1
+	return day
 }
 
 func parseNth(str string) (int, int) {
-	switch strings.ToLower(str) {
-	case "2nd":
-		return 2, moment.RecurBiWeekly
-	case "3rd":
-		return 3, moment.RecurTriWeekly
-	case "4th":
-		return 4, moment.RecurQuadriWeekly
+	nth, ok := ParseConfig.GetNths()[strings.ToLower(str)]
+	if !ok || nth > 4 {
+		return -1, -1
 	}
-	return -1, -1
+
+	return nth, moment.RecurBiWeekly + (nth - 2)
 }
 
 func tryParseMonthly(reStr string) *moment.Recurrence {
-	matches := monthlyPattern.FindStringSubmatch(reStr)
+	matches := ParseConfig.GetMonthlyPattern().FindStringSubmatch(reStr)
 	if matches != nil {
 		day, err := strconv.Atoi(matches[1])
 		if err != nil {
@@ -144,7 +123,7 @@ func tryParseMonthly(reStr string) *moment.Recurrence {
 }
 
 func tryParseYearly(reStr string) *moment.Recurrence {
-	matches := yearlyPattern.FindStringSubmatch(reStr)
+	matches := ParseConfig.GetYearlyPattern().FindStringSubmatch(reStr)
 	if matches != nil {
 		day, err := strconv.Atoi(matches[1])
 		if err != nil {

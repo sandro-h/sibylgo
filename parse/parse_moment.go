@@ -3,7 +3,6 @@ package parse
 import (
 	"strings"
 
-	"github.com/sandro-h/sibylgo/constants"
 	"github.com/sandro-h/sibylgo/moment"
 )
 
@@ -80,21 +79,21 @@ func parseStateMark(line *Line, lineVal string) (moment.WorkState, string, error
 	rBracketPos := 0
 	state := moment.NewState
 	for i, c := range lineVal {
-		if c == doneRBracket {
+		if c == ParseConfig.GetRBracket() {
 			rBracketPos = i
 			break
 		}
 		switch c {
-		case constants.DoneMark:
+		case ParseConfig.GetDoneMark():
 			state = moment.DoneState
-		case constants.InProgressMark:
+		case ParseConfig.GetInProgressMark():
 			state = moment.InProgressState
-		case constants.WaitingMark:
+		case ParseConfig.GetWaitingMark():
 			state = moment.WaitingState
 		}
 	}
 	if rBracketPos == 0 {
-		return moment.NewState, "", newParseError(line, "Expected closing %c for moment line %s", doneRBracket, line.Content())
+		return moment.NewState, "", newParseError(line, "Expected closing %c for moment line %s", ParseConfig.GetRBracket(), line.Content())
 	}
 	return state, strings.TrimSpace(lineVal[rBracketPos+1:]), nil
 }

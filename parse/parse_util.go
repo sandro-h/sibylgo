@@ -42,7 +42,7 @@ func newParseError(line *Line, msg string, args ...interface{}) error {
 func parsePriority(str string) (int, string) {
 	prio := 0
 	for i := len(str) - 1; i >= 0; i-- {
-		if str[i] != priorityMark {
+		if str[i] != ParseConfig.GetPriorityMark() {
 			break
 		}
 		prio++

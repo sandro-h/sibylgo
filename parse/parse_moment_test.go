@@ -41,12 +41,45 @@ func TestWorkState(t *testing.T) {
 	assert.Equal(t, moment.InProgressState, mom.GetWorkState())
 }
 
+func TestWorkStateDifferentConfig(t *testing.T) {
+	defer ResetConfig()
+	ParseConfig.SetDoneMark('/')
+	ParseConfig.SetWaitingMark('.')
+	ParseConfig.SetInProgressMark('>')
+
+	mom, _ := parseMom("[] blabla")
+	assert.Equal(t, moment.NewState, mom.GetWorkState())
+
+	mom, _ = parseMom("[/] blabla")
+	assert.Equal(t, moment.DoneState, mom.GetWorkState())
+
+	mom, _ = parseMom("[.] blabla")
+	assert.Equal(t, moment.WaitingState, mom.GetWorkState())
+
+	mom, _ = parseMom("[>] blabla")
+	assert.Equal(t, moment.InProgressState, mom.GetWorkState())
+}
+
 func TestPriority(t *testing.T) {
 	mom, _ := parseMom("[] blabla!!!")
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.Equal(t, 3, mom.GetPriority())
 
 	smom, _ := parseSingleMom("[] blabla!! (1.2.2015)")
+	assert.Equal(t, "blabla", smom.GetName())
+	assert.Equal(t, 2, smom.GetPriority())
+	assert.Equal(t, "01.02.2015 00:00", dateStr(smom.Start))
+}
+
+func TestPriorityWithDifferentConfig(t *testing.T) {
+	defer ResetConfig()
+	ParseConfig.SetPriorityMark('<')
+
+	mom, _ := parseMom("[] blabla<<<")
+	assert.Equal(t, "blabla", mom.GetName())
+	assert.Equal(t, 3, mom.GetPriority())
+
+	smom, _ := parseSingleMom("[] blabla<< (1.2.2015)")
 	assert.Equal(t, "blabla", smom.GetName())
 	assert.Equal(t, 2, smom.GetPriority())
 	assert.Equal(t, "01.02.2015 00:00", dateStr(smom.Start))
@@ -151,6 +184,21 @@ func TestRangeDateWithTime(t *testing.T) {
 	assert.Equal(t, "25.12.2015 23:59", dateStr(mom.End))
 	assert.Equal(t, "13:15:00", timeStr(mom.TimeOfDay))
 	assert.Equal(t, 33, mom.TimeOfDay.Offset)
+	assert.Equal(t, 5, mom.TimeOfDay.Length)
+}
+
+func TestSingleDateWithTimeDifferentConfig(t *testing.T) {
+	defer ResetConfig()
+	ParseConfig.SetDateFormats([]string{"2006-01-02"})
+	ParseConfig.SetTimeFormat("15.04")
+
+	mom, _ := parseSingleMom("[] blabla (2015-12-24 13.15)")
+
+	assert.Equal(t, "blabla", mom.GetName())
+	assert.Equal(t, "24.12.2015 00:00", dateStr(mom.Start))
+	assert.Equal(t, "24.12.2015 23:59", dateStr(mom.End))
+	assert.Equal(t, "13:15:00", timeStr(mom.TimeOfDay))
+	assert.Equal(t, 22, mom.TimeOfDay.Offset)
 	assert.Equal(t, 5, mom.TimeOfDay.Length)
 }
 
@@ -306,6 +354,15 @@ func TestIDTrimming(t *testing.T) {
 	assert.Equal(t, "my-id-123", mom.GetID().Value)
 	assert.Equal(t, 12, mom.GetID().Offset)
 	assert.Equal(t, 10, mom.GetID().Length)
+}
+
+func TestDifferentBrackets(t *testing.T) {
+	defer ResetConfig()
+	ParseConfig.SetLBracket("(")
+	ParseConfig.SetRBracket(')')
+	mom, _ := parseSingleMom("() blabla")
+
+	assert.Equal(t, "blabla", mom.GetName())
 }
 
 func dateStr(dt *moment.Date) string {

@@ -9,12 +9,6 @@ import (
 	"github.com/sandro-h/sibylgo/moment"
 )
 
-const categoryDelim = "------"
-const doneLBracket = "["
-const doneRBracket = ']'
-const priorityMark = '!'
-const indentChar = "\t"
-
 type parserState struct {
 	todos       *moment.Todos
 	curCategory *moment.Category
@@ -67,9 +61,9 @@ func (p *parserState) handleLine(line *Line) error {
 		return nil
 	}
 	var err error
-	if line.HasPrefix(categoryDelim) {
+	if line.HasPrefix(ParseConfig.GetCategoryDelim()) {
 		err = p.handleCategoryLine(line)
-	} else if line.HasPrefix(doneLBracket) {
+	} else if line.HasPrefix(ParseConfig.GetLBracket()) {
 		err = p.handleMomentLine(line)
 	}
 	//fmt.Printf("%s\n", line.content)
@@ -91,7 +85,7 @@ func (p *parserState) handleCategoryLine(line *Line) error {
 			"Expected a delimiter after category %s, but reached end",
 			p.curCategory.Name)
 	}
-	if !nxt.HasPrefix(categoryDelim) {
+	if !nxt.HasPrefix(ParseConfig.GetCategoryDelim()) {
 		return newParseError(nxt,
 			"Expected a delimiter after category %s, got %s",
 			p.curCategory.Name, nxt.Content())
@@ -150,7 +144,7 @@ func (p *parserState) parseFullMoment(line *Line, lineVal string, indent string)
 }
 
 func (p *parserState) parseCommentsAndSubMoments(mom moment.Moment, indent string) error {
-	nextIndent := indent + indentChar
+	nextIndent := indent + ParseConfig.GetIndent()
 	for p.scanner.Scan() {
 		line := p.scanner.Line()
 		if line.HasPrefix(nextIndent) {
@@ -178,8 +172,8 @@ func (p *parserState) parseCommentsAndSubMoments(mom moment.Moment, indent strin
 }
 
 func (p *parserState) handleSubLine(mom moment.Moment, line *Line, lineVal string, indent string) error {
-	if strings.HasPrefix(lineVal, doneLBracket) {
-		subMom, err := p.parseFullMoment(line, lineVal, indent+indentChar)
+	if strings.HasPrefix(lineVal, ParseConfig.GetLBracket()) {
+		subMom, err := p.parseFullMoment(line, lineVal, indent+ParseConfig.GetIndent())
 		if err != nil {
 			return err
 		}
@@ -189,7 +183,7 @@ func (p *parserState) handleSubLine(mom moment.Moment, line *Line, lineVal strin
 		comment := &moment.CommentLine{
 			Content: lineVal,
 			DocCoords: moment.DocCoords{LineNumber: line.LineNumber(),
-				Offset: line.Offset() + len(indent+indentChar),
+				Offset: line.Offset() + len(indent+ParseConfig.GetIndent()),
 				Length: utf8.RuneCountInString(lineVal)}}
 		mom.AddComment(comment)
 	}

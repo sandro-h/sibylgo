@@ -1,18 +1,13 @@
 package parse
 
 import (
-	"github.com/sandro-h/sibylgo/moment"
-	"github.com/sandro-h/sibylgo/util"
 	"strings"
 	"time"
 	"unicode/utf8"
-)
 
-var dateFormats = [...]string{
-	"02.01.06",
-	"02.01.2006",
-	"2.1.06",
-	"2.1.2006"}
+	"github.com/sandro-h/sibylgo/moment"
+	"github.com/sandro-h/sibylgo/util"
+)
 
 // expected lineVal: .*(\s+<date>\s+)
 func parseDateSuffix(line *Line, lineVal string) (*moment.Date, *moment.Date, *moment.Date, string) {
@@ -27,12 +22,21 @@ func parseDateSuffix(line *Line, lineVal string) (*moment.Date, *moment.Date, *m
 	dsTrimLen := countStartWhitespaces(dtStr)
 	dtStr = strings.TrimSpace(dtStr)
 
-	dashPos := strings.Index(dtStr, "-")
 	var start *moment.Date
 	var end *moment.Date
-	if dashPos >= 0 {
-		start, end = parseDateSuffixRanged(dtStr, dashPos)
-	} else {
+
+	// Try all dashes as separator in case the date format uses dashes (e.g. 2015-12-24 - 2016-02-03)
+	dashOffset := 0
+	dashPos := strings.Index(dtStr, "-")
+	for dashPos >= 0 && start == nil {
+		start, end = parseDateSuffixRanged(dtStr, dashOffset+dashPos)
+		if start == nil {
+			dashOffset += dashPos + 1
+			dashPos = strings.Index(dtStr[dashOffset:], "-")
+		}
+	}
+
+	if start == nil {
 		start = parseDateSuffixSingle(dtStr)
 		if start != nil {
 			endCopy := *start
@@ -109,8 +113,8 @@ func parseDateSuffixRanged(lineVal string, dashPos int) (*moment.Date, *moment.D
 
 func parseDate(str string) (bool, time.Time) {
 	str = strings.TrimSpace(str)
-	for _, fmt := range dateFormats {
-		tm, err := time.ParseInLocation(fmt, str, time.Local)
+	for _, fmtStr := range ParseConfig.GetDateFormats() {
+		tm, err := time.ParseInLocation(fmtStr, str, time.Local)
 		if err == nil {
 			return true, tm
 		}

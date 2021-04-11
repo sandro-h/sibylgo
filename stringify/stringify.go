@@ -3,8 +3,8 @@ package stringify
 import (
 	"fmt"
 
-	"github.com/sandro-h/sibylgo/constants"
 	"github.com/sandro-h/sibylgo/moment"
+	"github.com/sandro-h/sibylgo/parse"
 )
 
 // Todos converts the moments into the same string content used in a todo file.
@@ -36,13 +36,13 @@ func stringifyCategory(c *moment.Category) string {
 func stringifyMoment(m moment.Moment, parentDone bool, indent string) string {
 	stateMarker := ""
 	if m.IsDone() {
-		stateMarker = string(constants.DoneMark)
+		stateMarker = string(parse.ParseConfig.GetDoneMark())
 	} else {
 		switch m.GetWorkState() {
 		case moment.InProgressState:
-			stateMarker = string(constants.InProgressMark)
+			stateMarker = string(parse.ParseConfig.GetInProgressMark())
 		case moment.WaitingState:
-			stateMarker = string(constants.WaitingMark)
+			stateMarker = string(parse.ParseConfig.GetWaitingMark())
 		}
 	}
 
@@ -59,7 +59,15 @@ func stringifyMoment(m moment.Moment, parentDone bool, indent string) string {
 		panicNotImplemented()
 	}
 
-	res := fmt.Sprintf("%s[%s] %s%s%s%s\n", indent, stateMarker, m.GetName(), prioritySuffix, dateSuffix, idSuffix)
+	res := fmt.Sprintf("%s%s%s%c %s%s%s%s\n",
+		indent,
+		parse.ParseConfig.GetLBracket(),
+		stateMarker,
+		parse.ParseConfig.GetRBracket(),
+		m.GetName(),
+		prioritySuffix,
+		dateSuffix,
+		idSuffix)
 	for _, c := range m.GetComments() {
 		res += fmt.Sprintf("%s%s\n", indent+"\t", c.Content)
 	}
