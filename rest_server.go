@@ -4,6 +4,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/sandro-h/sibylgo/backup"
@@ -18,20 +21,21 @@ import (
 	"github.com/sandro-h/sibylgo/reminder"
 	"github.com/sandro-h/sibylgo/util"
 	log "github.com/sirupsen/logrus"
-	"net/http"
-	"time"
 )
 
 func startRestServer(cfg *util.Config) {
 	host := cfg.GetString("host", "localhost")
 	port := cfg.GetInt("port", 8082)
+	optimizedFormat := cfg.GetBool("optimized_format", true)
 
 	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 
 	router := mux.NewRouter()
-	router.HandleFunc("/format", formatMoments).Methods("POST")
+	router.HandleFunc("/format", func(w http.ResponseWriter, r *http.Request) {
+		formatMoments(w, r, optimizedFormat)
+	}).Methods("POST")
 	router.HandleFunc("/folding", foldMoments).Methods("POST")
 	router.HandleFunc("/clean", clean).Methods("POST")
 	router.HandleFunc("/trash", trash).Methods("POST")
@@ -50,13 +54,20 @@ func startRestServer(cfg *util.Config) {
 	log.Infof("Started REST server on %s:%d\n", host, port)
 }
 
-func formatMoments(w http.ResponseWriter, r *http.Request) {
+func formatMoments(w http.ResponseWriter, r *http.Request, optimizedFormat bool) {
 	reader := base64.NewDecoder(base64.StdEncoding, r.Body)
 	todos, err := parse.Reader(reader)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 	}
-	res := format.ForVSCode(todos)
+
+	var res string
+	if optimizedFormat {
+		res = format.ForVSCodeOptimized(todos)
+	} else {
+		res = format.ForVSCode(todos)
+	}
+
 	fmt.Fprint(w, res)
 }
 

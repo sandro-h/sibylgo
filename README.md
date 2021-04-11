@@ -156,6 +156,8 @@ log_level: info
 todoFile: path/to/todo.txt
 host: localhost
 
+optimized_format: true
+
 mailHost: smtp.example.com
 mailPort: 3025
 mailFrom: foo@example.com

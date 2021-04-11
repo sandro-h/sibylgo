@@ -2,10 +2,11 @@ package format
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/sandro-h/sibylgo/instances"
 	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/util"
-	"time"
 )
 
 const catMarker = "cat"
@@ -37,17 +38,42 @@ var getNow = func() time.Time {
 //     27,33,date
 func ForVSCode(todos *moment.Todos) string {
 
+	return forVSCode(todos, false)
+}
+
+// ForVSCodeOptimized does the same as ForVSCode, but will merge format lines
+// if they are the same type and consecutive in the todo file.
+// This way the editor can apply the same format to a larger range instead
+// of multiple formats to individual ranges.
+func ForVSCodeOptimized(todos *moment.Todos) string {
+
+	return forVSCode(todos, true)
+}
+
+func forVSCode(todos *moment.Todos, optimize bool) string {
+
 	res := ""
+	fmtState := &formatterState{
+		res:       &res,
+		optimized: optimize,
+	}
+
 	for _, c := range todos.Categories {
-		appendFmt(&res, c.DocCoords, catMarker)
+		appendFmt(fmtState, c.DocCoords, catMarker)
 	}
 	for _, m := range todos.Moments {
-		formatMoment(&res, m, false)
+		formatMoment(fmtState, m, false)
 	}
+
+	hasStoredOptimize := fmtState.optimizedMomFmt != ""
+	if hasStoredOptimize {
+		appendFmtRaw(fmtState, fmtState.optimizedMomCoords, fmtState.optimizedMomFmt)
+	}
+
 	return res
 }
 
-func formatMoment(res *string, m moment.Moment, parentDone bool) {
+func formatMoment(fmtState *formatterState, m moment.Moment, parentDone bool) {
 	momFmt := momMarker
 	done := parentDone || m.IsDone()
 	if done {
@@ -59,44 +85,69 @@ func formatMoment(res *string, m moment.Moment, parentDone bool) {
 		}
 	}
 
-	appendFmt(res, m.GetDocCoords(), momFmt)
+	if !fmtState.optimized {
+		appendFmt(fmtState, m.GetDocCoords(), momFmt)
+	} else {
+		appendMomentFmtLater(fmtState, m, momFmt)
+	}
 
 	// Additional format lines:
 	if done {
 		for _, c := range m.GetComments() {
-			appendFmt(res, c.DocCoords, commentMarker+doneSuffix)
+			appendFmt(fmtState, c.DocCoords, commentMarker+doneSuffix)
 		}
 	} else {
-		formatDates(res, m)
-		formatID(res, m)
+		formatDates(fmtState, m)
+		formatID(fmtState, m)
 	}
 
 	for _, s := range m.GetSubMoments() {
-		formatMoment(res, s, done)
+		formatMoment(fmtState, s, done)
 	}
 }
 
-func formatDates(res *string, m moment.Moment) {
+func appendMomentFmtLater(fmtState *formatterState, m moment.Moment, momFmt string) {
+	hasStoredOptimize := fmtState.optimizedMomFmt != ""
+	if hasStoredOptimize && momFmt == fmtState.optimizedMomFmt {
+		fmtState.optimizedMomCoords.Length = m.GetDocCoords().Offset - fmtState.optimizedMomCoords.Offset + m.GetDocCoords().Length
+	} else {
+		if hasStoredOptimize {
+			appendFmtRaw(fmtState, fmtState.optimizedMomCoords, fmtState.optimizedMomFmt)
+		}
+		fmtState.optimizedMomFmt = momFmt
+		fmtState.optimizedMomCoords = m.GetDocCoords()
+	}
+
+	// (Undone) comment lines aren't formatted, so we need to check explicitly.
+	// For all other types, appendFmt will be triggered which will flush the stored fmt.
+	canChainFurther := m.GetComments() == nil
+	if !canChainFurther {
+		appendFmtRaw(fmtState, fmtState.optimizedMomCoords, fmtState.optimizedMomFmt)
+		fmtState.optimizedMomFmt = ""
+	}
+}
+
+func formatDates(fmtState *formatterState, m moment.Moment) {
 	switch v := m.(type) {
 	case *moment.SingleMoment:
 		if v.Start != nil {
-			appendFmt(res, v.Start.DocCoords, dateMarker)
+			appendFmt(fmtState, v.Start.DocCoords, dateMarker)
 		}
 		if v.End != nil && (v.Start == nil || v.End.DocCoords != v.Start.DocCoords) {
-			appendFmt(res, v.End.DocCoords, dateMarker)
+			appendFmt(fmtState, v.End.DocCoords, dateMarker)
 		}
 	case *moment.RecurMoment:
-		appendFmt(res, v.Recurrence.RefDate.DocCoords, dateMarker)
+		appendFmt(fmtState, v.Recurrence.RefDate.DocCoords, dateMarker)
 	}
 
 	if m.GetTimeOfDay() != nil {
-		appendFmt(res, m.GetTimeOfDay().DocCoords, timeMarker)
+		appendFmt(fmtState, m.GetTimeOfDay().DocCoords, timeMarker)
 	}
 }
 
-func formatID(res *string, m moment.Moment) {
+func formatID(fmtState *formatterState, m moment.Moment) {
 	if m.GetID() != nil {
-		appendFmt(res, m.GetID().DocCoords, idMarker)
+		appendFmt(fmtState, m.GetID().DocCoords, idMarker)
 	}
 }
 
@@ -127,6 +178,22 @@ func formatDueSoon(momFmt *string, m moment.Moment) {
 	}
 }
 
-func appendFmt(res *string, c moment.DocCoords, format string) {
-	*res += fmt.Sprintf("%d,%d,%s\n", c.Offset, c.Offset+c.Length, format)
+func appendFmt(fmtState *formatterState, c moment.DocCoords, format string) {
+	if fmtState.optimizedMomFmt != "" {
+		appendFmtRaw(fmtState, fmtState.optimizedMomCoords, fmtState.optimizedMomFmt)
+		fmtState.optimizedMomFmt = ""
+	}
+	appendFmtRaw(fmtState, c, format)
+}
+
+func appendFmtRaw(fmtState *formatterState, c moment.DocCoords, format string) {
+	*fmtState.res += fmt.Sprintf("%d,%d,%s\n", c.Offset, c.Offset+c.Length, format)
+}
+
+type formatterState struct {
+	res *string
+
+	optimized          bool
+	optimizedMomFmt    string
+	optimizedMomCoords moment.DocCoords
 }

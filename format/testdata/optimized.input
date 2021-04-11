@@ -1,0 +1,27 @@
+[] abc
+[] def
+[] ghi (1.5.21)
+	lorem ipsum
+
+[] klm (17.5.21 08:00)
+
+[] mno (31.10.21)
+	letter is attached to folder
+
+[] pqr
+	# TODO tomorrow:
+	# impl evaluator
+
+[] abc
+
+[] def
+
+
+[] stv
+	[x] wxy
+	[] improve readme
+		[] fix markdownlint
+		[] add table of contents script
+		[] move some common commands to scripts
+			for example to connect to db. put it in deploy/
+	[] add POST endpoint to force specific collector to run right now
