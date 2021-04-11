@@ -2,12 +2,13 @@ package format
 
 import (
 	"fmt"
-	"github.com/sandro-h/sibylgo/parse"
-	tu "github.com/sandro-h/sibylgo/testutil"
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/sandro-h/sibylgo/parse"
+	tu "github.com/sandro-h/sibylgo/testutil"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFormatCat(t *testing.T) {
@@ -80,6 +81,24 @@ func TestDueSoonDaylightSavings(t *testing.T) {
 18,34,mom.until10
 27,33,date
 `, format)
+}
+
+func TestUnoptimizedFormat(t *testing.T) {
+	// Not using parse.File because of CRLF differences impacting formatting ranges
+	todos, _ := parse.String(tu.ReadTestdata(t, "TestUnoptimizedFormat", "optimized.input"))
+
+	format := ForVSCode(todos)
+
+	tu.AssertGoldenOutput(t, "TestUnoptimizedFormat", "unoptimized.output", format)
+}
+
+func TestOptimizedFormat(t *testing.T) {
+	// Not using parse.File because of CRLF differences impacting formatting ranges
+	todos, _ := parse.String(tu.ReadTestdata(t, "TestOptimizedFormat", "optimized.input"))
+
+	format := ForVSCodeOptimized(todos)
+
+	tu.AssertGoldenOutput(t, "TestOptimizedFormat", "optimized.output", format)
 }
 
 func assertUntils(t *testing.T, format string, expected ...string) {
