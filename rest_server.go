@@ -42,7 +42,8 @@ func startRestServer(cfg *util.Config) {
 	router.HandleFunc("/moments", getCalendarEntries).Methods("GET")
 	router.HandleFunc("/moments", insertMoment).Methods("POST")
 	router.HandleFunc("/reminders/{date}/weekly", getWeeklyReminders).Methods("GET")
-	router.HandleFunc("/preview", getPreview).Methods("POST")
+	router.HandleFunc("/preview", getPreview).Methods("GET")
+	router.HandleFunc("/preview", postPreview).Methods("POST")
 
 	srv := &http.Server{
 		Handler:      handlers.CORS(originsOk, headersOk, methodsOk)(router),
@@ -183,6 +184,18 @@ func trash(w http.ResponseWriter, r *http.Request) {
 }
 
 func getPreview(w http.ResponseWriter, r *http.Request) {
+	todos, err := parse.File(todoFile)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	previewResp := preview.Create(todos)
+	setJSONContentType(w)
+	json.NewEncoder(w).Encode(previewResp)
+}
+
+func postPreview(w http.ResponseWriter, r *http.Request) {
 	reader := base64.NewDecoder(base64.StdEncoding, r.Body)
 	todos, err := parse.Reader(reader)
 	if err != nil {

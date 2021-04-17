@@ -23,7 +23,7 @@ func Create(todos *moment.Todos) Preview {
 	now := getNow()
 
 	overview := compileTopLevelMomentsOverview(todos)
-	todays, weeks := reminder.CompileRemindersForTodayAndThisWeek(todos, now)
+	todays, weeks := compileReminders(todos, now)
 	entries := calendar.CompileCalendarEntries(todos, util.SetToStartOfWeek(now), util.SetToEndOfWeek(now).AddDate(0, 0, 1))
 
 	return Preview{
@@ -50,6 +50,25 @@ func compileTopLevelMomentsOverview(todos *moment.Todos) jsonTodos {
 		}
 	}
 	return overview
+}
+
+func compileReminders(todos *moment.Todos, now time.Time) ([]*instances.Instance, []*instances.Instance) {
+	todays, weeks := reminder.CompileRemindersForTodayAndThisWeek(todos, now)
+	return flattenReminders("", todays), flattenReminders("", weeks)
+}
+
+func flattenReminders(parentPath string, insts []*instances.Instance) []*instances.Instance {
+	var res []*instances.Instance
+	for _, i := range insts {
+		if i.EndsInRange {
+			flatInst := i.CloneShallow()
+			flatInst.Name = parentPath + flatInst.Name
+			res = append(res, flatInst)
+		}
+		subFlattened := flattenReminders(parentPath+i.Name+"/", i.SubInstances)
+		res = append(res, subFlattened...)
+	}
+	return res
 }
 
 // Preview holds the contents of the preview.

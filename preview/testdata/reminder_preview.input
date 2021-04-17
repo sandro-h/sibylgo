@@ -1,0 +1,11 @@
+[] foo
+
+[] has now children
+	[] child not now
+	[] child now (17.4.21)
+	[] has sub now children
+		[] sub child now (-17.4.21)
+
+[] is now and has now children (17.4.21)
+	[] child now (17.4.21)
+	[] child not now

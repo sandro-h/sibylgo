@@ -1,0 +1,66 @@
+[
+  {
+    "name": "has now children/child now",
+    "timeOfDay": null,
+    "priority": 0,
+    "done": false,
+    "workState": "new",
+    "endsInRange": true,
+    "subInstances": null,
+    "originDocCoords": {
+      "lineNumber": 4,
+      "offset": 46,
+      "length": 23
+    },
+    "start": "2021-04-17 00:00:00",
+    "end": "2021-04-17 23:59:59"
+  },
+  {
+    "name": "has now children/has sub now children/sub child now",
+    "timeOfDay": null,
+    "priority": 0,
+    "done": false,
+    "workState": "new",
+    "endsInRange": true,
+    "subInstances": null,
+    "originDocCoords": {
+      "lineNumber": 6,
+      "offset": 95,
+      "length": 29
+    },
+    "start": "2021-04-17 00:00:00",
+    "end": "2021-04-17 23:59:59"
+  },
+  {
+    "name": "is now and has now children",
+    "timeOfDay": null,
+    "priority": 0,
+    "done": false,
+    "workState": "new",
+    "endsInRange": true,
+    "subInstances": null,
+    "originDocCoords": {
+      "lineNumber": 8,
+      "offset": 126,
+      "length": 40
+    },
+    "start": "2021-04-17 00:00:00",
+    "end": "2021-04-17 23:59:59"
+  },
+  {
+    "name": "is now and has now children/child now",
+    "timeOfDay": null,
+    "priority": 0,
+    "done": false,
+    "workState": "new",
+    "endsInRange": true,
+    "subInstances": null,
+    "originDocCoords": {
+      "lineNumber": 9,
+      "offset": 167,
+      "length": 23
+    },
+    "start": "2021-04-17 00:00:00",
+    "end": "2021-04-17 23:59:59"
+  }
+]
