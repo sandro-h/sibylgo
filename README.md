@@ -50,7 +50,7 @@ current month/week/day, using data from the backend.
 
 ### General notes
 
-* Indentation is currently restricted to tab characters.
+* Many aspects of the syntax can be configured. See the Configuration section.
 
 ### Category
 
@@ -155,6 +155,26 @@ Important (!):
 log_level: info
 todoFile: path/to/todo.txt
 host: localhost
+
+parse:
+  category_delim: "------"
+  indent: "\t"
+  lbracket: "["
+  rbracket: "]"
+  priority_mark: "!"
+  inprogress_mark: "p"
+  waiting_mark: "w"
+  done_mark: "x"
+  date_formats: ["02.01.06", "02.01.2006", "2.1.06", "2.1.2006"]
+  time_format: "15:04"
+  # week_days must start with Sunday:
+  week_days: ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+  daily_pattern: "(?i)(every day|today)"
+  weekly_pattern: "(?i)every (monday|tuesday|wednesday|thursday|friday|saturday|sunday)"
+  nth_weekly_pattern: "(?i)every (2nd|3rd|4th) (monday|tuesday|wednesday|thursday|friday|saturday|sunday)"
+  nths: ["2nd", "3rd", "4th"]
+  monthly_pattern: "(?i)every (\\d{1,2})\\.?$"
+  yearly_pattern: "(?i)every (\\d{1,2})\\.(\\d{1,2})\\.?$"
 
 optimized_format: true
 
