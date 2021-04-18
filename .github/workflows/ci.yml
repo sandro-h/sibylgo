@@ -41,7 +41,7 @@ jobs:
       run: make staticcheck
 
     - name: Build
-      run: BUILD_NUM=$GITHUB_RUN_NUMBER GIT_SHA=${GITHUB_SHA:0:7} make build
+      run: BUILD_NUM=$GITHUB_RUN_NUMBER GIT_SHA=${GITHUB_SHA:0:7} make build-optimized
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
@@ -126,6 +126,9 @@ jobs:
         with:
           name: vscode-artifacts
           path: vscode_ext/
+
+      - name: Compress binaries
+        run: make compress-binaries
 
       - name: Package artifacts
         id: package

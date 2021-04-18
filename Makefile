@@ -6,10 +6,23 @@ deps:
 build: build-linux build-win
 
 build-linux:
-	go build -v -ldflags="-X 'main.buildVersion=$(VERSION)' -X 'main.buildNumber=${BUILD_NUM}' -X 'main.buildRevision=${GIT_SHA}'"
+	go build -v -ldflags="-X 'main.buildVersion=$(VERSION)' -X 'main.buildNumber=${BUILD_NUM}' -X 'main.buildRevision=${GIT_SHA}' ${EXTRA_LDFLAGS}"
 
 build-win:
-	GOOS=windows GOARCH=amd64 go build -v -ldflags="-X 'main.buildVersion=$(VERSION)' -X 'main.buildNumber=${BUILD_NUM}' -X 'main.buildRevision=${GIT_SHA}'"
+	GOOS=windows GOARCH=amd64 go build -v -ldflags="-X 'main.buildVersion=$(VERSION)' -X 'main.buildNumber=${BUILD_NUM}' -X 'main.buildRevision=${GIT_SHA}' ${EXTRA_LDFLAGS}"
+
+build-optimized: EXTRA_LDFLAGS=-s -w
+build-optimized: build
+
+upx:
+	wget https://github.com/upx/upx/releases/download/v3.96/upx-3.96-amd64_linux.tar.xz
+	tar xf upx-3.96-amd64_linux.tar.xz
+	mv upx-3.96-amd64_linux/ upx
+
+compress-binaries: upx
+	chmod +x sibylgo
+	upx/upx -q --brute sibylgo
+	upx/upx -q --brute sibylgo.exe
 
 test:
 	go test -v -coverprofile="coverage.out" ./...
