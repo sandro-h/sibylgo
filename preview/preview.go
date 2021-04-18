@@ -58,7 +58,9 @@ func compileReminders(todos *moment.Todos, now time.Time) ([]*instances.Instance
 }
 
 func flattenReminders(parentPath string, insts []*instances.Instance) []*instances.Instance {
-	var res []*instances.Instance
+	// Explicitly make it a 0-len array, otherwise it's 'nil' and will be converted
+	// to null by the JSON encoder.
+	res := make([]*instances.Instance, 0)
 	for _, i := range insts {
 		if i.EndsInRange {
 			flatInst := i.CloneShallow()
