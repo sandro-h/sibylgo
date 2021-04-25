@@ -7,7 +7,28 @@ Text-based TODO application.
 It lets you write TODO list as you want (within the bounds of the syntax).
 You can add arbitrary additional text and comments to the todos. The application will never reformat your TODO file, so you have full control of it.
 
-**Disclaimer:** This tool is for my own personal use. Feedback and requests are welcome, but not necessarily acted upon.
+**Disclaimer: This tool is for my own personal use. Feedback and requests are welcome, but not necessarily acted upon.**
+
+## Features
+
+* Simple, human-readable text format
+* Hierarchical todos, recurring todos, arbitrary todo comments
+* VSCode extension to view & edit your todo.txt with format highlighting
+* VSCode commands to `clean` and `trash` done todos. `clean` moves them to end of file, `trash` moves them to todo-trash.txt
+* VSCode preview panel with overview of upcoming todos and kanban-ish
+  new/waiting/in progress board.
+* VSCode creates links for JIRA ticket keys.
+* Reminder mails for due todos
+* Automatic todo for open Bitbucket Server PRs to review.
+* MS Outlook integration to add dated todos as private calendar events.
+* Simple local HTML calendar page
+* git-based **local** backups: on save and daily
+
+## Limitations
+
+* Limited support for time-of-day. Almost all features ignore time-of-day, the core granularity is days. Time of day is just an information for the user.
+* No built-in device syncing (but todo.txt file can be synced with standard file sharing services, e.g. Dropbox)
+* No mobile app (though you can view & edit the todo.txt in a mobile text editor)
 
 ## Components
 
@@ -16,13 +37,13 @@ You can add arbitrary additional text and comments to the todos. The application
 The backend does all the heavy lifting:
 
 * Parsing the text todo file
-* Providing formatting information for the VSCode extension
-* Providing folding information for the VSCode extension
+* Providing formatting & folding information for the VSCode extension
+* Providing information for VSCode preview panel
 * Providing data for HTML calendar
 * Providing commands to clean and trash done todos
 * Sending mail reminders for upcoming todos
 * Creating backups of the todo file
-* Inserting todos from external sources (like open Bitbucket PRs)
+* Inserting todos from external sources
 
 The backend is a `sibylgo.exe` (Windows) or `sibylgo` (Linux) console application that can be started in the background somewhere. All the other components interact with it via REST calls.
 
@@ -149,7 +170,13 @@ Important (!):
 
 ## Configuration
 
-### sibylgo.yml
+### Minimal sibylgo.yml
+
+```yaml
+todoFile: path/to/todo.txt
+```
+
+### Full sibylgo.yml
 
 ```yaml
 log_level: info
@@ -202,6 +229,15 @@ outlook_events:
 ```
 
 ## Development
+
+### Terminology
+
+Internally, "todos" have two different variants:
+
+* `moment` - a todo or event **definition**. I.e. as declared in the todo.txt file.
+* `instance` - an actual "occurrence" of a `moment` in a specified time range. For example, the moment `[] groceries (every Tuesday)` would have 4 `instances` or "occurrences" in a 4 week time range; one on each Tuesday in the time range.
+
+### Building
 
 Main Go application:
 
