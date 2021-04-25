@@ -10,6 +10,10 @@
 
 [p] improve sibylgo
 	[] more logging
+		try this later:
+		func (f *SimpleFormatter) Format(entry *log.Entry) ([]byte, error) {
+			return []byte(entry.Message), nil
+		}
 	[x] add golden tests
 		[] check existing golang libs
 			https://github.com/xorcare/golden
