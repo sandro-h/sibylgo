@@ -24,6 +24,8 @@ You can add arbitrary additional text and comments to the todos. The application
 * Simple local HTML calendar page
 * git-based **local** backups: on save and daily
 
+![VSCode syntax highlighting and preview panel](docs/format_preview.png "VSCode syntax highlighting and preview panel")
+
 ## Limitations
 
 * Limited support for time-of-day. Almost all features ignore time-of-day, the core granularity is days. Time of day is just an information for the user.

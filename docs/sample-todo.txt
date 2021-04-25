@@ -1,0 +1,25 @@
+------------------
+ Day-to-day
+------------------
+
+[] groceries (every friday)
+
+[] dentist (17.5.21 9:00)
+
+[] meet friend for coffee (25.4.21)
+
+[p] improve sibylgo
+	[] more logging
+	[x] add golden tests
+		[] check existing golang libs
+			https://github.com/xorcare/golden
+
+[w] test reports
+	waiting for some feedback
+
+------------------
+ Birthdays
+------------------
+
+[] mom (every 6.7.)
+[] dad (every 28.12.)
