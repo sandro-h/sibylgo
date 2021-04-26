@@ -23,7 +23,7 @@ You can add arbitrary additional text and comments to the todos. The application
 * Automatic todo for open Bitbucket Server PRs to review.
 * MS Outlook integration to add dated todos as private calendar events.
 * Simple local HTML calendar page
-* git-based **local** backups: on save and daily
+* daily git-based **local** backups
 
 ![VSCode syntax highlighting and preview panel](docs/format_preview.png "VSCode syntax highlighting and preview panel")
 
@@ -64,6 +64,10 @@ code --install-extension sibyl.vsix
 ```
 
 Or via the "Install from VSIX..." option in the VSCode extension GUI.
+
+#### VSCode extension configuration
+
+A few things can be configured directly for the VSCode extension. See the VSCode settings.
 
 ### Calendar
 
