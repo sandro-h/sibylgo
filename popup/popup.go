@@ -100,7 +100,7 @@ func insertMoment(todoFile, category string, str string) error {
 		mom.SetCategory(&moment.Category{Name: category})
 	}
 
-	log.Infof("Inserting '%s''\n", str)
+	log.Infof("Inserting '%s'\n", str)
 	_, err := backup.Save(todoFile, "Backup before programmatically inserting moment")
 	if err != nil {
 		return err
