@@ -117,7 +117,7 @@ func parseCategoryColor(lineVal string) (string, string) {
 }
 
 func (p *parserState) handleMomentLine(line *Line) error {
-	mom, err := p.parseFullMoment(line, line.TrimmedContent(), "")
+	mom, err := p.parseFullMoment(line, line.TrimmedContent(), 0)
 	if err != nil {
 		return err
 	}
@@ -128,7 +128,7 @@ func (p *parserState) handleMomentLine(line *Line) error {
 	return nil
 }
 
-func (p *parserState) parseFullMoment(line *Line, lineVal string, indent string) (moment.Moment, error) {
+func (p *parserState) parseFullMoment(line *Line, lineVal string, indent int) (moment.Moment, error) {
 	mom, err := parseMoment(line, lineVal)
 	if err != nil {
 		return nil, err
@@ -143,12 +143,13 @@ func (p *parserState) parseFullMoment(line *Line, lineVal string, indent string)
 	return mom, nil
 }
 
-func (p *parserState) parseCommentsAndSubMoments(mom moment.Moment, indent string) error {
-	nextIndent := indent + ParseConfig.GetIndent()
+func (p *parserState) parseCommentsAndSubMoments(mom moment.Moment, indent int) error {
+	nextIndent := indent + ParseConfig.GetTabSize()
 	for p.scanner.Scan() {
 		line := p.scanner.Line()
-		if line.HasPrefix(nextIndent) {
-			p.handleSubLine(mom, line, line.Content()[len(nextIndent):], indent)
+		lineIndent, indentCharCnt := countIndent(line.content, ParseConfig.GetTabSize(), nextIndent)
+		if lineIndent >= nextIndent {
+			p.handleSubLine(mom, line, line.Content()[indentCharCnt:], indent)
 		} else if line.IsEmpty() && len(mom.GetComments()) > 0 {
 			// special case: treat empty line between comments as a comment
 			comment := &moment.CommentLine{
@@ -171,19 +172,20 @@ func (p *parserState) parseCommentsAndSubMoments(mom moment.Moment, indent strin
 	return nil
 }
 
-func (p *parserState) handleSubLine(mom moment.Moment, line *Line, lineVal string, indent string) error {
+func (p *parserState) handleSubLine(mom moment.Moment, line *Line, lineVal string, indent int) error {
 	if strings.HasPrefix(lineVal, ParseConfig.GetLBracket()) {
-		subMom, err := p.parseFullMoment(line, lineVal, indent+ParseConfig.GetIndent())
+		subMom, err := p.parseFullMoment(line, lineVal, indent+ParseConfig.GetTabSize())
 		if err != nil {
 			return err
 		}
 		mom.AddSubMoment(subMom)
 	} else {
 		// Assume it's a comment
+		_, indentCharCnt := countIndent(line.content, ParseConfig.GetTabSize(), indent+ParseConfig.GetTabSize())
 		comment := &moment.CommentLine{
 			Content: lineVal,
 			DocCoords: moment.DocCoords{LineNumber: line.LineNumber(),
-				Offset: line.Offset() + len(indent+ParseConfig.GetIndent()),
+				Offset: line.Offset() + indentCharCnt,
 				Length: utf8.RuneCountInString(lineVal)}}
 		mom.AddComment(comment)
 	}

@@ -34,6 +34,30 @@ func lengthWithoutStartEndWhitespaces(str string) int {
 	return len(runes) - st - en
 }
 
+// countIndent counts the whitespace indent at the start of the string up to maxIndent.
+// Spaces count as 1, Tabs count as tabSize indentation.
+// Returns the indentation value and the actual number of whitespace characters.
+func countIndent(str string, tabSize int, maxIndent int) (int, int) {
+	indent := 0
+	cnt := 0
+	for _, c := range str {
+		if c == '\t' {
+			indent += tabSize
+			cnt++
+		} else if c == ' ' {
+			indent++
+			cnt++
+		} else {
+			break
+		}
+
+		if indent >= maxIndent {
+			break
+		}
+	}
+	return indent, cnt
+}
+
 func newParseError(line *Line, msg string, args ...interface{}) error {
 	args = append([]interface{}{line.LineNumber() + 1}, args...)
 	return fmt.Errorf("Line %d: "+msg, args...)

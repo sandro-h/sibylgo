@@ -223,9 +223,9 @@ func TestMomentsByID(t *testing.T) {
 	assert.Nil(t, todos.MomentsByID["not-existing-id"])
 }
 
-func TestDifferentIndent(t *testing.T) {
+func TestSpaceIndents(t *testing.T) {
 	defer ResetConfig()
-	ParseConfig.SetIndent("  ")
+	ParseConfig.SetTabSize(2)
 
 	todos, _ := String(`
 [] 1
@@ -239,6 +239,22 @@ func TestDifferentIndent(t *testing.T) {
 	assertComments(t, todos, "1/1.1", "sub comment", "other sub comment")
 	assertDocCoords(t, 4, 34, 11, momentByPath(todos, "1/1.1").GetComment(0).DocCoords)
 	assertDocCoords(t, 5, 50, 17, momentByPath(todos, "1/1.1").GetComment(1).DocCoords)
+}
+
+func TestSpaceAndTabIndents(t *testing.T) {
+
+	todos, _ := String(`
+[] 1
+	tab comment 1
+    [] space moment
+		tab comment 2
+    	space and tab comment
+	`)
+
+	assertComments(t, todos, "1", "tab comment 1")
+	assertComments(t, todos, "1/space moment", "tab comment 2", "space and tab comment")
+	assertDocCoords(t, 4, 43, 13, momentByPath(todos, "1/space moment").GetComment(0).DocCoords)
+	assertDocCoords(t, 5, 62, 21, momentByPath(todos, "1/space moment").GetComment(1).DocCoords)
 }
 
 func assertMomentExists(t *testing.T, todos *moment.Todos, path string) moment.Moment {

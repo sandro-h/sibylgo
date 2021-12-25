@@ -11,7 +11,7 @@ import (
 
 const defaultCategoryDelim = "------"
 
-const defaultIndent = "\t"
+const defaultTabSize = 4
 
 const defaultLBracket = "["
 
@@ -45,7 +45,7 @@ const defaultYearlyPattern = `(?i)every (\d{1,2})\.(\d{1,2})\.?$`
 
 type parseConfig struct {
 	categoryDelim    string
-	indent           string
+	tabSize          int
 	lBracket         string
 	rBracket         *rune
 	priorityMark     *rune
@@ -88,16 +88,16 @@ func (c *parseConfig) SetCategoryDelim(delim string) {
 	c.categoryDelim = delim
 }
 
-func (c *parseConfig) GetIndent() string {
-	if c.indent == "" {
-		c.indent = c.BackingCfg.GetString("indent", defaultIndent)
+func (c *parseConfig) GetTabSize() int {
+	if c.tabSize == 0 {
+		c.tabSize = c.BackingCfg.GetInt("tabSize", defaultTabSize)
 	}
 
-	return c.indent
+	return c.tabSize
 }
 
-func (c *parseConfig) SetIndent(indent string) {
-	c.indent = indent
+func (c *parseConfig) SetTabSize(tabSize int) {
+	c.tabSize = tabSize
 }
 
 func (c *parseConfig) GetLBracket() string {

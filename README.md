@@ -194,7 +194,7 @@ host: localhost
 
 parse:
   category_delim: "------"
-  indent: "\t"
+  tabSize: 4
   lbracket: "["
   rbracket: "]"
   priority_mark: "!"
