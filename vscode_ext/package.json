@@ -4,7 +4,7 @@
   "description": "Sibyl vscode extension",
   "publisher": "sandro-h",
   "repository": "sibylgo",
-  "version": "1.1.0",
+  "version": "1.1.14",
   "license": "MIT",
   "engines": {
     "vscode": "^1.47.0"
@@ -13,7 +13,7 @@
     "Other"
   ],
   "activationEvents": [
-    "*"
+    "onStartupFinished"
   ],
   "contributes": {
     "commands": [
@@ -96,6 +96,6 @@
     "@types/node-fetch": "^2.5.7",
     "@types/vscode": "^1.47.0",
     "typescript": "^3.5.1",
-    "vsce": "^1.71.0"
+    "vsce": "^1.103.1"
   }
 }
