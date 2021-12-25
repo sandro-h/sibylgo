@@ -24,6 +24,7 @@ You can add arbitrary additional text and comments to the todos. The application
 * MS Outlook integration to add dated todos as private calendar events.
 * Simple local HTML calendar page
 * daily git-based **local** backups
+* Quickly add a todo from anywhere with global hotkey
 
 ![VSCode syntax highlighting and preview panel](docs/format_preview.png "VSCode syntax highlighting and preview panel")
 
@@ -47,6 +48,7 @@ The backend does all the heavy lifting:
 * Sending mail reminders for upcoming todos
 * Creating backups of the todo file
 * Inserting todos from external sources
+* Popup UI to add todo with hotkey
 
 The backend is a `sibylgo.exe` (Windows) or `sibylgo` (Linux) console application that can be started in the background somewhere. All the other components interact with it via REST calls.
 
@@ -233,6 +235,12 @@ external_sources:
 
 outlook_events:
   enabled: true
+
+# Popup to insert new todo from anywhere
+popup:
+  hotkey: [alt, t]
+  category: Today
+  dark_mode: true
 ```
 
 ## Development

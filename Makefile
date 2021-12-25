@@ -3,13 +3,22 @@ VERSION=`cat version.txt`
 deps:
 	go get -v -t -d ./...
 
+.PHONY: install-sys-packages
+install-sys-packages:
+	sudo apt update && \
+	sudo apt install gcc libc6-dev \
+	libx11-dev xorg-dev libxtst-dev libpng++-dev \
+	xcb libxcb-xkb-dev x11-xkb-utils libx11-xcb-dev libxkbcommon-x11-dev \
+	libgl1-mesa-dev \
+	gcc-mingw-w64-x86-64 libz-mingw-w64-dev
+
 build: build-linux build-win
 
 build-linux:
 	go build -v -ldflags="-X 'main.buildVersion=$(VERSION)' -X 'main.buildNumber=${BUILD_NUM}' -X 'main.buildRevision=${GIT_SHA}' ${EXTRA_LDFLAGS}"
 
 build-win:
-	GOOS=windows GOARCH=amd64 go build -v -ldflags="-X 'main.buildVersion=$(VERSION)' -X 'main.buildNumber=${BUILD_NUM}' -X 'main.buildRevision=${GIT_SHA}' ${EXTRA_LDFLAGS}"
+	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ go build -v -ldflags="-X 'main.buildVersion=$(VERSION)' -X 'main.buildNumber=${BUILD_NUM}' -X 'main.buildRevision=${GIT_SHA}' ${EXTRA_LDFLAGS}"
 
 build-optimized: EXTRA_LDFLAGS=-s -w
 build-optimized: build
@@ -48,7 +57,7 @@ zip-package:
 	cd dist_pkg && zip -r ../sibylgo sibylgo/*
 
 print-version:
-	echo "::set-output name=version::$$(dist_pkg/sibylgo/sibylgo --version)"
+	echo "::set-output name=version::$(VERSION).${BUILD_NUM}"
 
 package: prepare-package zip-package print-version
 

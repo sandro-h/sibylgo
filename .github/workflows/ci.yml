@@ -20,7 +20,9 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Install additional build tools
-      run: go get golang.org/x/lint/golint honnef.co/go/tools/cmd/staticcheck
+      run: |
+        go get golang.org/x/lint/golint honnef.co/go/tools/cmd/staticcheck
+        make install-sys-packages
 
     - name: Get dependencies
       run: make deps
@@ -132,7 +134,7 @@ jobs:
 
       - name: Package artifacts
         id: package
-        run: make package
+        run: BUILD_NUM=$GITHUB_RUN_NUMBER make package
 
       - name: Create Release
         id: create_release

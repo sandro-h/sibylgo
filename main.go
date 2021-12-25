@@ -11,6 +11,7 @@ import (
 	"github.com/sandro-h/sibylgo/extsources"
 	"github.com/sandro-h/sibylgo/outlook"
 	"github.com/sandro-h/sibylgo/parse"
+	"github.com/sandro-h/sibylgo/popup"
 	"github.com/sandro-h/sibylgo/reminder"
 	"github.com/sandro-h/sibylgo/util"
 	log "github.com/sirupsen/logrus"
@@ -26,7 +27,6 @@ var buildVersion = "0.0.0"
 var buildNumber = "0"
 var buildRevision = "-"
 
-var showVersion = flag.Bool("version", false, "Show version")
 var configFile = flag.String("config", "", "Path to config yml file. By default uses sibylgo.yml in same directory as this executable, if it exists.")
 var todoFile string
 var extSourcesProcess *extsources.ExternalSourcesProcess
@@ -35,12 +35,6 @@ func main() {
 	flag.Parse()
 
 	log.SetFormatter(&SimpleFormatter{})
-
-	if *showVersion {
-		// Do not use log here, so GH Actions can consume it properly.
-		fmt.Printf("%s.%s\n", buildVersion, buildNumber)
-		return
-	}
 
 	fmt.Printf("%s\n", ascii)
 	log.Infof("Version %s.%s (%s)\n", buildVersion, buildNumber, buildRevision)
@@ -79,8 +73,12 @@ func main() {
 
 	startRestServer(cfg)
 
-	// Wait forever
-	select {}
+	if todoFile != "" && cfg.HasKey("popup") {
+		popup.Start(todoFile, cfg.GetSubConfig("popup"))
+	} else {
+		// Wait forever
+		select {}
+	}
 }
 
 func loadConfig() *util.Config {
