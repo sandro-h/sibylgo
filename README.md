@@ -16,6 +16,7 @@ You can add arbitrary additional text and comments to the todos. The application
 * Arbitrary comments under todos allow to keep a work log for each todo. E.g. copy-pasting shell commands used to complete a todo.
 * VSCode extension to view & edit your todo.txt with format highlighting
 * VSCode commands to `clean` and `trash` done todos. `clean` moves them to end of file, `trash` moves them to todo-trash.txt
+* VSCode command to copy a todo comment without the indentation.
 * VSCode preview panel with overview of upcoming todos and kanban-ish
   new/waiting/in progress board.
 * VSCode creates links for JIRA ticket keys.

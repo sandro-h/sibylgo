@@ -19,11 +19,15 @@
     "commands": [
       {
         "command": "sibylgo.clean",
-        "title": "Clean done todos"
+        "title": "Clean Done Todos"
       },
       {
         "command": "sibylgo.trash",
-        "title": "Trash done todos"
+        "title": "Trash Done Todos"
+      },
+      {
+        "command": "sibylgo.copy",
+        "title": "Copy Without Indentation"
       },
       {
         "command": "sibylgo.showPreview",
@@ -41,7 +45,12 @@
         {
           "command": "sibylgo.trash",
           "when": "resourceFilename =~ /todo.txt$/",
-          "group": "sibylgo@1"
+          "group": "sibylgo@2"
+        },
+        {
+          "command": "sibylgo.copy",
+          "when": "resourceFilename =~ /todo.txt$/",
+          "group": "sibylgo@3"
         }
       ],
       "editor/title": [
