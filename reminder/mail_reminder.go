@@ -3,14 +3,15 @@ package reminder
 import (
 	"bufio"
 	"fmt"
+	"os"
+	"path/filepath"
+	"time"
+
 	"github.com/sandro-h/sibylgo/instances"
 	"github.com/sandro-h/sibylgo/parse"
 	"github.com/sandro-h/sibylgo/util"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/gomail.v2"
-	"os"
-	"path/filepath"
-	"time"
 )
 
 var getNow = func() time.Time {
@@ -209,7 +210,7 @@ func sendMail(host MailHostProperties, from string, to string, subject string, b
 	m.SetHeader("Subject", subject)
 	m.SetBody("text/html", body)
 
-	d := gomail.NewPlainDialer(host.Host, host.Port, host.User, host.Password)
+	d := gomail.NewDialer(host.Host, host.Port, host.User, host.Password)
 
 	return d.DialAndSend(m)
 }
