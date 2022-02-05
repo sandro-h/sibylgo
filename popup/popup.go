@@ -50,9 +50,13 @@ func Start(todoFile string, popupCfg *util.Config) {
 
 func populateWindow(w fyne.Window, onSubmitted func(string)) {
 	entry := newTypeableEntry()
-	entry.OnSubmitted = onSubmitted
+	entry.OnSubmitted = func(str string) {
+		entry.Text = ""
+		onSubmitted(str)
+	}
 	entry.onTypedKey = func(key *fyne.KeyEvent) {
 		if key.Name == "Escape" {
+			entry.Text = ""
 			w.Hide()
 		}
 	}

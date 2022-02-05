@@ -42,10 +42,17 @@ lint:
 staticcheck:
 	staticcheck ./...
 
-prepare-package:
+/tmp/zlib/mingw64/bin/zlib1.dll:
+	sudo apt update && sudo apt install zstd
+	mkdir /tmp/zlib
+	wget https://mirror.msys2.org/mingw/mingw64/mingw-w64-x86_64-zlib-1.2.11-9-any.pkg.tar.zst -O /tmp/zlib.tar.zst
+	tar --use-compress-program=unzstd -xvf /tmp/zlib.tar.zst -C /tmp/zlib
+
+prepare-package: /tmp/zlib/mingw64/bin/zlib1.dll
 	rm -rf dist_pkg
 	mkdir -p dist_pkg/sibylgo
 	cp sibylgo sibylgo.exe sibylcal.html dist_pkg/sibylgo/
+	cp /tmp/zlib/mingw64/bin/zlib1.dll dist_pkg/sibylgo/
 	cp vscode_ext/sibyl.vsix dist_pkg/sibylgo/
 	chmod +x dist_pkg/sibylgo/sibylgo
 
