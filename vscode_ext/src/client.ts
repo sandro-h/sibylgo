@@ -15,7 +15,7 @@ export async function formatTodos(restUrl: string, text: string): Promise<string
 
 export async function foldTodos(restUrl: string, text: string): Promise<string[]> {
     const res = await fetch(
-        `${restUrl}/fold`,
+        `${restUrl}/folding`,
         {
             method: 'POST',
             headers: {'content-type' : 'text/plain'},
