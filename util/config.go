@@ -157,7 +157,7 @@ func getByPath(cur map[interface{}]interface{}, curPathIndex int, path []string)
 
 // LoadConfig loads a Config object from a YAML file.
 func LoadConfig(cfgFile string) (*Config, error) {
-	if _, err := os.Stat(cfgFile); !os.IsNotExist(err) {
+	if Exists(cfgFile) {
 		data, err := os.ReadFile(cfgFile)
 		if err != nil {
 			return nil, err

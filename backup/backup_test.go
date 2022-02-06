@@ -64,9 +64,11 @@ func TestRestore(t *testing.T) {
 	files := util.NewFileConfigFromTodoFile(todoFile)
 
 	backup1, _ := Save(files, "save 1")
-	util.WriteFile(todoFile, "my todo content 2")
+	util.WriteFile(files.TodoFile, "my todo content 2")
+	util.WriteFile(files.TrashFile, "my trash content 2")
 	Save(files, "save 2")
-	util.WriteFile(todoFile, "my todo content 3")
+	util.WriteFile(files.TodoFile, "my todo content 3")
+	util.WriteFile(files.TrashFile, "my trash content 3")
 	Save(files, "save 3")
 
 	// When
@@ -79,8 +81,10 @@ func TestRestore(t *testing.T) {
 	backups, err := ListBackups(files.TodoDir)
 	assert.NoError(t, err)
 	assert.Equal(t, 4, len(backups))
-	restoredContent, _ := util.ReadFile(files.TodoFile)
-	tu.AssertContains(t, "my todo content 1", restoredContent)
+	restoredTodoContent, _ := util.ReadFile(files.TodoFile)
+	tu.AssertContains(t, "my todo content 1", restoredTodoContent)
+	restoredTrashContent, _ := util.ReadFile(files.TrashFile)
+	tu.AssertContains(t, "my trash content 1", restoredTrashContent)
 }
 
 func TestDailyBackup_NoBackupsAtAll(t *testing.T) {

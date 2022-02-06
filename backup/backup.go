@@ -27,7 +27,7 @@ func Save(files *util.FileConfig, message string) (*Backup, error) {
 		}
 	}
 
-	commit, err := commit(todoDir, message, sibylCommitAuthor, files.TodoFile)
+	commit, err := commit(todoDir, message, sibylCommitAuthor, files.TodoFile, files.TrashFile)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func Save(files *util.FileConfig, message string) (*Backup, error) {
 func Restore(files *util.FileConfig, restoreTo *Backup) (*Backup, error) {
 	todoDir := filepath.Dir(files.TodoFile)
 	if !isRepoInitiated(todoDir) {
-		return nil, fmt.Errorf("no backups set up for %s", files.TodoFile)
+		return nil, fmt.Errorf("no backups set up for %s", files.TodoDir)
 	}
 
 	restoreMessage := fmt.Sprintf("Restore backup %s '%s'", restoreTo.Identifier, restoreTo.Message)

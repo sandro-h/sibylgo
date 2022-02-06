@@ -1,6 +1,7 @@
 package util
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 )
@@ -39,4 +40,16 @@ func AppendFile(filePath string, str string) error {
 // E.g. todo.txt -> todo
 func RemoveExtension(s string) string {
 	return s[:len(s)-len(filepath.Ext(s))]
+}
+
+// Exists returns true if the file exists.
+func Exists(path string) bool {
+	if _, err := os.Stat(path); err == nil {
+		return true
+	} else if errors.Is(err, os.ErrNotExist) {
+		return false
+	} else {
+		// Some other stat error, assume the file does not exist
+		return false
+	}
 }

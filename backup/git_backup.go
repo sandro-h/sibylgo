@@ -2,13 +2,16 @@ package backup
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
-	"gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"io"
 	"os/exec"
 	"path/filepath"
 	"time"
+
+	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing/format/index"
+	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
 // IsRepoInitiated returns true if the passed folder is a git repository.
@@ -39,7 +42,7 @@ func commit(repoPath string, message string, authorEmail string, files ...string
 	for _, f := range files {
 		rel, _ := filepath.Rel(repoPath, f)
 		_, err := w.Add(rel)
-		if err != nil {
+		if err != nil && !errors.Is(err, index.ErrEntryNotFound) {
 			return nil, err
 		}
 	}

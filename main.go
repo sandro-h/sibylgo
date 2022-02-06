@@ -90,14 +90,15 @@ func loadConfig() *util.Config {
 		// We don't care if the default config file doesn't exist,
 		// but if a user set a config file explicitly, we should inform them
 		// if the file doesn't actually exist.
-		if _, err := os.Stat(absoluteCfgFile); os.IsNotExist(err) {
+		if !util.Exists(absoluteCfgFile) {
 			panic(fmt.Sprintf("Config file %s set with -config does not exist.\n", absoluteCfgFile))
 		}
 	}
 
 	cfg := &util.Config{}
 	log.Infof("%s\n", absoluteCfgFile)
-	if _, err := os.Stat(absoluteCfgFile); !os.IsNotExist(err) {
+	if util.Exists(absoluteCfgFile) {
+		var err error
 		cfg, err = util.LoadConfig(absoluteCfgFile)
 		if err != nil {
 			panic(err)
