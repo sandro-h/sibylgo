@@ -2,14 +2,15 @@ package extsources
 
 import (
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/sandro-h/sibylgo/backup"
 	"github.com/sandro-h/sibylgo/modify"
 	"github.com/sandro-h/sibylgo/moment"
 	"github.com/sandro-h/sibylgo/parse"
 	"github.com/sandro-h/sibylgo/util"
 	log "github.com/sirupsen/logrus"
-	"strings"
-	"time"
 )
 
 var externalSources = map[string]fetchFunc{
@@ -56,7 +57,12 @@ func (p *ExternalSourcesProcess) CheckOnce() {
 	}
 
 	if updatedContent != content {
-		backup.Save(p.todoFilePath, "Backup before applying external source changes")
+		// Avoid backup noise because of missing trailing newlines. But we still want to write
+		// the newlines to the todo file.
+		if !util.EqualsIgnoreTrailingNewlines(updatedContent, content) {
+			backup.Save(p.todoFilePath, "Backup before applying external source changes")
+		}
+
 		err = util.WriteFile(p.todoFilePath, updatedContent)
 		if err != nil {
 			log.Errorf("[Ext sources] Failed to write todo file %s: %s\n", p.todoFilePath, err.Error())
