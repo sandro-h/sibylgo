@@ -25,14 +25,14 @@ type fetchFunc func(*util.Config) ([]moment.Moment, error)
 // ExternalSourcesProcess periodically checks a list of external sources (based on the passed config) for moments,
 // then updates the todo file with them.
 type ExternalSourcesProcess struct {
-	todoFilePath  string
+	files         *util.FileConfig
 	extSrcConfig  *util.Config
 	checkInterval time.Duration
 }
 
 // NewExternalSourcesProcess creates a new ExternalSourcesProcess.
-func NewExternalSourcesProcess(todoFilePath string, extSrcConfig *util.Config) *ExternalSourcesProcess {
-	return &ExternalSourcesProcess{todoFilePath, extSrcConfig, 10 * time.Minute}
+func NewExternalSourcesProcess(files *util.FileConfig, extSrcConfig *util.Config) *ExternalSourcesProcess {
+	return &ExternalSourcesProcess{files, extSrcConfig, 10 * time.Minute}
 }
 
 // CheckInfinitely repeatedly checks the external sources in the check interval.
@@ -46,9 +46,9 @@ func (p *ExternalSourcesProcess) CheckInfinitely() {
 
 // CheckOnce does a single check on the external sources.
 func (p *ExternalSourcesProcess) CheckOnce() {
-	content, err := util.ReadFile(p.todoFilePath)
+	content, err := util.ReadFile(p.files.TodoFile)
 	if err != nil {
-		log.Errorf("[Ext sources] Failed to read todo file %s: %s\n", p.todoFilePath, err.Error())
+		log.Errorf("[Ext sources] Failed to read todo file %s: %s\n", p.files.TodoFile, err.Error())
 	}
 
 	updatedContent, err := FetchAndApplyExternalSourceMoments(content, p.extSrcConfig)
@@ -60,12 +60,12 @@ func (p *ExternalSourcesProcess) CheckOnce() {
 		// Avoid backup noise because of missing trailing newlines. But we still want to write
 		// the newlines to the todo file.
 		if !util.EqualsIgnoreTrailingNewlines(updatedContent, content) {
-			backup.Save(p.todoFilePath, "Backup before applying external source changes")
+			backup.Save(p.files, "Backup before applying external source changes")
 		}
 
-		err = util.WriteFile(p.todoFilePath, updatedContent)
+		err = util.WriteFile(p.files.TodoFile, updatedContent)
 		if err != nil {
-			log.Errorf("[Ext sources] Failed to write todo file %s: %s\n", p.todoFilePath, err.Error())
+			log.Errorf("[Ext sources] Failed to write todo file %s: %s\n", p.files.TodoFile, err.Error())
 		}
 	}
 }

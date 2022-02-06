@@ -28,7 +28,7 @@ var buildNumber = "0"
 var buildRevision = "-"
 
 var configFile = flag.String("config", "", "Path to config yml file. By default uses sibylgo.yml in same directory as this executable, if it exists.")
-var todoFile string
+var files *util.FileConfig
 var extSourcesProcess *extsources.ExternalSourcesProcess
 
 func main() {
@@ -45,10 +45,10 @@ func main() {
 
 	parse.ParseConfig.BackingCfg = cfg.GetSubConfig("parse")
 
-	todoFile = cfg.GetString("todoFile", "")
-	if todoFile != "" {
-		log.Infof("Using todo file %s\n", todoFile)
-		startDailyBackupProcess(todoFile)
+	files = util.NewFileConfigFromConfig(cfg)
+	if files.TodoFile != "" {
+		log.Infof("Using todo file %s\n", files.TodoFile)
+		startDailyBackupProcess(files)
 	}
 
 	if cfg.HasKey("mailTo") {
@@ -57,24 +57,24 @@ func main() {
 
 	if cfg.HasKey("external_sources") {
 		extSrcConfig := cfg.GetSubConfig("external_sources")
-		if todoFile == "" {
+		if files.TodoFile == "" {
 			panic("Cannot run external sources without todoFile set")
 		}
-		startExternalSources(todoFile, extSrcConfig)
+		startExternalSources(files, extSrcConfig)
 	}
 
 	if cfg.HasKey("outlook_events") {
 		outlookConfig := cfg.GetSubConfig("outlook_events")
-		if todoFile == "" {
+		if files.TodoFile == "" {
 			panic("Cannot run outlook events without todoFile set")
 		}
-		startOutlookEvents(todoFile, outlookConfig)
+		startOutlookEvents(files.TodoFile, outlookConfig)
 	}
 
 	startRestServer(cfg)
 
-	if todoFile != "" && cfg.HasKey("popup") {
-		popup.Start(todoFile, cfg.GetSubConfig("popup"))
+	if files.TodoFile != "" && cfg.HasKey("popup") {
+		popup.Start(files, cfg.GetSubConfig("popup"))
 	} else {
 		// Wait forever
 		select {}
@@ -117,13 +117,13 @@ func startMailReminders(cfg *util.Config) {
 	mailPassword := cfg.GetString("mailPassword", "")
 
 	host := reminder.MailHostProperties{Host: mailHost, Port: mailPort, User: mailUser, Password: mailPassword}
-	p := reminder.NewMailReminderProcessForSMTP(todoFile, host, mailFrom, mailTo)
+	p := reminder.NewMailReminderProcessForSMTP(files.TodoFile, host, mailFrom, mailTo)
 	go p.CheckInfinitely()
 	log.Info("Started mail reminders\n")
 }
 
-func startExternalSources(todoFile string, extSrcConfig *util.Config) {
-	extSourcesProcess = extsources.NewExternalSourcesProcess(todoFile, extSrcConfig)
+func startExternalSources(files *util.FileConfig, extSrcConfig *util.Config) {
+	extSourcesProcess = extsources.NewExternalSourcesProcess(files, extSrcConfig)
 	go extSourcesProcess.CheckInfinitely()
 	log.Info("Started external sources\n")
 }
@@ -135,10 +135,10 @@ func startOutlookEvents(todoFile string, outlookConfig *util.Config) {
 	}
 }
 
-func startDailyBackupProcess(todoFile string) {
+func startDailyBackupProcess(files *util.FileConfig) {
 	dailyBackupFunc := func() {
 		for {
-			backup.CheckAndMakeDailyBackup(todoFile)
+			backup.CheckAndMakeDailyBackup(files)
 			time.Sleep(5 * time.Minute)
 		}
 	}

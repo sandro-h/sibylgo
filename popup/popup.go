@@ -21,7 +21,7 @@ import (
 
 // Start creates the popup window and starts the event loop. The popup is not shown from the start, only
 // when the hotkey is pressed.
-func Start(todoFile string, popupCfg *util.Config) {
+func Start(files *util.FileConfig, popupCfg *util.Config) {
 	insertCategory := popupCfg.GetString("category", "")
 	if popupCfg.GetBool("dark_mode", false) {
 		os.Setenv("FYNE_THEME", "dark")
@@ -32,7 +32,7 @@ func Start(todoFile string, popupCfg *util.Config) {
 	w := newWindow(a)
 	populateWindow(w, func(str string) {
 		if str != "" {
-			err := insertMoment(todoFile, insertCategory, str)
+			err := insertMoment(files, insertCategory, str)
 			if err != nil {
 				log.Error(err)
 			}
@@ -97,7 +97,7 @@ func listenForHotkey(w fyne.Window, hotkey []string, handler func(hook.Event)) {
 	<-robotgo.EventProcess(s)
 }
 
-func insertMoment(todoFile, category string, str string) error {
+func insertMoment(files *util.FileConfig, category string, str string) error {
 	mom := moment.NewSingleMoment(str)
 
 	if category != "" {
@@ -105,12 +105,12 @@ func insertMoment(todoFile, category string, str string) error {
 	}
 
 	log.Infof("Inserting '%s'\n", str)
-	_, err := backup.Save(todoFile, "Backup before programmatically inserting moment")
+	_, err := backup.Save(files, "Backup before programmatically inserting moment")
 	if err != nil {
 		return err
 	}
 
-	return modify.PrependInFile(todoFile, []moment.Moment{mom})
+	return modify.PrependInFile(files.TodoFile, []moment.Moment{mom})
 }
 
 type typeableEntry struct {

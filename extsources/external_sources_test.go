@@ -61,9 +61,24 @@ bitbucket_prs:
   bb_token: aba1234
   category: Today`
 
+const todosWithDummies = `------------------
+ Today
+------------------
+
+[] bla bla
+[] zonk
+[] dummy1 #ext_id1
+[] dummy2 #ext_id2
+-------------------
+ This week
+-------------------
+
+[] bink
+`
+
 // some deliberate extra newlines to verify the logic doesn't continually
 // try to reformat the file even though the external entries already exist:
-const todosWithDummies = `------------------
+const todosOddlySpacedDummies = `------------------
  Today
 ------------------
 
@@ -142,17 +157,18 @@ func TestExternalSources_FileBackup(t *testing.T) {
 	defer tu.DeleteTempDir(todoDir)
 	todoFile := filepath.Join(todoDir, "todo.txt")
 	util.WriteFile(todoFile, originalTodos)
+	files := util.NewFileConfigFromTodoFile(todoFile)
 	cfg, _ := util.LoadConfigString(testConfigWithDummies)
 
 	// When
-	p := NewExternalSourcesProcess(todoFile, cfg)
+	p := NewExternalSourcesProcess(files, cfg)
 	p.CheckOnce()
 
 	// Then
 	updatedContent, _ := util.ReadFile(todoFile)
 	assert.Equal(t, todosWithDummies, updatedContent)
 
-	backups, _ := backup.ListBackups(todoFile)
+	backups, _ := backup.ListBackups(files.TodoDir)
 	assert.Equal(t, 1, len(backups))
 	assert.Equal(t, "Backup before applying external source changes", backups[0].Message)
 }
@@ -162,19 +178,20 @@ func TestExternalSources_NoFileBackupIfNoChanges(t *testing.T) {
 	todoDir := tu.MakeTempDir("sibyl_external_sources_test")
 	defer tu.DeleteTempDir(todoDir)
 	todoFile := filepath.Join(todoDir, "todo.txt")
+	files := util.NewFileConfigFromTodoFile(todoFile)
 	// Note we're already writing the todofile with dummies here
-	util.WriteFile(todoFile, todosWithDummies)
+	util.WriteFile(todoFile, todosOddlySpacedDummies)
 	cfg, _ := util.LoadConfigString(testConfigWithDummies)
 
 	// When
-	p := NewExternalSourcesProcess(todoFile, cfg)
+	p := NewExternalSourcesProcess(files, cfg)
 	p.CheckOnce()
 
 	// Then
-	updatedContent, _ := util.ReadFile(todoFile)
-	assert.Equal(t, todosWithDummies, updatedContent)
+	updatedContent, _ := util.ReadFile(files.TodoFile)
+	assert.Equal(t, todosOddlySpacedDummies, updatedContent)
 
-	backups, _ := backup.ListBackups(todoFile)
+	backups, _ := backup.ListBackups(files.TodoDir)
 	assert.Equal(t, 0, len(backups))
 }
 
@@ -187,17 +204,18 @@ func TestExternalSources_NoFileBackupIfNoChanges_NoTrailingNewline(t *testing.T)
 	todosWithoutNewline := regexp.MustCompile("\n$").ReplaceAllString(todosWithDummies, "")
 	// Don't use util.WriteFile since it always adds a trailing newline
 	os.WriteFile(todoFile, []byte(todosWithoutNewline), 0644)
+	files := util.NewFileConfigFromTodoFile(todoFile)
 
 	cfg, _ := util.LoadConfigString(testConfigWithDummies)
 
 	// When
-	p := NewExternalSourcesProcess(todoFile, cfg)
+	p := NewExternalSourcesProcess(files, cfg)
 	p.CheckOnce()
 
 	// Then
-	updatedContent, _ := util.ReadFile(todoFile)
+	updatedContent, _ := util.ReadFile(files.TodoFile)
 	assert.Equal(t, todosWithDummies, updatedContent)
 
-	backups, _ := backup.ListBackups(todoFile)
+	backups, _ := backup.ListBackups(files.TodoDir)
 	assert.Equal(t, 0, len(backups))
 }

@@ -2,11 +2,12 @@ package backup
 
 import (
 	"fmt"
-	"github.com/sandro-h/sibylgo/util"
-	log "github.com/sirupsen/logrus"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/sandro-h/sibylgo/util"
+	log "github.com/sirupsen/logrus"
 )
 
 const sibylCommitAuthor = "sibylgo@example.com"
@@ -17,8 +18,8 @@ var getNow = func() time.Time {
 }
 
 // Save creates a new backup of the todo file
-func Save(todoFile string, message string) (*Backup, error) {
-	todoDir := filepath.Dir(todoFile)
+func Save(files *util.FileConfig, message string) (*Backup, error) {
+	todoDir := filepath.Dir(files.TodoFile)
 	if !isRepoInitiated(todoDir) {
 		err := initRepo(todoDir)
 		if err != nil {
@@ -26,7 +27,7 @@ func Save(todoFile string, message string) (*Backup, error) {
 		}
 	}
 
-	commit, err := commit(todoDir, message, sibylCommitAuthor, todoFile)
+	commit, err := commit(todoDir, message, sibylCommitAuthor, files.TodoFile)
 	if err != nil {
 		return nil, err
 	}
@@ -38,10 +39,10 @@ func Save(todoFile string, message string) (*Backup, error) {
 // Restore restores the todoFile to the passed backup and creates a new backup for this restored state.
 // It does not delete any of the intermediate backups that were reverted, so it's still possible to restore
 // a different state.
-func Restore(todoFile string, restoreTo *Backup) (*Backup, error) {
-	todoDir := filepath.Dir(todoFile)
+func Restore(files *util.FileConfig, restoreTo *Backup) (*Backup, error) {
+	todoDir := filepath.Dir(files.TodoFile)
 	if !isRepoInitiated(todoDir) {
-		return nil, fmt.Errorf("no backups set up for %s", todoFile)
+		return nil, fmt.Errorf("no backups set up for %s", files.TodoFile)
 	}
 
 	restoreMessage := fmt.Sprintf("Restore backup %s '%s'", restoreTo.Identifier, restoreTo.Message)
@@ -55,8 +56,8 @@ func Restore(todoFile string, restoreTo *Backup) (*Backup, error) {
 }
 
 // CheckAndMakeDailyBackup creates a daily backup of the todofile if there isn't one already for today.
-func CheckAndMakeDailyBackup(todoFile string) (*Backup, error) {
-	newestDailyCommitDate, err := findNewestDailyCommitTimestamp(todoFile)
+func CheckAndMakeDailyBackup(files *util.FileConfig) (*Backup, error) {
+	newestDailyCommitDate, err := findNewestDailyCommitTimestamp(files.TodoDir)
 	if err != nil {
 		return nil, err
 	}
@@ -68,13 +69,12 @@ func CheckAndMakeDailyBackup(todoFile string) (*Backup, error) {
 	}
 
 	log.Infof("Creating daily backup for %s\n", today.Format("02.01.2006"))
-	return Save(todoFile, fmt.Sprintf("%s%s", dailyBackupPrefix, today.Format("02.01.2006")))
+	return Save(files, fmt.Sprintf("%s%s", dailyBackupPrefix, today.Format("02.01.2006")))
 }
 
 // findNewestDailyCommitTimestamp returns the timestamp of the newest daily backup commit,
 // or the base epoch time if there is no daily backup commit yet.
-func findNewestDailyCommitTimestamp(todoFile string) (time.Time, error) {
-	todoDir := filepath.Dir(todoFile)
+func findNewestDailyCommitTimestamp(todoDir string) (time.Time, error) {
 	if !isRepoInitiated(todoDir) {
 		return time.Unix(0, 0), nil
 	}
@@ -92,8 +92,7 @@ func findNewestDailyCommitTimestamp(todoFile string) (time.Time, error) {
 }
 
 // ListBackups lists all backups saved for the todoFile. They are ordered from newest to oldest backup.
-func ListBackups(todoFile string) ([]*Backup, error) {
-	todoDir := filepath.Dir(todoFile)
+func ListBackups(todoDir string) ([]*Backup, error) {
 	commits, err := findCommits(todoDir, func(c *commitEntry) bool {
 		return c.AuthorEmail == sibylCommitAuthor
 	})

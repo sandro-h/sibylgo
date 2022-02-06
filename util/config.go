@@ -3,6 +3,7 @@ package util
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"gopkg.in/yaml.v2"
@@ -16,6 +17,13 @@ type Config struct {
 // ConfigPath defines a path to a specific config value, where each part is a key in the next sub-config.
 type ConfigPath struct {
 	Parts []string
+}
+
+// FileConfig stores the where the most important files for sibylgo are located.
+type FileConfig struct {
+	TodoDir   string
+	TodoFile  string
+	TrashFile string
 }
 
 // GetString returns the string value for key, or defaultVal if the key is not found.
@@ -204,4 +212,23 @@ func (p *ConfigPath) ToString() string {
 // FromString sets the config path to the path denoted by the dot-separated string.
 func (p *ConfigPath) FromString(str string) {
 	p.Parts = strings.Split(str, ".")
+}
+
+// NewFileConfigFromConfig reads the important file paths from the configuration and returns
+// them as a FileConfig object.
+func NewFileConfigFromConfig(cfg *Config) *FileConfig {
+	return NewFileConfigFromTodoFile(cfg.GetString("todoFile", ""))
+}
+
+// NewFileConfigFromTodoFile derives all the important file paths from the todoFile.
+// It assumes that all other files are in the same directory as the todoFile.
+func NewFileConfigFromTodoFile(todoFile string) *FileConfig {
+	fileCfg := FileConfig{
+		TodoFile: todoFile,
+	}
+
+	fileCfg.TodoDir = filepath.Dir(fileCfg.TodoFile)
+	fileCfg.TrashFile = RemoveExtension(fileCfg.TodoFile) + "-trash.txt"
+
+	return &fileCfg
 }

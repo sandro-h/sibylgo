@@ -112,7 +112,7 @@ func getCalendarEntries(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	todos, err := parse.File(todoFile)
+	todos, err := parse.File(files.TodoFile)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -136,8 +136,8 @@ func insertMoment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Infof("Inserting '%s' into category '%s'\n", name, category)
-	backup.Save(todoFile, "Backup before programmatically inserting moment")
-	err := modify.PrependInFile(todoFile, []moment.Moment{mom})
+	backup.Save(files, "Backup before programmatically inserting moment")
+	err := modify.PrependInFile(files.TodoFile, []moment.Moment{mom})
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -155,7 +155,7 @@ func getWeeklyReminders(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	todos, err := parse.File(todoFile)
+	todos, err := parse.File(files.TodoFile)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -170,40 +170,40 @@ func getWeeklyReminders(w http.ResponseWriter, r *http.Request) {
 }
 
 func clean(w http.ResponseWriter, r *http.Request) {
-	if todoFile == "" {
+	if files.TodoFile == "" {
 		log.Errorf("Cannot clean without todoFile set\n")
 		return
 	}
 
-	backup.Save(todoFile, "Backup before cleaning")
-	err := cleanup.MoveDoneToEndOfFile(todoFile, true)
+	backup.Save(files, "Backup before cleaning")
+	err := cleanup.MoveDoneToEndOfFile(files.TodoFile, true)
 	if err != nil {
 		log.Infof("Error cleaning up: %s\n", err)
 	} else {
-		log.Infof("Moved done to end of: %s\n", todoFile)
+		log.Infof("Moved done to end of: %s\n", files.TodoFile)
 	}
 }
 
 func trash(w http.ResponseWriter, r *http.Request) {
-	if todoFile == "" {
+	if files.TodoFile == "" {
 		log.Error("Cannot clean without todoFile set\n")
 		return
 	}
 
-	trashFile := util.RemoveExtension(todoFile) + "-trash.txt"
+	trashFile := util.RemoveExtension(files.TodoFile) + "-trash.txt"
 
-	backup.Save(todoFile, "Backup before trashing")
-	err := cleanup.MoveDoneToTrashFile(todoFile, trashFile, true)
+	backup.Save(files, "Backup before trashing")
+	err := cleanup.MoveDoneToTrashFile(files.TodoFile, trashFile, true)
 	if err != nil {
 		log.Errorf("Error trashing: %s", err)
 	} else {
-		log.Infof("Trashed: %s\n", todoFile)
+		log.Infof("Trashed: %s\n", files.TodoFile)
 		log.Infof("Moved done moments to: %s\n", trashFile)
 	}
 }
 
 func getPreview(w http.ResponseWriter, r *http.Request) {
-	todos, err := parse.File(todoFile)
+	todos, err := parse.File(files.TodoFile)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
