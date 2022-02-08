@@ -27,6 +27,10 @@ jobs:
     - name: Get dependencies
       run: make deps
 
+    # Build before tests because some tests require the built executable:
+    - name: Build
+      run: make build-linux-headless && chmod +x sibylgo
+
     - name: Test
       run: make test
 
@@ -42,7 +46,7 @@ jobs:
     - name: Staticcheck
       run: make staticcheck
 
-    - name: Build
+    - name: Build all
       run: BUILD_NUM=$GITHUB_RUN_NUMBER GIT_SHA=${GITHUB_SHA:0:7} make build-optimized
 
     - name: Upload artifacts

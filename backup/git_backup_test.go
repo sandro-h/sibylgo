@@ -1,7 +1,10 @@
 package backup
 
 import (
+	"bytes"
 	"fmt"
+	"runtime"
+	"strings"
 
 	"os"
 	"path/filepath"
@@ -39,6 +42,78 @@ func TestInitRepo(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.True(t, isRepoInitiated(repoPath))
+}
+
+func TestEnableGitEncryption(t *testing.T) {
+	repoPath := tu.MakeTempDir("sibyl_git_backup_test")
+	defer tu.DeleteTempDir(repoPath)
+	assert.False(t, isRepoInitiated(repoPath))
+	initRepo(repoPath)
+
+	err := EnableGitEncryption(repoPath, "/bin/bla")
+
+	assert.NoError(t, err)
+	assert.True(t, util.Exists(filepath.Join(repoPath, ".gitattributes")))
+	assert.True(t, util.Exists(filepath.Join(repoPath, ".git", "config")))
+	gitConfig, _ := util.ReadFile(filepath.Join(repoPath, ".git", "config"))
+	expectedGitConfig := `
+[filter "sibylgo_filter"]
+	clean = /bin/bla --encrypt
+	smudge = /bin/bla --decrypt
+
+[diff "sibylgo_filter"]
+	textconv = /bin/bla --decrypt
+`
+	assert.Equal(t, expectedGitConfig, gitConfig)
+}
+
+func TestGitEncryption(t *testing.T) {
+	repoPath := tu.MakeTempDir("sibyl_git_backup_test")
+	defer tu.DeleteTempDir(repoPath)
+	assert.False(t, isRepoInitiated(repoPath))
+
+	var sibylgoExecutableName string
+	if runtime.GOOS == "windows" {
+		sibylgoExecutableName = "sibylgo.exe"
+	} else {
+		sibylgoExecutableName = "sibylgo"
+	}
+	sibylgoExecutable, _ := filepath.Abs(filepath.Join("..", sibylgoExecutableName))
+	assert.True(t, util.Exists(sibylgoExecutable), "Sibylgo executable at %s does not exist. Build it first", sibylgoExecutable)
+
+	configFile := repoPath + "/sibylgo.yml"
+	util.WriteFile(configFile, `
+backup:
+  encrypt_password: password123
+`)
+	sibylgoExecutable += " --config " + configFile
+
+	initRepo(repoPath)
+	EnableGitEncryption(repoPath, sibylgoExecutable)
+
+	// Debugging in case of failure:
+	gitattributes, _ := util.ReadFile(repoPath + "/.gitattributes")
+	gitconfig, _ := util.ReadFile(repoPath + "/.git/config")
+	fmt.Println(".gitattributes:\n" + gitattributes)
+	fmt.Println(".git/config:\n" + gitconfig)
+
+	fileContent := "hello world!"
+	file1 := filepath.Join(repoPath, "file1.txt")
+	os.WriteFile(file1, []byte(fileContent), 0644)
+
+	// When
+	_, err := commit(repoPath, "A test commit", "test@example.com", file1)
+
+	// Then
+	assert.NoError(t, err)
+	committedFileContent, _ := runGitCmd(repoPath, "git", "show", "HEAD:file1.txt")
+	assert.NotEmpty(t, committedFileContent)
+	assert.NotEqual(t, fileContent, committedFileContent)
+
+	var b bytes.Buffer
+	cryptor := AnsibleCryptor{Password: "password123"}
+	cryptor.DecryptContent(strings.NewReader(committedFileContent), &b)
+	assert.Equal(t, fileContent, b.String())
 }
 
 func TestCommit(t *testing.T) {

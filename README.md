@@ -215,6 +215,9 @@ parse:
 
 optimized_format: true
 
+backup:
+  encrypt_password: password123
+
 mailHost: smtp.example.com
 mailPort: 3025
 mailFrom: foo@example.com

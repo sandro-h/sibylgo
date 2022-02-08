@@ -15,10 +15,13 @@ install-sys-packages:
 build: build-linux build-win
 
 build-linux:
-	go build -v -ldflags="-X 'main.buildVersion=$(VERSION)' -X 'main.buildNumber=${BUILD_NUM}' -X 'main.buildRevision=${GIT_SHA}' ${EXTRA_LDFLAGS}"
+	go build -v -ldflags="-X 'main.buildVersion=$(VERSION)' -X 'main.buildNumber=${BUILD_NUM}' -X 'main.buildRevision=${GIT_SHA}' ${EXTRA_LDFLAGS}" ${TAG_ARGS}
 
 build-win:
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ go build -v -ldflags="-X 'main.buildVersion=$(VERSION)' -X 'main.buildNumber=${BUILD_NUM}' -X 'main.buildRevision=${GIT_SHA}' ${EXTRA_LDFLAGS}"
+
+build-linux-headless: TAG_ARGS=-tags headless
+build-linux-headless: build-linux
 
 build-optimized: EXTRA_LDFLAGS=-s -w
 build-optimized: build

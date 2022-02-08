@@ -2,33 +2,97 @@ package backup
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
+	"github.com/sandro-h/sibylgo/util"
 	"gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing/format/index"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
 // IsRepoInitiated returns true if the passed folder is a git repository.
 func isRepoInitiated(repoPath string) bool {
 	_, err := git.PlainOpen(repoPath)
+	// TODO init filters if don't exist: create config, gitattributes
 	return err == nil
 }
 
 // InitRepo initiates a new non-bare Git repo in the passed folder. Fails if there already is a git repository.
 func initRepo(repoPath string) error {
 	_, err := git.PlainInit(repoPath, false)
+	// TODO init filters if don't exist: create config, gitattributes
 	return err
+}
+
+// EnableGitEncryption configures the backup git repository to use filters to automatically
+// encrypt any committed backups, using sibylgo as the provider for encryption and decryption.
+func EnableGitEncryption(repoPath string, executable string) error {
+	if !isRepoInitiated(repoPath) {
+		err := initRepo(repoPath)
+		if err != nil {
+			return err
+		}
+	}
+
+	gitAttributes := "*.txt filter=sibylgo_filter diff=sibylgo_filter"
+	err := util.WriteFile(filepath.Join(repoPath, ".gitattributes"), gitAttributes)
+	if err != nil {
+		return err
+	}
+
+	gitConfigFile := filepath.Join(repoPath, ".git", "config")
+	existingGitConfig := ""
+	if util.Exists(gitConfigFile) {
+		existingGitConfig, err = util.ReadFile(gitConfigFile)
+		if err != nil {
+			return err
+		}
+	}
+
+	if !strings.Contains(existingGitConfig, "[filter \"sibylgo_filter\"]") {
+		normalizedExec := strings.ReplaceAll(executable, "\\", "/")
+
+		updatedGitConfig := existingGitConfig + fmt.Sprintf(`
+[filter "sibylgo_filter"]
+	clean = %s --encrypt
+	smudge = %s --decrypt
+
+[diff "sibylgo_filter"]
+	textconv = %s --decrypt
+`, normalizedExec, normalizedExec, normalizedExec)
+
+		err = util.WriteFile(gitConfigFile, updatedGitConfig)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Commit stages and commits the passed files in the passed folder.
 // Also commits if none of the passed files changed.
 func commit(repoPath string, message string, authorEmail string, files ...string) (*commitEntry, error) {
+
+	// Use git CLI here to support filters for encryption. go-git does not support this.
+	for _, f := range files {
+		if util.Exists(f) {
+			rel, _ := filepath.Rel(repoPath, f)
+			_, err := runGitCmd(repoPath, "git", "add", rel)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	_, err := runGitCmd(repoPath, "git", "add", "-u")
+	if err != nil {
+		return nil, err
+	}
+
 	r, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return nil, err
@@ -37,14 +101,6 @@ func commit(repoPath string, message string, authorEmail string, files ...string
 	w, err := r.Worktree()
 	if err != nil {
 		return nil, err
-	}
-
-	for _, f := range files {
-		rel, _ := filepath.Rel(repoPath, f)
-		_, err := w.Add(rel)
-		if err != nil && !errors.Is(err, index.ErrEntryNotFound) {
-			return nil, err
-		}
 	}
 
 	hash, err := w.Commit(message, &git.CommitOptions{
@@ -68,13 +124,9 @@ func commit(repoPath string, message string, authorEmail string, files ...string
 // RevertToCommit reverts all changes done since commitHash and creates a single new commit with these reversions.
 func revertToCommit(repoPath string, commitHash string, newCommitMessage string, authorEmail string) (*commitEntry, error) {
 	// Note go-git doesn't support revert, so we have to use the cli tool (and assume it's installed)
-	cmd := exec.Command("git", "revert", "--no-commit", fmt.Sprintf("%s..HEAD", commitHash))
-	cmd.Dir = repoPath
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-	err := cmd.Run()
+	_, err := runGitCmd(repoPath, "git", "revert", "--no-commit", fmt.Sprintf("%s..HEAD", commitHash))
 	if err != nil {
-		return nil, fmt.Errorf("error running git command, %s, stderr: %s", err.Error(), stderr.String())
+		return nil, err
 	}
 
 	// The revert command didn't auto-commit but staged all the necessary changes
@@ -105,6 +157,20 @@ func revertToCommit(repoPath string, commitHash string, newCommitMessage string,
 		return nil, err
 	}
 	return tocommitEntry(c), nil
+}
+
+func runGitCmd(repoPath string, cmdAndArgs ...string) (string, error) {
+	cmd := exec.Command(cmdAndArgs[0], cmdAndArgs[1:]...)
+	cmd.Dir = repoPath
+	var stdout bytes.Buffer
+	cmd.Stdout = &stdout
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	if err != nil {
+		return "", fmt.Errorf("error running git command, %s, stderr: %s", err.Error(), stderr.String())
+	}
+	return stdout.String(), nil
 }
 
 var matchAny = func(c *commitEntry) bool {

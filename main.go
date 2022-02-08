@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -28,11 +29,23 @@ var buildNumber = "0"
 var buildRevision = "-"
 
 var configFile = flag.String("config", "", "Path to config yml file. By default uses sibylgo.yml in same directory as this executable, if it exists.")
+var doEncrypt = flag.Bool("encrypt", false, "Encrypt stdin and write to stdout")
+var doDecrypt = flag.Bool("decrypt", false, "Decrypt stdin and write to stdout")
 var files *util.FileConfig
 var extSourcesProcess *extsources.ExternalSourcesProcess
 
 func main() {
 	flag.Parse()
+
+	if *doEncrypt || *doDecrypt {
+		log.SetOutput(ioutil.Discard)
+		cfg := loadConfig()
+		err := cryptContent(cfg.GetSubConfig("backup"))
+		if err != nil {
+			panic(err)
+		}
+		return
+	}
 
 	log.SetFormatter(&SimpleFormatter{})
 
@@ -48,7 +61,7 @@ func main() {
 	files = util.NewFileConfigFromConfig(cfg)
 	if files.TodoFile != "" {
 		log.Infof("Using todo file %s\n", files.TodoFile)
-		startDailyBackupProcess(files)
+		startBackups(cfg.GetSubConfig("backup"))
 	}
 
 	if cfg.HasKey("mailTo") {
@@ -106,6 +119,47 @@ func loadConfig() *util.Config {
 	}
 
 	return cfg
+}
+
+func startBackups(backupCfg *util.Config) {
+	if backupCfg.HasKey("encrypt_password") {
+		exec, err := os.Executable()
+		if err != nil {
+			panic(err)
+		}
+		backup.EnableGitEncryption(files.TodoDir, exec)
+	}
+
+	startDailyBackupProcess(files)
+}
+
+func cryptContent(backupCfg *util.Config) error {
+	var cryptor backup.Cryptor = &backup.AnsibleCryptor{
+		Password: backupCfg.GetStringOrFail("encrypt_password"),
+	}
+
+	if *doEncrypt {
+		err := cryptor.EncryptContent(os.Stdin, os.Stdout)
+		if err != nil {
+			panic(err)
+		}
+	} else if *doDecrypt {
+		in := os.Stdin
+		var err error
+		if flag.NArg() > 0 {
+			in, err = os.Open(flag.Arg(0))
+			if err != nil {
+				panic(err)
+			}
+			defer in.Close()
+		}
+
+		err = cryptor.DecryptContent(in, os.Stdout)
+		if err != nil {
+			panic(err)
+		}
+	}
+	return nil
 }
 
 func startMailReminders(cfg *util.Config) {

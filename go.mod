@@ -9,6 +9,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/robotn/gohook v0.31.3
 	github.com/sirupsen/logrus v1.8.1
+	github.com/sosedoff/ansible-vault-go v0.1.1
 	github.com/stretchr/testify v1.7.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gopkg.in/src-d/go-git.v4 v4.13.1
