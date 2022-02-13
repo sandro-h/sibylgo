@@ -150,13 +150,17 @@ func (p *parserState) parseCommentsAndSubMoments(mom moment.Moment, indent int) 
 		lineIndent, indentCharCnt := countIndent(line.content, ParseConfig.GetTabSize(), nextIndent)
 		if lineIndent >= nextIndent {
 			p.handleSubLine(mom, line, line.Content()[indentCharCnt:], indent)
-		} else if line.IsEmpty() && len(mom.GetComments()) > 0 {
-			// special case: treat empty line between comments as a comment
-			comment := &moment.CommentLine{
-				Content:   "",
-				DocCoords: moment.DocCoords{LineNumber: line.LineNumber(), Offset: line.Offset(), Length: 0}}
-			mom.AddComment(comment)
+		} else if line.IsEmpty() {
+			if len(mom.GetComments()) > 0 {
+				// special case: treat empty line between comments as a comment
+				comment := &moment.CommentLine{
+					Content:   "",
+					DocCoords: moment.DocCoords{LineNumber: line.LineNumber(), Offset: line.Offset(), Length: 0}}
+				mom.AddComment(comment)
+			}
+			// Otherwise just ignore the empty line
 		} else {
+			// "Unconsume" the line since it is probably meant for a parent moment up the recursion stack
 			p.scanner.Unscan()
 			break
 		}
