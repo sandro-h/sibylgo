@@ -97,6 +97,19 @@ func TestCommentsWithEmptyLines(t *testing.T) {
 	assertComments(t, todos, "1", "some comment", "", "more more more")
 }
 
+func TestCommentsAfterSubWithEmptyLines(t *testing.T) {
+	todos, _ := String(`
+[] 1
+	[] 1.1
+
+	some comment
+	more more more
+	`)
+
+	assertComments(t, todos, "1", "some comment", "more more more")
+	assertComments(t, todos, "1/1.1")
+}
+
 func TestEmptyTrailingComments(t *testing.T) {
 	todos, _ := String(`
 [] 1
