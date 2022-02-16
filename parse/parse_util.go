@@ -1,7 +1,6 @@
 package parse
 
 import (
-	"fmt"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -58,11 +57,6 @@ func countIndent(str string, tabSize int, maxIndent int) (int, int) {
 	return indent, cnt
 }
 
-func newParseError(line *Line, msg string, args ...interface{}) error {
-	args = append([]interface{}{line.LineNumber() + 1}, args...)
-	return fmt.Errorf("Line %d: "+msg, args...)
-}
-
 func parsePriority(str string) (int, string) {
 	prio := 0
 	for i := len(str) - 1; i >= 0; i-- {
@@ -81,4 +75,12 @@ func LastRuneIndex(s string, substr string) int {
 		return i
 	}
 	return utf8.RuneCountInString(s[:i])
+}
+
+// HasRunePrefix returns true if the string starts with the prefix rune.
+func HasRunePrefix(str string, prefix rune) bool {
+	for _, c := range str {
+		return c == prefix
+	}
+	return false
 }

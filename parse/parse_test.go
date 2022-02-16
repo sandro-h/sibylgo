@@ -170,14 +170,14 @@ func TestColorCategory(t *testing.T) {
 }
 
 func TestBadCategory(t *testing.T) {
-	_, err := String(`
+	todos, _ := String(`
 ------------------
  a cat
  invalid more stuff
 [] 1
 	`)
 
-	assert.Contains(t, err.Error(), "Expected a delimiter after category a cat")
+	assert.Empty(t, todos.Categories)
 }
 
 func TestCategoryWithDifferentConfig(t *testing.T) {

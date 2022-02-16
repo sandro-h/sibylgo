@@ -18,7 +18,7 @@ type LineScanner struct {
 	hasNextLine bool
 	prevLine    string
 	nextLine    string
-	line        Line
+	line        *Line
 	lineNumber  int
 	offset      int
 	lastOffset  int
@@ -70,7 +70,7 @@ func (s *LineScanner) Scan() bool {
 		s.updateNextLine()
 	}
 	s.prevLine = ret
-	s.line = Line{
+	s.line = &Line{
 		content:    ret,
 		lineNumber: s.lineNumber - 2,
 		offset:     s.lastOffset - utf8.RuneCountInString(ret) - s.nlLen}
@@ -79,7 +79,7 @@ func (s *LineScanner) Scan() bool {
 
 // Line returns the line read in the preceding Scan call.
 func (s *LineScanner) Line() *Line {
-	return &s.line
+	return s.line
 }
 
 // ScanAndLine is a combination of calling Scan() and then Line().
@@ -166,4 +166,9 @@ func (l *Line) IsEmpty() bool {
 // HasPrefix returns true if the line starts with the prefix string.
 func (l *Line) HasPrefix(prefix string) bool {
 	return strings.HasPrefix(l.content, prefix)
+}
+
+// HasRunePrefix returns true if the line starts with the prefix rune.
+func (l *Line) HasRunePrefix(prefix rune) bool {
+	return HasRunePrefix(l.content, prefix)
 }

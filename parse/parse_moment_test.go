@@ -8,36 +8,40 @@ import (
 )
 
 func TestDone(t *testing.T) {
-	mom, _ := parseMom("[] blabla")
+	mom := parseMom("[] blabla")
 	assert.False(t, mom.IsDone())
 
-	mom, _ = parseMom("[x] blabla")
-	assert.True(t, mom.IsDone())
-
-	mom, _ = parseMom("[ x   ] blabla")
-	assert.True(t, mom.IsDone())
-
-	mom, _ = parseMom("[b] blabla")
+	mom = parseMom("[ ] blabla")
 	assert.False(t, mom.IsDone())
+
+	mom = parseMom("[x] blabla")
+	assert.True(t, mom.IsDone())
+
+	mom = parseMom("[ x   ] blabla")
+	assert.True(t, mom.IsDone())
 }
 
-func TestBadDoneBrackets(t *testing.T) {
-	_, err := parseMom("[x blabla")
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "Expected closing ] for moment line [x blabla")
+func TestBadOpenBrackets(t *testing.T) {
+	mom := parseMom("[x blabla")
+	assert.Nil(t, mom)
+}
+
+func TestBadBracketContent(t *testing.T) {
+	mom := parseMom("[x bl] abla")
+	assert.Nil(t, mom)
 }
 
 func TestWorkState(t *testing.T) {
-	mom, _ := parseMom("[] blabla")
+	mom := parseMom("[] blabla")
 	assert.Equal(t, moment.NewState, mom.GetWorkState())
 
-	mom, _ = parseMom("[x] blabla")
+	mom = parseMom("[x] blabla")
 	assert.Equal(t, moment.DoneState, mom.GetWorkState())
 
-	mom, _ = parseMom("[w] blabla")
+	mom = parseMom("[w] blabla")
 	assert.Equal(t, moment.WaitingState, mom.GetWorkState())
 
-	mom, _ = parseMom("[p] blabla")
+	mom = parseMom("[p] blabla")
 	assert.Equal(t, moment.InProgressState, mom.GetWorkState())
 }
 
@@ -47,25 +51,25 @@ func TestWorkStateDifferentConfig(t *testing.T) {
 	ParseConfig.SetWaitingMark('.')
 	ParseConfig.SetInProgressMark('>')
 
-	mom, _ := parseMom("[] blabla")
+	mom := parseMom("[] blabla")
 	assert.Equal(t, moment.NewState, mom.GetWorkState())
 
-	mom, _ = parseMom("[/] blabla")
+	mom = parseMom("[/] blabla")
 	assert.Equal(t, moment.DoneState, mom.GetWorkState())
 
-	mom, _ = parseMom("[.] blabla")
+	mom = parseMom("[.] blabla")
 	assert.Equal(t, moment.WaitingState, mom.GetWorkState())
 
-	mom, _ = parseMom("[>] blabla")
+	mom = parseMom("[>] blabla")
 	assert.Equal(t, moment.InProgressState, mom.GetWorkState())
 }
 
 func TestPriority(t *testing.T) {
-	mom, _ := parseMom("[] blabla!!!")
+	mom := parseMom("[] blabla!!!")
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.Equal(t, 3, mom.GetPriority())
 
-	smom, _ := parseSingleMom("[] blabla!! (1.2.2015)")
+	smom := parseSingleMom("[] blabla!! (1.2.2015)")
 	assert.Equal(t, "blabla", smom.GetName())
 	assert.Equal(t, 2, smom.GetPriority())
 	assert.Equal(t, "01.02.2015 00:00", dateStr(smom.Start))
@@ -75,18 +79,18 @@ func TestPriorityWithDifferentConfig(t *testing.T) {
 	defer ResetConfig()
 	ParseConfig.SetPriorityMark('<')
 
-	mom, _ := parseMom("[] blabla<<<")
+	mom := parseMom("[] blabla<<<")
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.Equal(t, 3, mom.GetPriority())
 
-	smom, _ := parseSingleMom("[] blabla<< (1.2.2015)")
+	smom := parseSingleMom("[] blabla<< (1.2.2015)")
 	assert.Equal(t, "blabla", smom.GetName())
 	assert.Equal(t, 2, smom.GetPriority())
 	assert.Equal(t, "01.02.2015 00:00", dateStr(smom.Start))
 }
 
 func TestNoDate(t *testing.T) {
-	mom, _ := parseSingleMom("[] blabla")
+	mom := parseSingleMom("[] blabla")
 
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.Equal(t, "nil", dateStr(mom.Start))
@@ -94,7 +98,7 @@ func TestNoDate(t *testing.T) {
 }
 
 func TestSingleDate(t *testing.T) {
-	mom, _ := parseSingleMom("[] blabla (24.12.2015)")
+	mom := parseSingleMom("[] blabla (24.12.2015)")
 
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.Equal(t, "24.12.2015 00:00", dateStr(mom.Start))
@@ -102,7 +106,7 @@ func TestSingleDate(t *testing.T) {
 }
 
 func TestRangeDate(t *testing.T) {
-	mom, _ := parseSingleMom("[] blabla (24.12.2015-25.12.2015)")
+	mom := parseSingleMom("[] blabla (24.12.2015-25.12.2015)")
 
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.Equal(t, "24.12.2015 00:00", dateStr(mom.Start))
@@ -110,7 +114,7 @@ func TestRangeDate(t *testing.T) {
 }
 
 func TestEndlessRangeDate(t *testing.T) {
-	mom, _ := parseSingleMom("[] blabla (24.12.2015-)")
+	mom := parseSingleMom("[] blabla (24.12.2015-)")
 
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.Equal(t, "24.12.2015 00:00", dateStr(mom.Start))
@@ -118,7 +122,7 @@ func TestEndlessRangeDate(t *testing.T) {
 }
 
 func TestStartlessRangeDate(t *testing.T) {
-	mom, _ := parseSingleMom("[] blabla (-25.12.2015)")
+	mom := parseSingleMom("[] blabla (-25.12.2015)")
 
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.Equal(t, "nil", dateStr(mom.Start))
@@ -126,7 +130,7 @@ func TestStartlessRangeDate(t *testing.T) {
 }
 
 func TestShortYearDate(t *testing.T) {
-	mom, _ := parseSingleMom("[] blabla (24.12.15)")
+	mom := parseSingleMom("[] blabla (24.12.15)")
 
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.Equal(t, "24.12.2015 00:00", dateStr(mom.Start))
@@ -134,7 +138,7 @@ func TestShortYearDate(t *testing.T) {
 }
 
 func TestZeroPaddedDate(t *testing.T) {
-	mom, _ := parseSingleMom("[] blabla (04.01.15)")
+	mom := parseSingleMom("[] blabla (04.01.15)")
 
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.Equal(t, "04.01.2015 00:00", dateStr(mom.Start))
@@ -142,7 +146,7 @@ func TestZeroPaddedDate(t *testing.T) {
 }
 
 func TestNonZeroPaddedDate(t *testing.T) {
-	mom, _ := parseSingleMom("[] blabla (4.1.15)")
+	mom := parseSingleMom("[] blabla (4.1.15)")
 
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.Equal(t, "04.01.2015 00:00", dateStr(mom.Start))
@@ -150,7 +154,7 @@ func TestNonZeroPaddedDate(t *testing.T) {
 }
 
 func TestFaultySingleDate(t *testing.T) {
-	mom, _ := parseSingleMom("[] blabla (4.1.asfasf)")
+	mom := parseSingleMom("[] blabla (4.1.asfasf)")
 
 	assert.Equal(t, "blabla (4.1.asfasf)", mom.GetName())
 	assert.Equal(t, "nil", dateStr(mom.Start))
@@ -158,7 +162,7 @@ func TestFaultySingleDate(t *testing.T) {
 }
 
 func TestFaultyRangeDate(t *testing.T) {
-	mom, _ := parseSingleMom("[] blabla (4.1.2015-asgdgd)")
+	mom := parseSingleMom("[] blabla (4.1.2015-asgdgd)")
 
 	assert.Equal(t, "blabla (4.1.2015-asgdgd)", mom.GetName())
 	assert.Equal(t, "nil", dateStr(mom.Start))
@@ -166,7 +170,7 @@ func TestFaultyRangeDate(t *testing.T) {
 }
 
 func TestSingleDateWithTime(t *testing.T) {
-	mom, _ := parseSingleMom("[] blabla (24.12.2015 13:15)")
+	mom := parseSingleMom("[] blabla (24.12.2015 13:15)")
 
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.Equal(t, "24.12.2015 00:00", dateStr(mom.Start))
@@ -177,7 +181,7 @@ func TestSingleDateWithTime(t *testing.T) {
 }
 
 func TestRangeDateWithTime(t *testing.T) {
-	mom, _ := parseSingleMom("[] blabla (24.12.2015-25.12.2015 13:15)")
+	mom := parseSingleMom("[] blabla (24.12.2015-25.12.2015 13:15)")
 
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.Equal(t, "24.12.2015 00:00", dateStr(mom.Start))
@@ -192,7 +196,7 @@ func TestSingleDateWithTimeDifferentConfig(t *testing.T) {
 	ParseConfig.SetDateFormats([]string{"2006-01-02"})
 	ParseConfig.SetTimeFormat("15.04")
 
-	mom, _ := parseSingleMom("[] blabla (2015-12-24 13.15)")
+	mom := parseSingleMom("[] blabla (2015-12-24 13.15)")
 
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.Equal(t, "24.12.2015 00:00", dateStr(mom.Start))
@@ -264,7 +268,7 @@ func TestCalculateStartlessRangeCoords(t *testing.T) {
 }
 
 func TestRecurringMoment(t *testing.T) {
-	mom, _ := parseRecurMom("[] blabla (every 5.)")
+	mom := parseRecurMom("[] blabla (every 5.)")
 	assert.NotNil(t, mom)
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.Equal(t, 0, mom.Offset)
@@ -276,7 +280,7 @@ func TestRecurringMoment(t *testing.T) {
 }
 
 func TestUnicodeRecurringMoment(t *testing.T) {
-	mom, _ := parseRecurMom("[] bläbla (every 5.)")
+	mom := parseRecurMom("[] bläbla (every 5.)")
 	assert.Equal(t, "bläbla", mom.GetName())
 	assert.Equal(t, 0, mom.Offset)
 	assert.Equal(t, 20, mom.Length)
@@ -285,7 +289,7 @@ func TestUnicodeRecurringMoment(t *testing.T) {
 }
 
 func TestDoneRecurringMoment(t *testing.T) {
-	mom, _ := parseRecurMom("[x] blabla (every 5.)")
+	mom := parseRecurMom("[x] blabla (every 5.)")
 	assert.NotNil(t, mom)
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.True(t, mom.IsDone())
@@ -297,7 +301,7 @@ func TestDoneRecurringMoment(t *testing.T) {
 }
 
 func TestPriorityRecurringMoment(t *testing.T) {
-	mom, _ := parseRecurMom("[] blabla! (every 5.)")
+	mom := parseRecurMom("[] blabla! (every 5.)")
 	assert.NotNil(t, mom)
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.Equal(t, 1, mom.GetPriority())
@@ -309,7 +313,7 @@ func TestPriorityRecurringMoment(t *testing.T) {
 }
 
 func TestRecurringMomentWithTime(t *testing.T) {
-	mom, _ := parseRecurMom("[] blabla (every 5. 13:15)")
+	mom := parseRecurMom("[] blabla (every 5. 13:15)")
 
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.Equal(t, moment.RecurMonthly, mom.Recurrence.Recurrence)
@@ -320,13 +324,13 @@ func TestRecurringMomentWithTime(t *testing.T) {
 }
 
 func TestEndingWithBracket(t *testing.T) {
-	mom, _ := parseSingleMom("[] blabla)")
+	mom := parseSingleMom("[] blabla)")
 
 	assert.Equal(t, "blabla)", mom.GetName())
 }
 
 func TestID(t *testing.T) {
-	mom, _ := parseSingleMom("[] blabla #my-id-123")
+	mom := parseSingleMom("[] blabla #my-id-123")
 
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.NotNil(t, mom.GetID())
@@ -336,7 +340,7 @@ func TestID(t *testing.T) {
 }
 
 func TestIDWithDate(t *testing.T) {
-	mom, _ := parseSingleMom("[] blabla (1.12.19) #my-id-123")
+	mom := parseSingleMom("[] blabla (1.12.19) #my-id-123")
 
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.NotNil(t, mom.GetID())
@@ -347,7 +351,7 @@ func TestIDWithDate(t *testing.T) {
 }
 
 func TestIDTrimming(t *testing.T) {
-	mom, _ := parseSingleMom("[] blabla   #my-id-123  ")
+	mom := parseSingleMom("[] blabla   #my-id-123  ")
 
 	assert.Equal(t, "blabla", mom.GetName())
 	assert.NotNil(t, mom.GetID())
@@ -358,9 +362,9 @@ func TestIDTrimming(t *testing.T) {
 
 func TestDifferentBrackets(t *testing.T) {
 	defer ResetConfig()
-	ParseConfig.SetLBracket("(")
+	ParseConfig.SetLBracket('(')
 	ParseConfig.SetRBracket(')')
-	mom, _ := parseSingleMom("() blabla")
+	mom := parseSingleMom("() blabla")
 
 	assert.Equal(t, "blabla", mom.GetName())
 }
@@ -379,17 +383,17 @@ func timeStr(dt *moment.Date) string {
 	return dt.Time.Format("15:04:05")
 }
 
-func parseMom(content string) (moment.Moment, error) {
+func parseMom(content string) moment.Moment {
 	line := &Line{content: content}
 	return parseMoment(line, line.Content())
 }
 
-func parseSingleMom(content string) (*moment.SingleMoment, error) {
-	mom, err := parseMom(content)
-	return mom.(*moment.SingleMoment), err
+func parseSingleMom(content string) *moment.SingleMoment {
+	mom := parseMom(content)
+	return mom.(*moment.SingleMoment)
 }
 
-func parseRecurMom(content string) (*moment.RecurMoment, error) {
-	mom, err := parseMom(content)
-	return mom.(*moment.RecurMoment), err
+func parseRecurMom(content string) *moment.RecurMoment {
+	mom := parseMom(content)
+	return mom.(*moment.RecurMoment)
 }

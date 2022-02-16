@@ -59,7 +59,7 @@ func stringifyMoment(m moment.Moment, parentDone bool, indent string) string {
 		panicNotImplemented()
 	}
 
-	res := fmt.Sprintf("%s%s%s%c %s%s%s%s\n",
+	res := fmt.Sprintf("%s%c%s%c %s%s%s%s\n",
 		indent,
 		parse.ParseConfig.GetLBracket(),
 		stateMarker,
