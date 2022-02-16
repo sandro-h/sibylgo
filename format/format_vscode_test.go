@@ -34,6 +34,28 @@ func TestFormatCat(t *testing.T) {
 `, format)
 }
 
+func TestFormatMoments(t *testing.T) {
+	input := `[] bla1
+	[x] sub
+[] bla2
+	comments
+	comments
+[x] bla3
+	comments
+	comments
+	`
+	todos, _ := parse.String(input)
+
+	format := ForVSCode(todos)
+	assert.Equal(t, `0,7,mom
+8,16,mom.done
+17,24,mom
+45,53,mom.done
+55,63,com.done
+65,73,com.done
+`, format)
+}
+
 func TestFormatDueSoon(t *testing.T) {
 	yesterday := tu.Dts(time.Now().AddDate(0, 0, -1))
 	in2Days := tu.Dts(time.Now().AddDate(0, 0, 2))
@@ -94,11 +116,29 @@ func TestUnoptimizedFormat(t *testing.T) {
 
 func TestOptimizedFormat(t *testing.T) {
 	// Not using parse.File because of CRLF differences impacting formatting ranges
-	todos, _ := parse.String(tu.ReadTestdata(t, "TestOptimizedFormat", "optimized.input"))
+	raw := tu.ReadTestdata(t, "TestOptimizedFormat", "optimized.input")
+	todos, _ := parse.String(raw)
 
-	format := ForVSCodeOptimized(todos)
+	format := ForVSCodeOptimized(todos, raw)
 
 	tu.AssertGoldenOutput(t, "TestOptimizedFormat", "optimized.output", format)
+}
+
+func TestOptimizedFormatWithCommentsAfterSubComment(t *testing.T) {
+	input := `
+[] bla1
+	[] bla2
+	comments
+	comments
+
+[] bla3
+	`
+	todos, _ := parse.String(input)
+
+	format := ForVSCodeOptimized(todos, input)
+	assert.Equal(t, `1,17,mom
+39,46,mom
+`, format)
 }
 
 func assertUntils(t *testing.T, format string, expected ...string) {

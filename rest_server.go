@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -34,7 +35,11 @@ func startRestServer(cfg *util.Config) {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/format", func(w http.ResponseWriter, r *http.Request) {
-		formatMoments(w, r, optimizedFormat)
+		if optimizedFormat {
+			formatMomentsOptimized(w, r)
+		} else {
+			formatMoments(w, r)
+		}
 	}).Methods("POST")
 	router.HandleFunc("/folding", foldMoments).Methods("POST")
 	router.HandleFunc("/clean", clean).Methods("POST")
@@ -55,21 +60,35 @@ func startRestServer(cfg *util.Config) {
 	log.Infof("Started REST server on %s:%d\n", host, port)
 }
 
-func formatMoments(w http.ResponseWriter, r *http.Request, optimizedFormat bool) {
+func formatMoments(w http.ResponseWriter, r *http.Request) {
 	reader := base64.NewDecoder(base64.StdEncoding, r.Body)
 	todos, err := parse.Reader(reader)
+
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 	}
 
-	var res string
-	if optimizedFormat {
-		res = format.ForVSCodeOptimized(todos)
-	} else {
-		res = format.ForVSCode(todos)
+	formats := format.ForVSCode(todos)
+	fmt.Fprint(w, formats)
+}
+
+func formatMomentsOptimized(w http.ResponseWriter, r *http.Request) {
+	reader := base64.NewDecoder(base64.StdEncoding, r.Body)
+
+	data, err := ioutil.ReadAll(reader)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
 	}
 
-	fmt.Fprint(w, res)
+	raw := string(data)
+	todos, err := parse.String(raw)
+
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+	}
+
+	formats := format.ForVSCodeOptimized(todos, raw)
+	fmt.Fprint(w, formats)
 }
 
 func foldMoments(w http.ResponseWriter, r *http.Request) {
