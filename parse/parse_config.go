@@ -46,7 +46,7 @@ const defaultYearlyPattern = `(?i)every (\d{1,2})\.(\d{1,2})\.?$`
 type parseConfig struct {
 	categoryDelim    string
 	tabSize          int
-	lBracket         string
+	lBracket         *rune
 	rBracket         *rune
 	priorityMark     *rune
 	inProgressMark   *rune
@@ -100,16 +100,17 @@ func (c *parseConfig) SetTabSize(tabSize int) {
 	c.tabSize = tabSize
 }
 
-func (c *parseConfig) GetLBracket() string {
-	if c.lBracket == "" {
-		c.lBracket = c.BackingCfg.GetString("lbracket", defaultLBracket)
+func (c *parseConfig) GetLBracket() rune {
+	if c.lBracket == nil {
+		r, _ := utf8.DecodeRuneInString(c.BackingCfg.GetString("lbracket", defaultLBracket))
+		c.lBracket = &r
 	}
 
-	return c.lBracket
+	return *c.lBracket
 }
 
-func (c *parseConfig) SetLBracket(bracket string) {
-	c.lBracket = bracket
+func (c *parseConfig) SetLBracket(bracket rune) {
+	c.lBracket = &bracket
 }
 
 func (c *parseConfig) GetRBracket() rune {

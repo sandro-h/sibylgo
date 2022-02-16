@@ -43,10 +43,7 @@ func parse(scanner *LineScanner) (*moment.Todos, error) {
 	parserState := parserState{todos: &moment.Todos{}, scanner: scanner}
 	parserState.todos.MomentsByID = make(map[string]moment.Moment)
 	for parserState.scanner.Scan() {
-		err := parserState.handleLine(parserState.scanner.Line())
-		if err != nil {
-			return nil, err
-		}
+		parserState.handleLine(parserState.scanner.Line())
 	}
 
 	if err := parserState.scanner.Err(); err != nil {
@@ -56,42 +53,32 @@ func parse(scanner *LineScanner) (*moment.Todos, error) {
 	return parserState.todos, nil
 }
 
-func (p *parserState) handleLine(line *Line) error {
+func (p *parserState) handleLine(line *Line) {
 	if line.IsEmpty() {
-		return nil
+		return
 	}
-	var err error
 	if line.HasPrefix(ParseConfig.GetCategoryDelim()) {
-		err = p.handleCategoryLine(line)
-	} else if line.HasPrefix(ParseConfig.GetLBracket()) {
-		err = p.handleMomentLine(line)
+		p.handleCategoryLine(line)
+	} else if line.HasRunePrefix(ParseConfig.GetLBracket()) {
+		p.handleMomentLine(line)
 	}
-	//fmt.Printf("%s\n", line.content)
-	return err
 }
 
-func (p *parserState) handleCategoryLine(line *Line) error {
+func (p *parserState) handleCategoryLine(line *Line) {
 	ok, catLine := p.scanner.ScanAndLine()
 	if !ok {
-		return newParseError(catLine, "Expected a category name after category delimiter")
+		// Expected a category name after category delimiter
+		return
+	}
+
+	// Consume closing delimiter after category line
+	ok, nextLine := p.scanner.ScanAndLine()
+	if !ok || !nextLine.HasPrefix(ParseConfig.GetCategoryDelim()) {
+		return
 	}
 
 	p.curCategory = parseCategory(catLine)
 	p.todos.Categories = append(p.todos.Categories, p.curCategory)
-
-	ok, nxt := p.scanner.ScanAndLine()
-	if !ok {
-		return newParseError(catLine,
-			"Expected a delimiter after category %s, but reached end",
-			p.curCategory.Name)
-	}
-	if !nxt.HasPrefix(ParseConfig.GetCategoryDelim()) {
-		return newParseError(nxt,
-			"Expected a delimiter after category %s, got %s",
-			p.curCategory.Name, nxt.Content())
-	}
-
-	return nil
 }
 
 func parseCategory(line *Line) *moment.Category {
@@ -116,34 +103,30 @@ func parseCategoryColor(lineVal string) (string, string) {
 	return colStr, strings.TrimSpace(lineVal[:p])
 }
 
-func (p *parserState) handleMomentLine(line *Line) error {
-	mom, err := p.parseFullMoment(line, line.TrimmedContent(), 0)
-	if err != nil {
-		return err
+func (p *parserState) handleMomentLine(line *Line) {
+	mom := p.parseFullMoment(line, line.TrimmedContent(), 0)
+	if mom == nil {
+		return
 	}
 	p.todos.Moments = append(p.todos.Moments, mom)
 	if mom.GetID() != nil {
 		p.todos.MomentsByID[mom.GetID().Value] = mom
 	}
-	return nil
 }
 
-func (p *parserState) parseFullMoment(line *Line, lineVal string, indent int) (moment.Moment, error) {
-	mom, err := parseMoment(line, lineVal)
-	if err != nil {
-		return nil, err
+func (p *parserState) parseFullMoment(line *Line, lineVal string, indent int) moment.Moment {
+	mom := parseMoment(line, lineVal)
+	if mom == nil {
+		return nil
 	}
 	mom.SetCategory(p.curCategory)
 
-	err = p.parseCommentsAndSubMoments(mom, indent)
-	if err != nil {
-		return nil, err
-	}
+	p.parseCommentsAndSubMoments(mom, indent)
 
-	return mom, nil
+	return mom
 }
 
-func (p *parserState) parseCommentsAndSubMoments(mom moment.Moment, indent int) error {
+func (p *parserState) parseCommentsAndSubMoments(mom moment.Moment, indent int) {
 	nextIndent := indent + ParseConfig.GetTabSize()
 	for p.scanner.Scan() {
 		line := p.scanner.Line()
@@ -172,26 +155,23 @@ func (p *parserState) parseCommentsAndSubMoments(mom moment.Moment, indent int) 
 		mom.RemoveLastComment()
 		lc = mom.GetLastComment()
 	}
-
-	return nil
 }
 
-func (p *parserState) handleSubLine(mom moment.Moment, line *Line, lineVal string, indent int) error {
-	if strings.HasPrefix(lineVal, ParseConfig.GetLBracket()) {
-		subMom, err := p.parseFullMoment(line, lineVal, indent+ParseConfig.GetTabSize())
-		if err != nil {
-			return err
+func (p *parserState) handleSubLine(mom moment.Moment, line *Line, lineVal string, indent int) {
+	if HasRunePrefix(lineVal, ParseConfig.GetLBracket()) {
+		subMom := p.parseFullMoment(line, lineVal, indent+ParseConfig.GetTabSize())
+		if subMom != nil {
+			mom.AddSubMoment(subMom)
+			return
 		}
-		mom.AddSubMoment(subMom)
-	} else {
-		// Assume it's a comment
-		_, indentCharCnt := countIndent(line.content, ParseConfig.GetTabSize(), indent+ParseConfig.GetTabSize())
-		comment := &moment.CommentLine{
-			Content: lineVal,
-			DocCoords: moment.DocCoords{LineNumber: line.LineNumber(),
-				Offset: line.Offset() + indentCharCnt,
-				Length: utf8.RuneCountInString(lineVal)}}
-		mom.AddComment(comment)
 	}
-	return nil
+
+	// Assume it's a comment
+	_, indentCharCnt := countIndent(line.content, ParseConfig.GetTabSize(), indent+ParseConfig.GetTabSize())
+	comment := &moment.CommentLine{
+		Content: lineVal,
+		DocCoords: moment.DocCoords{LineNumber: line.LineNumber(),
+			Offset: line.Offset() + indentCharCnt,
+			Length: utf8.RuneCountInString(lineVal)}}
+	mom.AddComment(comment)
 }

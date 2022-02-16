@@ -8,23 +8,23 @@ import (
 
 // parseMoment parses a moment from the line. It only parses the moment of this current line
 // and none of the sub moments or comments appear on subsequent lines.
-func parseMoment(line *Line, lineVal string) (moment.Moment, error) {
+func parseMoment(line *Line, lineVal string) moment.Moment {
 	id, lineVal := parseID(line, lineVal)
 	mom, lineVal := parseBaseMoment(line, lineVal)
 	mom.SetID(id)
 
-	state, lineVal, err := parseStateMark(line, lineVal)
-	if err != nil {
-		return nil, err
+	state, lineVal := parseStateMark(line, lineVal)
+	if state == nil {
+		return nil
 	}
-	mom.SetWorkState(state)
+	mom.SetWorkState(*state)
 
 	prio, lineVal := parsePriority(lineVal)
 	mom.SetPriority(prio)
 
 	mom.SetName(lineVal)
 
-	return mom, nil
+	return mom
 }
 
 func parseID(line *Line, lineVal string) (*moment.Identifier, string) {
@@ -75,25 +75,43 @@ func parseSingleMoment(line *Line, lineVal string) (*moment.SingleMoment, string
 	return mom, lineVal
 }
 
-func parseStateMark(line *Line, lineVal string) (moment.WorkState, string, error) {
+func parseStateMark(line *Line, lineVal string) (*moment.WorkState, string) {
 	rBracketPos := 0
-	state := moment.NewState
-	for i, c := range lineVal {
+	innerContent := ' '
+	// [1:] to skip left bracket
+	for i, c := range lineVal[1:] {
 		if c == ParseConfig.GetRBracket() {
-			rBracketPos = i
+			// +1 because [1:]
+			rBracketPos = i + 1
 			break
 		}
-		switch c {
-		case ParseConfig.GetDoneMark():
-			state = moment.DoneState
-		case ParseConfig.GetInProgressMark():
-			state = moment.InProgressState
-		case ParseConfig.GetWaitingMark():
-			state = moment.WaitingState
+		if c != ' ' && c != '\t' {
+			if innerContent == ' ' {
+				innerContent = c
+			} else {
+				return nil, lineVal
+			}
+
 		}
 	}
+
 	if rBracketPos == 0 {
-		return moment.NewState, "", newParseError(line, "Expected closing %c for moment line %s", ParseConfig.GetRBracket(), line.Content())
+		return nil, lineVal
 	}
-	return state, strings.TrimSpace(lineVal[rBracketPos+1:]), nil
+
+	var state moment.WorkState
+	switch innerContent {
+	case ' ':
+		state = moment.NewState
+	case ParseConfig.GetDoneMark():
+		state = moment.DoneState
+	case ParseConfig.GetInProgressMark():
+		state = moment.InProgressState
+	case ParseConfig.GetWaitingMark():
+		state = moment.WaitingState
+	default:
+		return nil, lineVal
+	}
+
+	return &state, strings.TrimSpace(lineVal[rBracketPos+1:])
 }
