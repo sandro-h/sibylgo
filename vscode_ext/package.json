@@ -105,6 +105,6 @@
     "@types/node-fetch": "^2.5.7",
     "@types/vscode": "^1.47.0",
     "typescript": "^3.5.1",
-    "vsce": "^1.103.1"
+    "vsce": "^2.6.7"
   }
 }
