@@ -130,7 +130,7 @@ func startBackups(backupCfg *util.Config) {
 		backup.EnableGitEncryption(files.TodoDir, exec)
 	}
 
-	startDailyBackupProcess(files)
+	startDailyBackupProcess(backupCfg, files)
 }
 
 func cryptContent(backupCfg *util.Config) error {
@@ -190,13 +190,28 @@ func startOutlookEvents(todoFile string, outlookConfig *util.Config) {
 	}
 }
 
-func startDailyBackupProcess(files *util.FileConfig) {
+func startDailyBackupProcess(backupCfg *util.Config, files *util.FileConfig) {
 	dailyBackupFunc := func() {
 		for {
-			backup.CheckAndMakeDailyBackup(files)
+			doDailyBackup(backupCfg, files)
 			time.Sleep(5 * time.Minute)
 		}
 	}
 	go dailyBackupFunc()
 	log.Info("Started daily backup\n")
+}
+
+func doDailyBackup(backupCfg *util.Config, files *util.FileConfig) {
+	newBackup, err := backup.CheckAndMakeDailyBackup(files)
+	if err != nil {
+		log.Errorf("Error making the daily backup: %s\n", err)
+		return
+	}
+
+	if backupCfg.HasKey("remote_url") && newBackup != nil {
+		err = backup.SyncToRemote(backupCfg, files)
+		if err != nil {
+			log.Errorf("Error syncing backup to remote: %s\n", err)
+		}
+	}
 }

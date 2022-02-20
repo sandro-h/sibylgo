@@ -2,6 +2,7 @@ package backup
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os/exec"
@@ -11,20 +12,20 @@ import (
 
 	"github.com/sandro-h/sibylgo/util"
 	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 )
 
 // IsRepoInitiated returns true if the passed folder is a git repository.
 func isRepoInitiated(repoPath string) bool {
 	_, err := git.PlainOpen(repoPath)
-	// TODO init filters if don't exist: create config, gitattributes
 	return err == nil
 }
 
 // InitRepo initiates a new non-bare Git repo in the passed folder. Fails if there already is a git repository.
 func initRepo(repoPath string) error {
 	_, err := git.PlainInit(repoPath, false)
-	// TODO init filters if don't exist: create config, gitattributes
 	return err
 }
 
@@ -157,6 +158,41 @@ func revertToCommit(repoPath string, commitHash string, newCommitMessage string,
 		return nil, err
 	}
 	return tocommitEntry(c), nil
+}
+
+func push(repoPath string, remoteURL string, remoteUser string, remotePassword string) error {
+	r, err := git.PlainOpen(repoPath)
+	if err != nil {
+		return err
+	}
+
+	err = r.DeleteRemote("origin")
+	if !errors.Is(err, git.ErrRemoteNotFound) {
+		return err
+	}
+
+	remote := config.RemoteConfig{
+		Name: "origin",
+		URLs: []string{remoteURL},
+	}
+
+	_, err = r.CreateRemote(&remote)
+	if err != nil {
+		return err
+	}
+
+	var auth *http.BasicAuth
+	if remoteUser != "" {
+		auth = &http.BasicAuth{
+			Username: remoteUser,
+			Password: remotePassword,
+		}
+	}
+
+	return r.Push(&git.PushOptions{
+		RemoteName: "origin",
+		Auth:       auth,
+	})
 }
 
 func runGitCmd(repoPath string, cmdAndArgs ...string) (string, error) {

@@ -68,8 +68,18 @@ func CheckAndMakeDailyBackup(files *util.FileConfig) (*Backup, error) {
 		return nil, nil
 	}
 
-	log.Infof("Creating daily backup for %s\n", today.Format("02.01.2006"))
+	log.Infof("Creating daily backup for %s\n", today.Format("2006-01-02"))
 	return Save(files, fmt.Sprintf("%s%s", dailyBackupPrefix, today.Format("02.01.2006")))
+}
+
+// SyncToRemote pushes the backup to the remote location defined in the backup configuration.
+func SyncToRemote(backupCfg *util.Config, files *util.FileConfig) error {
+	log.Infof("Pushing backup to remote %s\n", backupCfg.GetStringOrFail("remote_url"))
+
+	return push(files.TodoDir,
+		backupCfg.GetString("remote_url", ""),
+		backupCfg.GetString("remote_user", ""),
+		backupCfg.GetString("remote_password", ""))
 }
 
 // findNewestDailyCommitTimestamp returns the timestamp of the newest daily backup commit,
@@ -78,12 +88,13 @@ func findNewestDailyCommitTimestamp(todoDir string) (time.Time, error) {
 	if !isRepoInitiated(todoDir) {
 		return time.Unix(0, 0), nil
 	}
+
 	newestDailyCommit, err := findNewestCommit(todoDir, func(c *commitEntry) bool {
 		return c.AuthorEmail == sibylCommitAuthor &&
 			strings.HasPrefix(c.Message, dailyBackupPrefix)
 	})
 	if err != nil {
-		return time.Unix(0, 0), err
+		return time.Unix(0, 0), nil
 	}
 	if newestDailyCommit != nil {
 		return newestDailyCommit.Timestamp, nil

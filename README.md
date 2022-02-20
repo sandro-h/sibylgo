@@ -25,6 +25,7 @@ You can add arbitrary additional text and comments to the todos. The application
 * MS Outlook integration to add dated todos as private calendar events.
 * Simple local HTML calendar page
 * daily git-based **local** backups
+* optionally push encrypted backups to a remote git repository
 * Quickly add a todo from anywhere with global hotkey
 
 ![VSCode syntax highlighting and preview panel](docs/format_preview.png "VSCode syntax highlighting and preview panel")
@@ -217,6 +218,9 @@ optimized_format: true
 
 backup:
   encrypt_password: password123
+  remote_url: https://git.example.com/todos
+  remote_user: myuser
+  remote_password: mypassword
 
 mailHost: smtp.example.com
 mailPort: 3025
