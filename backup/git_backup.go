@@ -167,7 +167,7 @@ func push(repoPath string, remoteURL string, remoteUser string, remotePassword s
 	}
 
 	err = r.DeleteRemote("origin")
-	if !errors.Is(err, git.ErrRemoteNotFound) {
+	if err != nil && !errors.Is(err, git.ErrRemoteNotFound) {
 		return err
 	}
 
