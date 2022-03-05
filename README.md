@@ -4,7 +4,7 @@
 
 Text-based TODO application.
 
-It lets you write TODO list as you want (within the bounds of the syntax).
+It lets you write TODO lists as you want (within the bounds of the syntax).
 You can add arbitrary additional text and comments to the todos. The application will never reformat your TODO file, so you have full control of it.
 
 **Disclaimer: This tool is for my own personal use. Feedback and requests are welcome, but not necessarily acted upon.**
