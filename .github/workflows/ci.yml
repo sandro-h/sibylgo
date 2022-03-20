@@ -39,7 +39,7 @@ jobs:
 
     - name: Install additional build tools
       run: |
-        go get honnef.co/go/tools/cmd/staticcheck
+        go install honnef.co/go/tools/cmd/staticcheck@latest
         make install-sys-packages
 
     - name: Get dependencies
