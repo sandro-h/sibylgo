@@ -39,7 +39,7 @@ jobs:
 
     - name: Install additional build tools
       run: |
-        go get golang.org/x/lint/golint honnef.co/go/tools/cmd/staticcheck
+        go get honnef.co/go/tools/cmd/staticcheck
         make install-sys-packages
 
     - name: Get dependencies
@@ -58,8 +58,8 @@ jobs:
         name: go-coverage
         path: coverage.out
 
-    - name: Lint
-      run: make lint
+    - name: Vet
+      run: make vet
 
     - name: Staticcheck
       run: make staticcheck
